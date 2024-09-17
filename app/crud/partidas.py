@@ -8,16 +8,4 @@ from schemas.partidas import PartidaData
 """
 
 def get_partidas(db: Session):
-    return []
-
-def get_partida_by_id(db: Session, id: int):
-    return []
-
-def get_partidas_by_name(db: Session, nombre: str):
-    return []
-
-def create_partida(db: Session, partida: PartidaData):
-    return []
-
-def delete_partida(db: Session, id: int):
-    return []
+    return db.query(Partida).all()
