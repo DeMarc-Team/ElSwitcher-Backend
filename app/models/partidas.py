@@ -1,5 +1,5 @@
 from database import Base
-from sqlalchemy import Enum as Integer, String, Boolean
+from sqlalchemy import Integer, String, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
 class Partida(Base):

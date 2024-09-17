@@ -43,7 +43,13 @@ docker run -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=some_password --name nombre_de
 
 #### 4. Crear una base de datos con el nombre deseado (digamos nombre_db).
 
-#### 5. Crear un archivo llamado .env y escribir en el:
+#### 5. Moverse a la carpeta app.
+
+```
+cd app
+```
+
+#### 6. Crear un archivo llamado .env y escribir en el:
 
 ```
 DB_NAME=nombre_db
@@ -54,12 +60,6 @@ DB_USER=root
 ```
 
 Donde nombre_db y some_password son los valores que se asignaron en los pasos anteriores.
-
-#### 6. Moverse a la carpeta app.
-
-```
-cd app
-```
 
 #### 7. Ejecutar
 
