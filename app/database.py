@@ -6,8 +6,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
-env_path = Path('./.env')
-load_dotenv(dotenv_path=env_path)
+dotenv_path = Path('./.env')
+load_dotenv(dotenv_path=dotenv_path)
 
 DB_NAME = os.getenv('DB_NAME')
 DB_HOST = os.getenv('DB_HOST')
