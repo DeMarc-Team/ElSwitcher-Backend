@@ -1,9 +1,5 @@
 # ElSwitcher-Backend
 
-## NOTA:
-Se asume que se tiene [docker](https://www.docker.com/) y python instalados.
-Si en vez de [docker](https://www.docker.com/) se quiere usar otra forma de hostear una base de datos mysql, todo debería funcionar reemplazando el [paso 3](#3-hostear-un-servidor-de-mysql), adaptando las configuraciones del [paso 5](#4-crear-una-base-de-datos-con-el-nombre-deseado-digamos-nombre_db) como corresponda.
-
 ### Para iniciar la app
 
 Para iniciar esta simple aplicación, se pueden seguir los siguientes pasos:
@@ -26,42 +22,14 @@ source nombre_deseado_del_entorno/bin/activate
 pip install -r requirements.txt
 ```
 
-#### 3. Hostear un servidor de mysql
-
-Con docker:
-Obtener una imagen de mysql usando
-
-```
-docker pull mysql
-```
-
-Crear y correr un container de docker con el puerto 3306 expuesto
-
-```
-docker run -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=some_password --name nombre_deseado mysql
-```
-
-#### 4. Crear una base de datos con el nombre deseado (digamos nombre_db).
-
-#### 5. Moverse a la carpeta app.
+#### 3. Moverse a la carpeta app.
 
 ```
 cd app
 ```
 
-#### 6. Crear un archivo llamado .env y escribir en el:
 
-```
-DB_NAME=nombre_db
-DB_HOST=127.0.0.1
-DB_PASSWORD=some_password
-DB_DIALECT=mysql+pymysql
-DB_USER=root
-```
-
-Donde nombre_db y some_password son los valores que se asignaron en los pasos anteriores.
-
-#### 7. Ejecutar
+#### 4. Ejecutar
 
 ```
 uvicorn main:app --reload
