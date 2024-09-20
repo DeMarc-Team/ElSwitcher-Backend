@@ -4,7 +4,7 @@ from models.partidas import Partida
 from schemas.partidas import PartidaData
 
 """
-  WARNING: Estas funciones no están implementadas, solo están para estructurar el esqueleto del repositorio.
+    WARNING: Estas funciones no están implementadas, solo están para estructurar el esqueleto del repositorio.
 """
 
 def get_partidas(db: Session):
