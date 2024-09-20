@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 
 class PartidaData(BaseModel):
-    nombre: str
-    iniciada: bool
+    nombre_partida: str
+    nombre_creador: str
 
 class PartidaId(PartidaData):
     id: int

@@ -11,7 +11,7 @@ def get_partidas(db: Session):
     return db.query(Partida).all()
 
 def create_partida(db: Session, partida: PartidaData):
-    new_partida = Partida(nombre=partida.nombre, iniciada=False)
+    new_partida = Partida(nombre_partida=partida.nombre_partida, nombre_creador=partida.nombre_creador ,iniciada=False)
     db.add(new_partida)
     db.commit()
     db.flush()
