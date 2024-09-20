@@ -2,21 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
-from pathlib import Path
-from dotenv import load_dotenv
-import os
-
-dotenv_path = Path('./.env')
-load_dotenv(dotenv_path=dotenv_path)
-
-DB_NAME = os.getenv('DB_NAME')
-DB_HOST = os.getenv('DB_HOST')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-DB_DIALECT = os.getenv('DB_DIALECT')
-DB_USER = os.getenv('DB_USER')
-
-
-URL_DATABASE = f'{DB_DIALECT}://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+URL_DATABASE = f'sqlite:///maindata.db'
 
 engine = create_engine(URL_DATABASE)
 
