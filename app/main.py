@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from database import engine
-from routers import partidas
+from routers import partidas, jugadores
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -15,6 +15,7 @@ app.add_middleware(
 )
 
 app.include_router(partidas.router)
+app.include_router(jugadores.router)
 
 
 @app.get('/')
