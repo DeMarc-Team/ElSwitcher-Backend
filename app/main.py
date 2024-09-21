@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 
-from database import engine
-from routers import partidas, jugadores
+from app.routers import partidas, jugadores
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()

@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
-from crud.exceptions import PartidaNotFoundError
-from models.jugadores import Jugador
-from schemas.jugadores import JugadorData
-from crud.partidas import get_partida_by_id
+from app.crud.exceptions import PartidaNotFoundError
+from app.models.jugadores import Jugador
+from app.schemas.jugadores import JugadorData
+from app.crud.partidas import get_partida_by_id
 
 def create_jugador(db: Session, jugador: JugadorData):
     new_jugador = Jugador(nombre=jugador.nombre, partida_id=jugador.partida_id)
