@@ -9,24 +9,23 @@ from fastapi.testclient import TestClient
 from main import app
 from database import Base, get_db
 
-# Base de datos en memoria para pruebas
+# Configuramos la Base de Datos de pruebas
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Creamos la base de datos de prueba
+# Creamos de la Base de Datos de pruebas,
+# con todas las tablas definidas en el modelo de datos (definido en app.database).
 Base.metadata.create_all(bind=engine)
 
-# Sobrescribimos la dependencia get_db
+# Sobreescribimos de la Dependencia de la Base de Datos get_db
 def override_get_db():
     try:
         db = TestingSessionLocal()
         yield db
     finally:
         db.close()
-
-# Aplicamos la sobreescritura en el cliente de pruebas
 app.dependency_overrides[get_db] = override_get_db
 
-# Creamos el cliente de pruebas
+# Creamos del cliente de pruebas
 client = TestClient(app)

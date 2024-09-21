@@ -5,7 +5,6 @@ from models.partidas import Partida
 import pytest
 
 # Decorador "fixture" para preparar el entorno de prueba. 
-# scope="function" significa que se ejecutará antes de cada función de prueba.
 @pytest.fixture(scope="function")
 def test_data():
     # Cargamos en la db de prueba una partida con dos jugadores
@@ -42,15 +41,3 @@ def test_get_jugadores(test_data):
     assert response.json()[0]['nombre'] == "Jugador1"
     assert response.json()[1]['nombre'] == "Jugador2"
     print("Test exitoso")
-
-# No crear archivos llamados test_ que no sean de tests con pytest
-# No crear test con pytest si su nombre no inicia con test_
-
-# En pytest, no necesitas llamar explícitamente a las funciones de prueba.
-# El propio pytest se encarga de descubrir y ejecutar las funciones que comienzan
-# con test_
-
-# La función de prueba test_get_jugadores tiene como parámetro test_data, 
-# que es tu fixture. pytest detecta que necesitas esa fixture y la ejecuta 
-# automáticamente antes de ejecutar test_get_jugadores. 
-# Esto prepara el entorno de prueba (crea y carga datos en la base de datos).
