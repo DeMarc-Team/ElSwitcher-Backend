@@ -11,11 +11,12 @@ from fastapi import (
 from sqlalchemy.orm import Session
 from http import HTTPStatus
 
-from app.crud.exceptions import PartidaNotFoundError
-import app.crud.jugadores as crud
-from app.models.jugadores import Base, Jugador
-from app.database import engine, get_db
-from app.schemas.jugadores import JugadorData, JugadorOnCreateResponse
+from crud.exceptions import PartidaNotFoundError
+import crud.jugadores as crud
+from models.jugadores import Base, Jugador
+from database import engine, get_db
+
+from schemas.jugadores import JugadorData, JugadorOnCreateResponse
 
 Base.metadata.create_all(bind=engine)
 

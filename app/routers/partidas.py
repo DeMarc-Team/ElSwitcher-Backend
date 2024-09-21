@@ -7,10 +7,10 @@ from fastapi import (
 from sqlalchemy.orm import Session
 from http import HTTPStatus
 
-import app.crud.partidas as crud
-from app.models.partidas import Base
-from app.database import engine, get_db
-from app.schemas.partidas import PartidaData, PartidaId
+import crud.partidas as crud
+from models.partidas import Base
+from database import engine, get_db
+from schemas.partidas import PartidaData, PartidaId
 
 Base.metadata.create_all(bind=engine)
 

@@ -1,6 +1,6 @@
-from app.tests.tests_setup import client, TestingSessionLocal
-from app.models.jugadores import Jugador
-from app.models.partidas import Partida
+from tests_setup import client, TestingSessionLocal
+from models.jugadores import Jugador
+from models.partidas import Partida
 
 import pytest
 
