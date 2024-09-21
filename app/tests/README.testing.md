@@ -18,7 +18,7 @@ Parado sobre el directorio _app_.
     - No crear archivos llamados test_ que no sean de tests con pytest
     - No crear test con pytest si su nombre no inicia con test_
         - En pytest, no necesitas llamar explícitamente a las funciones de prueba.
-        - El propio pytest se encarga de descubrir y ejecutar las funciones qu comienzan con test_
+        - El propio pytest se encarga de descubrir y ejecutar las funciones que comienzan con test_
         - que es tu fixture. pytest detecta que necesitas esa fixture y la ejecuta 
         - automáticamente antes de ejecutar test_get_jugadores. 
         - Esto prepara el entorno de prueba (crea y carga datos en la base de datos).
