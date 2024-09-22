@@ -33,11 +33,18 @@ def test_data():
 
 
 def test_get_jugadores(test_data):
-    # Llamamos al endpoint para obtener jugadores de la partida con ID 1
+    # Llamamos al endpoint para obtener jugadores de la partida con ID 1 (existente)
     response = client.get("partidas/1/jugadores")
     print(f"Response: {response.json()}")
     assert response.status_code == 200
     assert len(response.json()) == 2
     assert response.json()[0]['nombre'] == "Jugador1"
     assert response.json()[1]['nombre'] == "Jugador2"
-    print("Test exitoso")
+    #Test exitoso: Se obtuvieron los jugadores de una partida existente
+
+    # Llamamos al endpoint para obtener jugadores de la partida con ID 2 (inexistente)
+    response = client.get("partidas/2/jugadores")
+    print(f"Response: {response.json()}")
+    assert response.status_code == 404
+    assert len(response.json()) == 1
+    #Test exitoso: Se devolvio 404 not found a la peticion de los jugadores de una partida inexistente
