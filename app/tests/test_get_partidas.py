@@ -1,5 +1,6 @@
 from tests_setup import client, TestingSessionLocal
 from models.partidas import Partida
+from models.jugadores import Jugador
 import pytest
 
 # Decorador "fixture" para preparar el entorno de prueba. 
@@ -34,5 +35,5 @@ def test_get_partidas(test_data):
     print(f"Response: {response.json()}")
     assert response.status_code == 200 , f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     assert len(response.json()) == 1 ,  f"Fallo: Se esperaba 1 partida, pero se obtuvo {len(response_data)}"
-    assert response.json()[0]['nombre_partida'] == "Nombre_partida"
+    assert response.json()[0]['nombre_partida'] == "nombre_partida"
     print("Test exitoso")
