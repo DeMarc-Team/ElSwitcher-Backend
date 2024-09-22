@@ -56,11 +56,11 @@ def test_post_200(test_data):
     # Test exitoso: Se unio un jugador a una partida existente
 
 
-def test_post_400(test_data):
+def test_post_403(test_data):
     body = {"nombre": "Jugador5"}
     response = client.post("partidas/2/jugadores", json=body)
     print(f"Response: {response.json()}")
-    assert response.status_code == 400
+    assert response.status_code == 403
     assert len(response.json()) == 1
     # Test exitoso: Se rechazo la peticion de unir un jugador a una partida llena
 

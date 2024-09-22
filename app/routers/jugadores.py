@@ -11,7 +11,7 @@ from fastapi import (
 from sqlalchemy.orm import Session
 from http import HTTPStatus
 
-from crud.exceptions import PartidaNotFoundError
+from crud.exceptions import PartidaNotFoundError, PartidaLlenaError
 import crud.jugadores as crud
 from models.jugadores import Base, Jugador
 from database import engine, get_db
@@ -41,6 +41,8 @@ async def join_to_partida(partida_id: int, jugador:JugadorData, db: Session = De
         jugador = crud.create_jugador(db, Jugador(nombre=jugador.nombre, partida_id=partida_id))
     except PartidaNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Partida Not Found")
+    except PartidaLlenaError as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Partida Full")
     except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     # WARNING: If we leave it like this, then a disconnection could produce "dangling jugadors" (if we don't give a medium for reconnecting)
