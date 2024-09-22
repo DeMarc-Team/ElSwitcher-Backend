@@ -1,24 +1,39 @@
+# ¿Como crear tests y que hay que tener en cuenta?
 
-# Como lanzar los test
- Como estamos usando *pytest* para el testing, simplemente hay que usar:
-```bash
- $ app > pytest
+## Como crear un test
+
+Crear un archivo test_nombre.py con el siguiente formato:
+
+```python
+@pytest.fixture(scope="function")
+def test_data(): # Definir la función test data (Si hace falta).
+    db = TestingSessionLocal()
+    # Se crean entidades en la base de datos
+    # ...
+    yield  # Este es el punto donde se ejecutan las pruebas
+    # Limpieza de la base de datos
+
+def test_get_jugadores(test_data):
+    response = client.get("partidas/1/jugadores")
+    assert response.status_code == 200
+    assert len(response.json()) == 2
 ```
-Parado sobre el directorio _app_.
 
+La función de prueba test_get_jugadores tiene como parámetro test_data, que es el fixture test_data(). Pytest detecta que se necesita esa fixture y la ejecuta
+automáticamente antes de ejecutar test_get_jugadores.
+scope="function" significa que se ejecutará antes de cada función de prueba.
 
-### Para agregar mas test:
+Fixture: Sirven para configurar condiciones previas a las pruebas y limpiar después de ellas. Esto prepara el entorno de prueba (crea y carga datos en la base de datos).
 
-1. Crear un archivo test_<funcionalidad_a_testear>.py
-2. Definir la función test data (Si hace falta).
-3. Escribir el test utilizando respetando las [convenciones y usar las ayudas](#convencionesayudas)
+## Como correr los tests
 
+Ejecutar comando: `pytest` o `app > pytest` parado sobre el directorio _app_.
 
-### Convenciones/ayudas:
-    - No crear archivos llamados test_ que no sean de tests con pytest
-    - No crear test con pytest si su nombre no inicia con test_
-        - En pytest, no necesitas llamar explícitamente a las funciones de prueba.
-        - El propio pytest se encarga de descubrir y ejecutar las funciones que comienzan con test_
-        - que es tu fixture. pytest detecta que necesitas esa fixture y la ejecuta 
-        - automáticamente antes de ejecutar test_get_jugadores. 
-        - Esto prepara el entorno de prueba (crea y carga datos en la base de datos).
+## Cómo Funciona pytest
+
+**Descubrimiento de Pruebas**: pytest escanea recursivamente el directorio de pruebas para encontrar archivos que cumplan con el patrón test*... . por lo que no hay que crear archivos llamados test* que no sean de tests con pytest ni test con pytest si su nombre no inicia con test\_
+
+**Ejecutar Pruebas**: Al ejecutar pytest, se ejecutan todas las funciones de prueba encontradas, y el resultado se muestra en la terminal.
+Y la base de datos de tests es la misma por lo que hay que limpiarla siempre antes de cada test.
+
+**Reportes**: pytest proporciona un resumen detallado de las pruebas ejecutadas, incluyendo cuántas pasaron y cuántas fallaron.
