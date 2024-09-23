@@ -27,9 +27,8 @@ def create_jugador(db: Session, jugador: JugadorData):
         raise e
 
 def get_jugadores(db: Session, partida_id: int):
-    if (get_partida_details(db, partida_id)):
-        jugadores = db.query(Jugador).filter(Jugador.partida_id == partida_id).all()
-    else:
+    partida = get_partida_details(db, partida_id)
+    if (not partida):
         raise PartidaNotFoundError(partida_id)
-    return jugadores
-    
+
+    return db.query(Jugador).filter(Jugador.partida_id == partida_id).all()
