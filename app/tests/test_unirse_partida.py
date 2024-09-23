@@ -11,24 +11,20 @@ def test_data():
 
     partida1 = Partida(nombre_partida="nombre_partida",
                        nombre_creador="Creador1", iniciada=False)
-    jugador11 = Jugador(nombre="Creador1", partida_id=1)
     jugador12 = Jugador(nombre="Jugador2", partida_id=1)
     jugador13 = Jugador(nombre="Jugador3", partida_id=1)
 
     db.add(partida1)
-    db.add(jugador11)
     db.add(jugador12)
     db.add(jugador13)
 
     partida2 = Partida(nombre_partida="partida_llena",
                        nombre_creador="Creador2", iniciada=False)
-    jugador21 = Jugador(nombre="Creador2", partida_id=2)
     jugador22 = Jugador(nombre="Jugador2", partida_id=2)
     jugador23 = Jugador(nombre="Jugador3", partida_id=2)
     jugador24 = Jugador(nombre="Jugador4", partida_id=2)
 
     db.add(partida2)
-    db.add(jugador21)
     db.add(jugador22)
     db.add(jugador23)
     db.add(jugador24)
@@ -42,6 +38,7 @@ def test_data():
     db.query(Jugador).delete()
     db.query(Partida).delete()
     db.commit()
+    db.flush()
     db.close()
 
 

@@ -9,6 +9,7 @@ class Jugador(Base):
     __tablename__ = 'jugadores'
     id_jugador: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
     nombre: Mapped[str] = mapped_column(String(255))
+    es_creador: Mapped[Boolean] = mapped_column(Boolean, default=False)
     
     partida_id: Mapped[int] = mapped_column(Integer, ForeignKey('partidas.id'))
     partidas = relationship("Partida", back_populates="jugadores")
