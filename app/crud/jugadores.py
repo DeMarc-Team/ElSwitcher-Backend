@@ -2,8 +2,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from crud.exceptions import PartidaNotFoundError, PartidaLlenaError
-from models.jugadores import Jugador
-from schemas.jugadores import JugadorData
+from models import Jugador
+from schemas import JugadorData
 from crud.partidas import get_partida_by_id
 
 def create_jugador(db: Session, jugador: JugadorData):

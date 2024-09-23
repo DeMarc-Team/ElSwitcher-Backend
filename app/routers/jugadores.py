@@ -13,10 +13,9 @@ from http import HTTPStatus
 
 from crud.exceptions import PartidaNotFoundError, PartidaLlenaError
 import crud.jugadores as crud
-from models.jugadores import Base, Jugador
+from models import Base, Jugador
 from database import engine, get_db
-
-from schemas.jugadores import JugadorData, JugadorOnCreateResponse
+from schemas import JugadorData, JugadorOnCreateResponse
 
 Base.metadata.create_all(bind=engine)
 

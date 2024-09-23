@@ -1,6 +1,6 @@
 from tests_setup import client, TestingSessionLocal
-from models.partidas import Partida
-from models.jugadores import Jugador
+from models import Partida
+from models import Jugador
 import pytest
 
 # Decorador "fixture" para preparar el entorno de prueba. 

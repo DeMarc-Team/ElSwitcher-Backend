@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
-from models.partidas import Partida
-from schemas.partidas import PartidaData
+from models import Partida
+from schemas import PartidaData
 
 """
   WARNING: Estas funciones no están implementadas, solo están para estructurar el esqueleto del repositorio.

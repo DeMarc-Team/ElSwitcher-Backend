@@ -1,10 +1,11 @@
 from sqlalchemy.orm import Session
 
 from crud.exceptions import PartidaNotFoundError, PartidaLlenaError
-from models.jugadores import Jugador
-from schemas.jugadores import JugadorData
-from models.partidas import Partida
-from schemas.partidas import PartidaData
+from models import Jugador
+from schemas import JugadorData
+
+from models import Partida
+from schemas import PartidaData
 
 def verificar_partida_existente(db: Session, partida_id: int):
     """Verifica si una partida existe en la base de datos.

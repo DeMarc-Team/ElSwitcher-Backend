@@ -1,5 +1,5 @@
 from tests_setup import client, TestingSessionLocal
-from models.partidas import Partida
+from models import Partida
 import pytest
 
 @pytest.fixture(scope="function")
