@@ -19,3 +19,13 @@ class JugadorData(BaseModel):
 
 class JugadorOnCreateResponse(JugadorData):
     id_jugador: int
+
+    
+
+class JuegoData(BaseModel):
+    pass
+
+class JuegoDetails(JuegoData):
+    id: int
+    turno: int
+    partida_id: int

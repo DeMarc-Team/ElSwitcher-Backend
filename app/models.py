@@ -23,3 +23,14 @@ class Partida(Base):
     iniciada = mapped_column(Boolean, default=False)
 
     jugadores: Mapped[list[Jugador]] = relationship('Jugador', back_populates='partidas')
+    juego = relationship('Juego', back_populates='partida')
+
+# JUEGO --------------------------------------------------------
+class Juego(Base):
+    __tablename__ = 'juegos'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
+    turno: Mapped[int] =  mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
+    
+    partida_id: Mapped[int] = mapped_column(Integer, ForeignKey('partidas.id'), unique=True)
+    partida: Mapped[Partida] = relationship('Partida', back_populates='juego')
+    
