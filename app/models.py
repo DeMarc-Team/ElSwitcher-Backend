@@ -14,6 +14,8 @@ class Jugador(Base):
     partida_id: Mapped[int] = mapped_column(Integer, ForeignKey('partidas.id'))
     partidas = relationship("Partida", back_populates="jugadores")
 
+    mazo_cartas_de_figura:Mapped[list['CartaFigura']] = relationship('CartaFigura', back_populates='poseida_por')
+
 # PARTIDA ------------------------------------------------------
 class Partida(Base):
     __tablename__ = 'partidas'
@@ -33,4 +35,19 @@ class Juego(Base):
     
     partida_id: Mapped[int] = mapped_column(Integer, ForeignKey('partidas.id'), unique=True)
     partida: Mapped[Partida] = relationship('Partida', back_populates='juego')
-    
+
+
+# CartaFigura --------------------------------------------------
+
+def random_figura():
+    import random
+    return random.choice(['f1','f2','f3'])
+
+class CartaFigura(Base):
+
+    __tablename__ = 'cartas'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
+    figura: Mapped[str] = mapped_column(Integer, nullable=False, default = random_figura())
+
+    poseida_por = relationship('Jugador', back_populates='mazo_cartas_de_figura') # Las relaciones necesitan que exista además una foreign key
+    jugador_id = mapped_column(Integer, ForeignKey('jugadores.id_jugador'))

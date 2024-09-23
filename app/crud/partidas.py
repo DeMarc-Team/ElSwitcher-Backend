@@ -5,6 +5,7 @@ from models import Partida
 from schemas import PartidaData
 from models import Jugador
 from models import Juego
+from models import CartaFigura, random_figura
 
 def get_partidas(db: Session):
     return db.query(Partida).all()
@@ -37,6 +38,12 @@ def iniciar_partida(db: Session, id: int):
     
     id_creador = db.query(Jugador).filter((Jugador.es_creador == True) & (Jugador.partida_id == id)).first().id_jugador
     new_juego = Juego(turno=id_creador, partida_id=partida.id, partida=partida)
+
+    for jugador in partida.jugadores: # TODO: Buscar un mejor lugar para hacer esto o mdoularizarlo
+        for i in range(4):
+            new_carta = CartaFigura(figura=random_figura(), jugador_id=jugador.id_jugador)
+            db.add(new_carta)
+
     db.add(new_juego)
     partida.iniciada = True
     db.commit()
@@ -52,3 +59,9 @@ def get_juego_details(db: Session, partida_id):
         raise JuegoNotFoundError(partida_id)
     
     return juego
+
+def get_cartas_jugador(db: Session, partida_id, jugador_id):
+    player = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
+    print(player.mazo_cartas_de_figura)
+    # TODO: Hacer que esta función retorne únicamente las cartas de figura del jugadorw
+    return db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first().mazo_cartas_de_figura

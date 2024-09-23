@@ -63,3 +63,9 @@ async def get_turno_details(partida_id: int,  db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Juego Not Found")
     except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+@router.get('/juego/{partida_id: int}/jugadores/{jugador_id: int}/cartas_figura')
+async def get_cartas_jugador(partida_id: int, jugador_id: int, db: Session = Depends(get_db)):
+    # TODO: Hacer chequeo de errores y manejar códigos de respuesta
+    return crud.get_cartas_jugador(db=db, partida_id=partida_id, jugador_id=jugador_id)
