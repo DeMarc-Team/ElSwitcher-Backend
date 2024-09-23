@@ -20,6 +20,6 @@ class Partida(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
     nombre_partida = mapped_column(String(255))
     nombre_creador = mapped_column(String(200))
-    iniciada = mapped_column(Boolean)
+    iniciada = mapped_column(Boolean, default=False)
 
     jugadores: Mapped[list[Jugador]] = relationship('Jugador', back_populates='partidas')

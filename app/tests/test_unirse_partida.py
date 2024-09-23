@@ -9,31 +9,38 @@ import pytest
 def test_data():
     db = TestingSessionLocal()
 
-    partida1 = Partida(nombre_partida="nombre_partida",
-                       nombre_creador="Creador1", iniciada=False)
-    jugador12 = Jugador(nombre="Jugador2", partida_id=1)
-    jugador13 = Jugador(nombre="Jugador3", partida_id=1)
-
+    partida1 = Partida(nombre_partida="partida_para_unirse",
+                       nombre_creador="Creador1")
     db.add(partida1)
+    db.flush()  # Para obtener el ID de 'partida1'
+
+    creador1 = Jugador(nombre="Creador1", partida_id=partida1.id, es_creador=True)
+    jugador12 = Jugador(nombre="Jugador2", partida_id=partida1.id)
+    jugador13 = Jugador(nombre="Jugador3", partida_id=partida1.id)
+
+    db.add(creador1)
     db.add(jugador12)
     db.add(jugador13)
 
     partida2 = Partida(nombre_partida="partida_llena",
-                       nombre_creador="Creador2", iniciada=False)
-    jugador22 = Jugador(nombre="Jugador2", partida_id=2)
-    jugador23 = Jugador(nombre="Jugador3", partida_id=2)
-    jugador24 = Jugador(nombre="Jugador4", partida_id=2)
-
+                       nombre_creador="Creador2")
     db.add(partida2)
+    db.flush()
+
+    creador2 = Jugador(nombre="Creador2", partida_id=partida2.id, es_creador=True)
+    jugador22 = Jugador(nombre="Jugador2", partida_id=partida2.id)
+    jugador23 = Jugador(nombre="Jugador3", partida_id=partida2.id)
+    jugador24 = Jugador(nombre="Jugador4", partida_id=partida2.id)
+
+    db.add(creador2)
     db.add(jugador22)
     db.add(jugador23)
     db.add(jugador24)
 
     db.commit()
     db.flush()
-    db.close()
 
-    yield
+    yield db
 
     db.query(Jugador).delete()
     db.query(Partida).delete()

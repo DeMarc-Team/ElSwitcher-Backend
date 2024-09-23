@@ -11,7 +11,7 @@ def create_jugador(db: Session, jugador: JugadorData):
     if (not partida):
         raise PartidaNotFoundError(jugador.partida_id)
     
-    numero_jugadores = db.query(Jugador).filter(Jugador.partida_id == jugador.partida_id).count()
+    numero_jugadores = len(partida.jugadores)
     if (numero_jugadores >= 4):
         raise PartidaLlenaError(jugador.partida_id, 4)
     

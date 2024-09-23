@@ -11,10 +11,14 @@ def test_data():
     db = TestingSessionLocal()
 
     partida = Partida(nombre_partida="nombre_partida", nombre_creador="Creador", iniciada=False)
-    jugador1 = Jugador(nombre="Jugador1", partida_id=1)
-    jugador2 = Jugador(nombre="Jugador2", partida_id=1)
-
     db.add(partida)
+    db.flush()
+    
+    creador = Jugador(nombre="Creador", partida_id=partida.id, es_creador=True)
+    jugador1 = Jugador(nombre="Jugador1", partida_id=partida.id)
+    jugador2 = Jugador(nombre="Jugador2", partida_id=partida.id)
+
+    db.add(creador)
     db.add(jugador1)
     db.add(jugador2)
 

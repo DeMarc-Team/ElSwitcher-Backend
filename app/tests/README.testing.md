@@ -9,6 +9,12 @@
 - Solo añadr prints a los test para debug y para cuando fallan, si tienen exito no se mostrara ningun print al correr con pytest.
 - ... abajo mas informacion :)
 
+## ¿Que testear?
+
+- Cambios correspondientes en la db
+- Cambios no correspondientes en la db
+- Respuestas de exito y error cuendo deben
+
 ## Como crear un test
 
 Crear un archivo test_nombre.py con el siguiente formato:
