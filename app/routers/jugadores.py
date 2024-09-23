@@ -2,14 +2,9 @@ from fastapi import (
     APIRouter, 
     HTTPException, 
     Depends, 
-    WebSocket,
-    WebSocketDisconnect,
-    WebSocketException,
     status
 )
-
 from sqlalchemy.orm import Session
-from http import HTTPStatus
 
 from crud.exceptions import PartidaNotFoundError, PartidaLlenaError
 import crud.jugadores as crud
