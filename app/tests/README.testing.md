@@ -7,7 +7,14 @@
 - No crear ningun archivo que inicie con `test_` si no es un test de pytest!!
 - En un mismo archivo se puede testear mas de un escenario para el mismo endpoint, cada uno debe tener su propia funcion y debe iniciar su nombre con `test_`.
 - Solo añadr prints a los test para debug y para cuando fallan, si tienen exito no se mostrara ningun print al correr con pytest.
+- Siempre luego de un test, borrar todo lo subido a la db!!!!
 - ... abajo mas informacion :)
+
+## ¿Que testear?
+
+- Cambios correspondientes en la db
+- Cambios no correspondientes en la db
+- Respuestas de exito y error cuendo deben
 
 ## Como crear un test
 

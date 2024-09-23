@@ -28,12 +28,13 @@ def test_data():
     db.query(Jugador).delete()
     db.query(Partida).delete()
     db.commit()
+    db.flush()
     db.close()
 
 def test_get_partidas(test_data):
     response = client.get("partidas") 
     print(f"Response: {response.json()}")
     assert response.status_code == 200 , f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    assert len(response.json()) == 1 ,  f"Fallo: Se esperaba 1 partida, pero se obtuvo {len(response_data)}"
+    assert len(response.json()) == 1 ,  f"Fallo: Se esperaba 1 partida, pero se obtuvo {len(response.json())}"
     assert response.json()[0]['nombre_partida'] == "nombre_partida"
     print("Test exitoso")
