@@ -4,11 +4,11 @@ from sqlalchemy.exc import IntegrityError
 from crud.exceptions import PartidaNotFoundError, PartidaLlenaError
 from models import Jugador
 from schemas import JugadorData
-from crud.partidas import get_partida_by_id
+from crud.partidas import get_partida_details
 
 def create_jugador(db: Session, jugador: JugadorData):
     
-    partida = get_partida_by_id(db, jugador.partida_id)
+    partida = get_partida_details(db, jugador.partida_id)
     if (not partida):
         raise PartidaNotFoundError(jugador.partida_id)
     
@@ -27,7 +27,7 @@ def create_jugador(db: Session, jugador: JugadorData):
         raise e
 
 def get_jugadores(db: Session, partida_id: int):
-    if (get_partida_by_id(db, partida_id)):
+    if (get_partida_details(db, partida_id)):
         jugadores = db.query(Jugador).filter(Jugador.partida_id == partida_id).all()
     else:
         raise PartidaNotFoundError(partida_id)

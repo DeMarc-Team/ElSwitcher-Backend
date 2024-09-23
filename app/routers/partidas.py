@@ -23,6 +23,10 @@ router = APIRouter(
 async def get_partidas(db: Session = Depends(get_db)):
     return crud.get_partidas(db)
 
+@router.get('/{partida_id:int}', response_model=PartidaDetails)
+async def get_partida_details(partida_id: int, db: Session = Depends(get_db)):
+    return crud.get_partida_details(db, partida_id)
+
 @router.post('/', response_model=PartidaDetails)
 async def create_partida(partida: PartidaData, db: Session = Depends(get_db)):
     return crud.create_partida(db=db, partida=partida)

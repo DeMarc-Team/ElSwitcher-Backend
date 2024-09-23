@@ -3,14 +3,10 @@ from sqlalchemy.orm import Session
 from models import Partida
 from schemas import PartidaData
 
-"""
-  WARNING: Estas funciones no están implementadas, solo están para estructurar el esqueleto del repositorio.
-"""
-
 def get_partidas(db: Session):
     return db.query(Partida).all()
 
-def get_partida_by_id(db: Session, id: int):
+def get_partida_details(db: Session, id: int):
     return db.query(Partida).filter(Partida.id == id).first()
 
 def create_partida(db: Session, partida: PartidaData):
