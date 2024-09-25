@@ -49,5 +49,7 @@ class CartaFigura(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
     figura: Mapped[str] = mapped_column(Integer, nullable=False, default = random_figura())
 
+    revelada: Mapped[Boolean] = mapped_column(Boolean, default=True) # Default true para que en la demo se vea ajsja
+
     poseida_por = relationship('Jugador', back_populates='mazo_cartas_de_figura') # Las relaciones necesitan que exista además una foreign key
     jugador_id = mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
