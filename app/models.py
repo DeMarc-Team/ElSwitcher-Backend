@@ -39,7 +39,7 @@ class Juego(Base):
 
 # CartaFigura --------------------------------------------------
 
-def random_figura():
+def random_figura(): # TODO: No supe poner esto como metodo de la clase CartaFigura pero quedaria mejor
     import random
     return random.choice(['f1','f2','f3'])
 
