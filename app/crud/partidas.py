@@ -62,6 +62,5 @@ def get_juego_details(db: Session, partida_id):
 
 def get_cartas_jugador(db: Session, partida_id, jugador_id):
     player = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
-    print(player.mazo_cartas_de_figura)
     # TODO: Hacer que esta función retorne únicamente las cartas de figura del jugadorw
     return db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first().mazo_cartas_de_figura
