@@ -39,7 +39,7 @@ def iniciar_partida(db: Session, id: int):
     id_creador = db.query(Jugador).filter((Jugador.es_creador == True) & (Jugador.partida_id == id)).first().id_jugador
     new_juego = Juego(turno=id_creador, partida_id=partida.id, partida=partida)
 
-    repartir_cartas(db, partida)
+    repartir_cartas_figura(db, partida)
 
     db.add(new_juego)
     partida.iniciada = True
@@ -57,13 +57,13 @@ def get_juego_details(db: Session, partida_id):
     
     return juego
 
-def get_cartas_jugador(db: Session, partida_id, jugador_id):
+def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
     mazo_del_jugador = jugador.mazo_cartas_de_figura
 
     return mazo_del_jugador
 
-def repartir_cartas(db: Session, partida, n_cartas_por_jugador=3):
+def repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=3):
     for jugador in partida.jugadores:
         for i in range(n_cartas_por_jugador):
             new_carta = CartaFigura(figura=random_figura(), jugador_id=jugador.id_jugador)

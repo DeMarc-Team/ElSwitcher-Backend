@@ -66,5 +66,5 @@ async def get_turno_details(partida_id: int,  db: Session = Depends(get_db)):
     
 
 @router.get('/juego/{partida_id: int}/jugadores/{jugador_id: int}/cartas_figura', response_model=list[CartaFiguraData])
-async def get_cartas_jugador(partida_id: int, jugador_id: int, db: Session = Depends(get_db)):
-    return crud.get_cartas_jugador(db=db, partida_id=partida_id, jugador_id=jugador_id)
+async def get_cartas_figura_jugador(partida_id: int, jugador_id: int, db: Session = Depends(get_db)):
+    return crud.get_cartas_figura_jugador(db=db, partida_id=partida_id, jugador_id=jugador_id)
