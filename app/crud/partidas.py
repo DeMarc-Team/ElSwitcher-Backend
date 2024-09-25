@@ -58,16 +58,13 @@ def get_juego_details(db: Session, partida_id):
     return juego
 
 def get_cartas_jugador(db: Session, partida_id, jugador_id):
-
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
     mazo_del_jugador = jugador.mazo_cartas_de_figura
+
     return mazo_del_jugador
 
 def repartir_cartas(db: Session, partida, n_cartas_por_jugador=3):
-    print(len(partida.jugadores))
     for jugador in partida.jugadores:
-        print(f"repartiendo a {jugador.id_jugador}")
         for i in range(n_cartas_por_jugador):
-            print("carta creada")
             new_carta = CartaFigura(figura=random_figura(), jugador_id=jugador.id_jugador)
             db.add(new_carta)
