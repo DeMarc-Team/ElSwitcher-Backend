@@ -45,7 +45,7 @@ def random_figura(): # TODO: No supe poner esto como metodo de la clase CartaFig
 
 class CartaFigura(Base):
 
-    __tablename__ = 'cartas'
+    __tablename__ = 'cartas_de_figura'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
     figura: Mapped[str] = mapped_column(Integer, nullable=False, default = random_figura())
 
