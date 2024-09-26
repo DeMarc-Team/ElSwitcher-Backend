@@ -11,7 +11,7 @@ from crud.exceptions import PartidaNotFoundError, JuegoNotFoundError, PartidaYaI
 import crud.partidas as crud
 from models import Base
 from database import engine, get_db
-from schemas import PartidaData, PartidaDetails, JuegoDetails, CartaFiguraData
+from schemas import PartidaData, PartidaDetails, PartidaDetails2, JuegoDetails, CartaFiguraData
 
 Base.metadata.create_all(bind=engine)
 
@@ -27,14 +27,22 @@ async def get_partidas(db: Session = Depends(get_db)):
     except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@router.get('/{partida_id:int}', response_model=PartidaDetails)
+@router.get('/{partida_id:int}', response_model=PartidaDetails2)
 async def get_partida_details(partida_id: int, db: Session = Depends(get_db)):
     try:
-        return crud.get_partida_details(db, partida_id)
+        responce = crud.get_partida_details(db, partida_id)
+        espacios_disponibles = 4 - len(responce.jugadores)
+        id_creador = crud.get_id_creador(db, partida_id)
+        partidaDetails = {
+            "id": responce.id,
+            "nombre_partida": responce.nombre_partida,
+            "nombre_creador": responce.nombre_creador,
+            "id_creador": id_creador,
+            "iniciada": responce.iniciada,
+            "espacios_disponibles": espacios_disponibles}
+        return partidaDetails
     except PartidaNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Partida Not Found")
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @router.post('/', response_model=PartidaDetails)
 async def create_partida(partida: PartidaData, db: Session = Depends(get_db)):
