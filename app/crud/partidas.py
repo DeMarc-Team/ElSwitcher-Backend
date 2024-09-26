@@ -14,13 +14,12 @@ def get_id_creador(db: Session, partida_id):
     return jugador.id_jugador
 
 def get_partidas(db: Session):
-    return db.query(Partida).all()
+    return db.query(Partida).filter(Partida.iniciada == False).all()
 
 def get_partida_details(db: Session, id: int):
     partidaDetails = db.query(Partida).filter(Partida.id == id).first()
     if (not partidaDetails):
         raise PartidaNotFoundError(id)
-    
     return partidaDetails
 
 def create_partida(db: Session, partida: PartidaData):
