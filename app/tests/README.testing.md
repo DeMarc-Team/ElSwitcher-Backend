@@ -48,6 +48,19 @@ Fixture: Sirven para configurar condiciones previas a las pruebas y limpiar desp
 Para correr todos los test ejecutar el comando `pytest` o `app > pytest` parado sobre el directorio _app_.
 Para correr un solo test añadir la ruta desde la app al mismo luego de pytest.
 
+### Correr los test con Coverage
+
+Con `pytest --cov=app` podremos ver en terminal:
+- **Stmts**: Número de sentencias cubiertas
+- **Miss**: Número de sentencias no cubiertas
+- **Cover**: Porcentaje de cobertura
+
+Con `pytest --cov=app --cov-report=html` se generará un directorio htmlcov/ que contendrá un archivo index.html con un reporte visual de la cobertura de código, mostrando qué líneas de código están cubiertas y cuáles no.
+
+#### Sobre Coverage
+
+ La combinación de pytest y pytest-cov te permite ejecutar pruebas mientras generas un reporte de cobertura. De este modo, puedes asegurarte de que no solo el código está bien, sino que también estás cubriendo la mayor cantidad posible de lógica en tus pruebas.
+
 ## Cómo Funciona pytest
 
 **Descubrimiento de Pruebas**: pytest escanea recursivamente el directorio de pruebas para encontrar archivos que cumplan con el patrón test_* . por lo que no hay que crear archivos llamados test_* que no sean de tests con pytest ni test con pytest si su nombre no inicia con test_
