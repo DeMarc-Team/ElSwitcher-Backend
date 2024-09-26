@@ -27,7 +27,7 @@ def test_data():
     db.close()
 
     # Cerramos la sesión antes de salir del fixture
-    yield  # Este es el punto donde se ejecutan las pruebas
+    yield  db # Este es el punto donde se ejecutan las pruebas
 
     # Limpiamos la base de datos después de la prueba
     db.query(Jugador).delete()
@@ -41,17 +41,17 @@ def test_get_jugadores_partida_existente(test_data):
     # Llamamos al endpoint para obtener jugadores de la partida con ID 1 (existente)
     response = client.get("partidas/1/jugadores")
     print(f"Response: {response.json()}")
-    assert response.status_code == 200
-    assert len(response.json()) == 3
-    assert response.json()[0]['nombre'] == "Creador"
-    assert response.json()[1]['nombre'] == "Jugador1"
-    assert response.json()[2]['nombre'] == "Jugador2"
+    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
+    assert len(response.json()) == 3, f"Fallo: Se esperaban 3 jugadores, pero se obtuvieron {len(response.json())}"
+    assert response.json()[0]['nombre'] == "Creador", f"Fallo: Se esperaba Creador, pero se obtuvo {response.json()[0]['nombre']}"
+    assert response.json()[1]['nombre'] == "Jugador1", f"Fallo: Se esperaba Jugador1, pero se obtuvo {response.json()[1]['nombre']}"
+    assert response.json()[2]['nombre'] == "Jugador2", f"Fallo: Se esperaba Jugador2, pero se obtuvo {response.json()[2]['nombre']}"
     #Test exitoso: Se obtuvieron los jugadores de una partida existente
 
 def test_get_jugadores_partida_inexistente():
     # Llamamos al endpoint para obtener jugadores de la partida con ID 2 (inexistente)
     response = client.get("partidas/2/jugadores")
     print(f"Response: {response.json()}")
-    assert response.status_code == 404
-    assert len(response.json()) == 1
+    assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
+    assert len(response.json()) == 1, f"Fallo: Se esperaba 1 jugador, pero se obtuvieron {len(response.json())}"
     #Test exitoso: Se devolvio 404 not found a la peticion de los jugadores de una partida inexistente

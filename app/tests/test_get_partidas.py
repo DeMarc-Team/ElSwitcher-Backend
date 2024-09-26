@@ -22,7 +22,7 @@ def test_data():
     db.close()
 
     # Cerramos la sesión antes de salir del fixture
-    yield  # Este es el punto donde se ejecutan las pruebas
+    yield  db # Este es el punto donde se ejecutan las pruebas
 
     # Limpiamos la base de datos después de la prueba
     db.query(Jugador).delete()
