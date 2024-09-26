@@ -49,7 +49,8 @@ def test_data():
     db.close()
 
 
-def test_post_200(test_data):
+def test_unirse_partida_200(test_data):
+    '''Test al unirse a una partida existente no llena'''
     body = {"nombre": "Jugador4"}
     response = client.post("partidas/1/jugadores", json=body)
     print(f"Response: {response.json()}")
@@ -57,22 +58,37 @@ def test_post_200(test_data):
     assert len(response.json()) == 2, f"Fallo: Se esperaba 2 jugadores, pero se obtuvieron {len(response.json())}"
     assert response.json()['id_jugador'] == 8, f"Fallo: Se esperaba el id 8, pero se obtuvo {response.json()['id_jugador']}"
     assert response.json()['nombre'] == "Jugador4", f"Fallo: Se esperaba Jugador4, pero se obtuvo {response.json()['nombre']}"
-    # Test exitoso: Se unio un jugador a una partida existente
+    # Test exitoso: Se respondio correctamente
+    
+    response = client.get("partidas/1/jugadores")
+    assert len(response.json()) == 4, f"Fallo: Se esperaba 4 jugadores, pero se obtuvieron {len(response.json())}"
+    assert response.json()[3]['nombre'] == "Jugador4", f"Fallo: Se esperaba Jugador4, pero se obtuvo {response.json()[3]['nombre']}"
+    # Test exitoso: Se actualizo la db correctamente
 
 
-def test_post_403(test_data):
+def test_unirse_partida_403(test_data):
+    '''Test al unirse a una partida llena'''
     body = {"nombre": "Jugador5"}
     response = client.post("partidas/2/jugadores", json=body)
     print(f"Response: {response.json()}")
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
     assert len(response.json()) == 1, f"Fallo: Se esperaba 1 mensaje de error, pero se obtuvieron {len(response.json())}"
-    # Test exitoso: Se rechazo la peticion de unir un jugador a una partida llena
+    # Test exitoso: Se respondio correctamente
+    
+    response = client.get("partidas/1/jugadores")
+    assert len(response.json()) == 3, f"Fallo: Se esperaba 3 jugadores, pero se obtuvieron {len(response.json())}"
+    # Test exitoso: No se afecto a la db incorrectamente
 
 
-def test_post_404(test_data):
+def test_unirse_partida_404(test_data):
+    '''Test al unirse a una partida inexistente'''
     body = {"nombre": "Jugador5"}
     response = client.post("partidas/3/jugadores", json=body)
     print(f"Response: {response.json()}")
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
     assert len(response.json()) == 1, f"Fallo: Se esperaba 1 mensaje de error, pero se obtuvieron {len(response.json())}"
-    # Test exitoso: Se devolvio 404 not found a la peticion de unir un jugador a una partida inexistente
+    # Test exitoso: Se respondio correctamente
+    
+    response = client.get("partidas/1/jugadores")
+    assert len(response.json()) == 3, f"Fallo: Se esperaba 3 jugadores, pero se obtuvieron {len(response.json())}"
+    # Test exitoso: No se afecto a la db incorrectamente
