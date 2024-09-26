@@ -22,23 +22,19 @@ router = APIRouter(
 
 @router.get('/', response_model=list[PartidaDetails]) #
 async def get_partidas(db: Session = Depends(get_db)):
-    try:
-        return crud.get_partidas(db)
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+    return crud.get_partidas(db)
 @router.get('/{partida_id:int}', response_model=PartidaDetails2)
 async def get_partida_details(partida_id: int, db: Session = Depends(get_db)):
     try:
-        responce = crud.get_partida_details(db, partida_id)
-        espacios_disponibles = 4 - len(responce.jugadores)
+        response = crud.get_partida_details(db, partida_id)
+        espacios_disponibles = 4 - len(response.jugadores)
         id_creador = crud.get_id_creador(db, partida_id)
         partidaDetails = {
-            "id": responce.id,
-            "nombre_partida": responce.nombre_partida,
-            "nombre_creador": responce.nombre_creador,
+            "id": response.id,
+            "nombre_partida": response.nombre_partida,
+            "nombre_creador": response.nombre_creador,
             "id_creador": id_creador,
-            "iniciada": responce.iniciada,
+            "iniciada": response.iniciada,
             "espacios_disponibles": espacios_disponibles}
         return partidaDetails
     except PartidaNotFoundError as e:
@@ -46,11 +42,8 @@ async def get_partida_details(partida_id: int, db: Session = Depends(get_db)):
 
 @router.post('/', response_model=PartidaDetails)
 async def create_partida(partida: PartidaData, db: Session = Depends(get_db)):
-    try:
-        return crud.create_partida(db=db, partida=partida)
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+    return crud.create_partida(db=db, partida=partida)
+
 @router.put('/{partida_id: int}')
 async def iniciar_partida(partida_id: int, db: Session = Depends(get_db)):
     try:
@@ -69,9 +62,6 @@ async def get_turno_details(partida_id: int,  db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Partida Not Found")
     except JuegoNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Juego Not Found")
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
 
 @router.get('/juego/{partida_id: int}/jugadores/{jugador_id: int}/cartas_figura', response_model=list[CartaFiguraData])
 async def get_cartas_figura_jugador(partida_id: int, jugador_id: int, db: Session = Depends(get_db)):

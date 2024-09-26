@@ -25,8 +25,6 @@ async def get_jugadores(partida_id: int, db: Session = Depends(get_db)):
         return crud.get_jugadores(db, partida_id)
     except PartidaNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Partida Not Found")
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @router.post('/{partida_id:int}/jugadores', response_model=JugadorOnCreateResponse)
 async def join_to_partida(partida_id: int, jugador:JugadorData, db: Session = Depends(get_db)):
@@ -36,5 +34,3 @@ async def join_to_partida(partida_id: int, jugador:JugadorData, db: Session = De
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Partida Not Found")
     except PartidaLlenaError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Partida Full")
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
