@@ -53,10 +53,10 @@ def test_post_200(test_data):
     body = {"nombre": "Jugador4"}
     response = client.post("partidas/1/jugadores", json=body)
     print(f"Response: {response.json()}")
-    assert response.status_code == 200
-    assert len(response.json()) == 2
-    assert response.json()['id_jugador'] == 8
-    assert response.json()['nombre'] == "Jugador4"
+    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
+    assert len(response.json()) == 2, f"Fallo: Se esperaba 2 jugadores, pero se obtuvieron {len(response.json())}"
+    assert response.json()['id_jugador'] == 8, f"Fallo: Se esperaba el id 8, pero se obtuvo {response.json()['id_jugador']}"
+    assert response.json()['nombre'] == "Jugador4", f"Fallo: Se esperaba Jugador4, pero se obtuvo {response.json()['nombre']}"
     # Test exitoso: Se unio un jugador a una partida existente
 
 
@@ -64,8 +64,8 @@ def test_post_403(test_data):
     body = {"nombre": "Jugador5"}
     response = client.post("partidas/2/jugadores", json=body)
     print(f"Response: {response.json()}")
-    assert response.status_code == 403
-    assert len(response.json()) == 1
+    assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
+    assert len(response.json()) == 1, f"Fallo: Se esperaba 1 mensaje de error, pero se obtuvieron {len(response.json())}"
     # Test exitoso: Se rechazo la peticion de unir un jugador a una partida llena
 
 
@@ -73,6 +73,6 @@ def test_post_404(test_data):
     body = {"nombre": "Jugador5"}
     response = client.post("partidas/3/jugadores", json=body)
     print(f"Response: {response.json()}")
-    assert response.status_code == 404
-    assert len(response.json()) == 1
+    assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
+    assert len(response.json()) == 1, f"Fallo: Se esperaba 1 mensaje de error, pero se obtuvieron {len(response.json())}"
     # Test exitoso: Se devolvio 404 not found a la peticion de unir un jugador a una partida inexistente
