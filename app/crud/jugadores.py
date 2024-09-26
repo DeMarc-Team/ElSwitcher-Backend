@@ -16,7 +16,7 @@ def create_jugador(db: Session, jugador: JugadorData):
         raise PartidaLlenaError(jugador.partida_id, 4)
     
     try:
-        new_jugador = Jugador(nombre=jugador.nombre, partida_id=jugador.partida_id)
+        new_jugador = Jugador(nombre=jugador.nombre, partida_id=jugador.partida_id, mazo_cartas_de_figura=[])
         db.add(new_jugador)
         db.commit()
         db.flush()

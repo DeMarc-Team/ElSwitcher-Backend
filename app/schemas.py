@@ -29,3 +29,9 @@ class JuegoDetails(JuegoData):
     id: int
     turno: int
     partida_id: int
+
+
+
+class CartaFiguraData(BaseModel):
+    figura: str
+    revelada: bool

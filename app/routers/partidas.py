@@ -11,7 +11,7 @@ from crud.exceptions import PartidaNotFoundError, JuegoNotFoundError, PartidaYaI
 import crud.partidas as crud
 from models import Base
 from database import engine, get_db
-from schemas import PartidaData, PartidaDetails, JuegoDetails
+from schemas import PartidaData, PartidaDetails, JuegoDetails, CartaFiguraData
 
 Base.metadata.create_all(bind=engine)
 
@@ -63,3 +63,8 @@ async def get_turno_details(partida_id: int,  db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Juego Not Found")
     except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+@router.get('/juego/{partida_id: int}/jugadores/{jugador_id: int}/cartas_figura', response_model=list[CartaFiguraData])
+async def get_cartas_figura_jugador(partida_id: int, jugador_id: int, db: Session = Depends(get_db)):
+    return crud.get_cartas_figura_jugador(db=db, partida_id=partida_id, jugador_id=jugador_id)
