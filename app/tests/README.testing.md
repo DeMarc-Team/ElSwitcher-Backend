@@ -28,15 +28,17 @@ def test_data(): # Definir la función test data (Si hace falta).
     yield  # Este es el punto donde se ejecutan las pruebas
     # Limpieza de la base de datos
 
-def test_get_jugadores(test_data):
+def test_nombre_codigo(test_data):
     response = client.get("partidas/1/jugadores")
     print(response) # Para debug en caso de error
-    assert response.status_code == 200
-    assert len(response.json()) == 2
+    # Testeo si se respondio correctamente:
+    assert ... , mensaje de error
+    # Testeo si se actualizo la db correctamente:
+    assert ... , mensaje de error
 ```
 
-La función de prueba test_get_jugadores tiene como parámetro test_data, que es el fixture test_data(). Pytest detecta que se necesita esa fixture y la ejecuta
-automáticamente antes de ejecutar test_get_jugadores.
+La función de prueba tiene como parámetro test_data, que es el fixture test_data(). Pytest detecta que se necesita esa fixture y la ejecuta
+automáticamente antes de ejecutarla.
 scope="function" significa que se ejecutará antes de cada función de prueba.
 
 Fixture: Sirven para configurar condiciones previas a las pruebas y limpiar después de ellas. Esto prepara el entorno de prueba (crea y carga datos en la base de datos).
