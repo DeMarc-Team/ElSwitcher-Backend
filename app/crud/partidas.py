@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import func, select
 
 from crud.exceptions import PartidaNotFoundError, PartidaYaIniciada, JuegoNotFoundError
 from models import Partida
@@ -14,7 +15,16 @@ def get_id_creador(db: Session, partida_id):
     return jugador.id_jugador
 
 def get_partidas(db: Session):
-    return db.query(Partida).filter(Partida.iniciada == False).all()
+    subquery = (
+        db.query(Partida.id, func.count(Partida.jugadores).label('jugadores_count'))
+        .outerjoin(Partida.jugadores)
+        .group_by(Partida.id)
+    ).subquery()
+
+    return db.query(Partida).join(subquery, Partida.id == subquery.c.id).filter(
+        Partida.iniciada == False,
+        subquery.c.jugadores_count < 4
+    ).all()
 
 def get_partida_details(db: Session, id: int):
     partidaDetails = db.query(Partida).filter(Partida.id == id).first()
