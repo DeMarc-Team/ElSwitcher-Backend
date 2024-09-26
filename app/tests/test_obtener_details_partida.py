@@ -36,3 +36,9 @@ def test_get_details_partida_200(test_data):
     assert response.json()['id_creador'] == 1, f"Fallo: Se esperaba 1, pero se obtuvo {response.json()[0]['id_creador']}"
     assert response.json()['iniciada'] == False, f"Fallo: Se esperaba False, pero se obtuvo {response.json()[0]['iniciada']}"
     assert response.json()['espacios_disponibles'] == 2, f"Fallo: Se esperaba 2, pero se obtuvo {response.json()[0]['espacios_disponibles']}"
+
+def test_get_details_partida_404(test_data):
+    response = client.get("partidas/2") 
+    print(f"Response: {response.json()}")
+    assert response.status_code == 404 , f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
+    assert response.json()['detail'] == "Partida Not Found", f"Fallo: Se esperaba 'Partida Not Found', pero se obtuvo {response.json()['detail']}"
