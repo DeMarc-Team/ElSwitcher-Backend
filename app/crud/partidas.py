@@ -7,6 +7,12 @@ from models import Jugador
 from models import Juego
 from models import CartaFigura, random_figura
 
+def get_id_creador(db: Session, partida_id):
+    jugador = db.query(Jugador).filter((Jugador.es_creador == True) & (Jugador.partida_id == partida_id)).first()
+    if (not jugador):
+        raise PartidaNotFoundError(partida_id)
+    return jugador.id_jugador
+
 def get_partidas(db: Session):
     return db.query(Partida).all()
 
