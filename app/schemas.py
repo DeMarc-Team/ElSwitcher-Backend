@@ -6,13 +6,18 @@ class PartidaData(BaseModel):
 
 class PartidaDetails(PartidaData):
     id: int
-    iniciada: bool
-    # creador_id: int
+    nombre_partida: str
     nombre_creador: str
-    # espacios_disponibles: int
-    # #jugadores: list[jugador] = []
+    iniciada: bool
 
-
+class PartidaDetails2(PartidaData):
+    id: int
+    nombre_partida: str
+    nombre_creador: str
+    id_creador: int
+    iniciada: bool
+    espacios_disponibles: int
+    #jugadores: list[jugador] = []
 
 class JugadorData(BaseModel):
     nombre: str
