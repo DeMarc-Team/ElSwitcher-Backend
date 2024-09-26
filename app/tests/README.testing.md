@@ -8,6 +8,7 @@
 - En un mismo archivo se puede testear mas de un escenario para el mismo endpoint, cada uno debe tener su propia funcion y debe iniciar su nombre con `test_`.
 - Solo añadr prints a los test para debug y para cuando fallan, si tienen exito no se mostrara ningun print al correr con pytest.
 - Siempre luego de un test, borrar todo lo subido a la db!!!!
+- Si se esta haciendo el unitest de un endpoint solo se lo deberia llamar a el, no utilizar otros endpoints (que no haya mas de una linea del estilo client.get("partidas/1/jugadores")). Crear la base de datos en el fixture y si se necesita acceder, acceder desde el test como se muestra en el ejemplo.
 - ... abajo mas informacion :)
 
 ## ¿Que testear?
@@ -34,7 +35,10 @@ def test_nombre_codigo(test_data):
     # Testeo si se respondio correctamente:
     assert ... , mensaje de error
     # Testeo si se actualizo la db correctamente:
+    db = TestingSessionLocal()
+    # Query ...
     assert ... , mensaje de error
+    db.close()
 ```
 
 La función de prueba tiene como parámetro test_data, que es el fixture test_data(). Pytest detecta que se necesita esa fixture y la ejecuta
