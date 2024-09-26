@@ -43,11 +43,17 @@ def test_iniciar_partida_200(test_data):
     '''Test para iniciar una partida con suficientes jugadores'''
     response = client.put("partidas/1")
     print(f"Response: {response.json()}")
+    # Verificamos la respuesta del servidor
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {
         response.status_code}"
     assert response.json() == {"message": "Partida iniciada correctamemte", "partida_id": 1}, f"Fallo: Se esperaba {
         {'message': 'Partida iniciada correctamemte', 'partida_id': 1}}, pero se obtuvo {response.json}"
-    # Test exitoso: Se inicio la partida con exito
+    # Verificamos que se haya iniciado la partida
+    db = test_data
+    partida = db.query(Partida).filter(Partida.id == 1).first()
+    assert partida.iniciada, f"Fallo: Se esperaba que la partida estuviera iniciada, pero se obtuvo {partida.iniciada}"
+    assert partida.juego, f"Fallo: Se esperaba que la partida tuviera juego, pero se obtuvo {partida.juego}"
+    db.close()
 
 
 def test_iniciar_partida_403(test_data):
@@ -60,7 +66,7 @@ def test_iniciar_partida_403(test_data):
     assert response.json()['detail'] == "Partida con jugadores insuficientes", f"Fallo: Se esperaba 'Partida con jugadores insuficientes', pero se obtuvo {
         response.json()['detail']}"
     # Verificamos que no se haya iniciado la partida
-    db = TestingSessionLocal()
+    db = test_data
     partida = db.query(Partida).filter(Partida.id == 2).first()
     assert not partida.iniciada, f"Fallo: Se esperaba que la partida no estuviera iniciada, pero se obtuvo {partida.iniciada}"
     assert not partida.juego, f"Fallo: Se esperaba que la partida no tuviera juego, pero se obtuvo {partida.juego}"
