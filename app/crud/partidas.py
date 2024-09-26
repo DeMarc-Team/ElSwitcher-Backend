@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func, select
 
-from crud.exceptions import PartidaNotFoundError, PartidaYaIniciada, JuegoNotFoundError
+from crud.exceptions import PartidaConJugadoresInsuficientes, PartidaNotFoundError, PartidaYaIniciada, JuegoNotFoundError
 from models import Partida
 from schemas import PartidaData
 from models import Jugador
@@ -51,7 +51,10 @@ def iniciar_partida(db: Session, id: int):
     if (partida.juego):
         raise PartidaYaIniciada(id)
     
-    id_creador = db.query(Jugador).filter((Jugador.es_creador == True) & (Jugador.partida_id == id)).first().id_jugador
+    if (not len(partida.jugadores) > 1):
+        raise PartidaConJugadoresInsuficientes(id)
+    
+    id_creador = get_id_creador(db, id)
     new_juego = Juego(turno=id_creador, partida_id=partida.id, partida=partida)
 
     repartir_cartas_figura(db, partida)

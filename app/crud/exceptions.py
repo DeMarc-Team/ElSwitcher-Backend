@@ -23,3 +23,9 @@ class JuegoNotFoundError(Exception):
         self.partida_id = partida_id
         super().__init__(f"Juego de la partida con ID {self.partida_id} no encontrado.")
         
+class PartidaConJugadoresInsuficientes(Exception):
+    """Excepción lanzada cuando una partida no tiene suficientes jugadores para iniciar."""
+    def __init__(self, partida_id, min_jugadores=2):
+        self.partida_id = partida_id
+        self.min_jugadores = min_jugadores
+        super().__init__(f"Partida con ID {self.partida_id} no tiene suficientes jugadores para iniciar. Mínimo de jugadores: {min_jugadores}.")
