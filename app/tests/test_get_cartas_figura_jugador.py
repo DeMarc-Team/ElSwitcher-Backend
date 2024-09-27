@@ -51,12 +51,11 @@ def test_get_cartas_figura_jugador(test_db):
     response = client.post(f"/partidas/{id_partida}/jugadores", json=player)
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
 
-
     # Iniciar la partida y ver las cartas del jugador creado
     player_id = response.json()['id_jugador']
     print(player_id)
     print(id_partida)
-    response = client.put(f"/partidas/{{partida_id: int}}?partida_id={id_partida}")
+    response = client.put(f"partidas/{id_partida}")
 
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
 
@@ -89,7 +88,7 @@ def test_get_cartas_figura_jugador_diferentes_figuras(test_db):
         player_id = response.json()['id_jugador']
         print(player_id)
         print(id_partida)
-        response = client.put(f"/partidas/{{partida_id: int}}?partida_id={id_partida}")
+        response = client.put(f"partidas/{id_partida}")
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
 
         response = client.get(f"/partidas/juego/{{partida_id: int}}/jugadores/{{jugador_id: int}}/cartas_figura?partida_id={id_partida}&jugador_id={player_id}")
@@ -131,7 +130,7 @@ def test_get_cartas_figura_jugador_con_creador_y_otro_jugador(test_db):
         print(f"Id otro jugador: {otro_jugador_id}")
 
         # Iniciar la partida
-        response = client.put(f"/partidas/{{partida_id: int}}?partida_id={id_partida}")
+        response = client.put(f"partidas/{id_partida}")
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
 
         # Verificar las cartas del creador
