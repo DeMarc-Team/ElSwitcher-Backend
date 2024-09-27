@@ -86,3 +86,6 @@ def repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=3):
         for i in range(n_cartas_por_jugador):
             new_carta = CartaFigura(figura=random_figura(), jugador_id=jugador.id_jugador)
             db.add(new_carta)
+            
+    db.commit()
+    db.flush()
