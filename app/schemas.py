@@ -8,6 +8,7 @@ class PartidaDetails(PartidaData):
     id: int
     nombre_partida: str
     nombre_creador: str
+    id_creador: int
     iniciada: bool
 
 class PartidaDetails2(PartidaData):
