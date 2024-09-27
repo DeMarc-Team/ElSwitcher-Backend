@@ -60,6 +60,7 @@ Con `pytest --cov=app` podremos ver en terminal:
 - **Cover**: Porcentaje de cobertura
 
 Con `pytest --cov=app --cov-report=html` se generará un directorio htmlcov/ que contendrá un archivo index.html con un reporte visual de la cobertura de código, mostrando qué líneas de código están cubiertas y cuáles no.
+El archivo htmlcov/index.html se puede abrir en el navegador con el comando `xdg-open htmlcov/index.html`.
 
 #### Sobre Coverage
 
