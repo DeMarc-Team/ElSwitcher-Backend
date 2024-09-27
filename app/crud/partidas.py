@@ -57,10 +57,10 @@ def iniciar_partida(db: Session, id: int):
     id_creador = get_id_creador(db, id)
     new_juego = Juego(turno=id_creador, partida_id=partida.id, partida=partida)
 
-    repartir_cartas_figura(db, partida)
 
     db.add(new_juego)
     partida.iniciada = True
+    repartir_cartas_figura(db, partida)
     db.commit()
     db.flush()
     
@@ -86,6 +86,3 @@ def repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=3):
         for i in range(n_cartas_por_jugador):
             new_carta = CartaFigura(figura=random_figura(), jugador_id=jugador.id_jugador)
             db.add(new_carta)
-            
-    db.commit()
-    db.flush()
