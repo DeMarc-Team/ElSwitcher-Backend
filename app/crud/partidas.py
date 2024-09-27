@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func, select
 
+from exceptions import ResourceNotFoundError
 from crud.exceptions import PartidaConJugadoresInsuficientes, PartidaNotFoundError, PartidaYaIniciada, JuegoNotFoundError
 from models import Partida
 from schemas import PartidaData
@@ -29,7 +30,7 @@ def get_partidas(db: Session):
 def get_partida_details(db: Session, id: int):
     partidaDetails = db.query(Partida).filter(Partida.id == id).first()
     if (not partidaDetails):
-        raise PartidaNotFoundError(id)
+        raise ResourceNotFoundError(f"Partida con ID {id} no encontrada.")
     return partidaDetails
 
 def create_partida(db: Session, partida: PartidaData):
