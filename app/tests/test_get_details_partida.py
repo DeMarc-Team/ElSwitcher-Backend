@@ -41,4 +41,4 @@ def test_get_details_partida_404(test_data):
     response = client.get("partidas/2") 
     print(f"Response: {response.json()}")
     assert response.status_code == 404 , f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
-    assert response.json()['detail'] == "Partida Not Found", f"Fallo: Se esperaba 'Partida Not Found', pero se obtuvo {response.json()['detail']}"
+    assert response.json()['detail'] == "Partida con ID 2 no encontrada.", f"Fallo: Se esperaba 'Partida con ID 2 no encontrada.', pero se obtuvo {response.json()['detail']}"

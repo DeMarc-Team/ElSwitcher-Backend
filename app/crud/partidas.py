@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func, select
 
-from crud.exceptions import PartidaConJugadoresInsuficientes, PartidaNotFoundError, PartidaYaIniciada, JuegoNotFoundError
+from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida
 from schemas import PartidaData
 from models import Jugador
@@ -11,7 +11,7 @@ from models import CartaFigura, random_figura
 def get_id_creador(db: Session, partida_id):
     jugador = db.query(Jugador).filter((Jugador.es_creador == True) & (Jugador.partida_id == partida_id)).first()
     if (not jugador):
-        raise PartidaNotFoundError(partida_id)
+        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
     return jugador.id_jugador
 
 def get_partidas(db: Session):
@@ -29,7 +29,7 @@ def get_partidas(db: Session):
 def get_partida_details(db: Session, id: int):
     partidaDetails = db.query(Partida).filter(Partida.id == id).first()
     if (not partidaDetails):
-        raise PartidaNotFoundError(id)
+        raise ResourceNotFoundError(f"Partida con ID {id} no encontrada.")
     return partidaDetails
 
 def create_partida(db: Session, partida: PartidaData):
@@ -46,13 +46,13 @@ def create_partida(db: Session, partida: PartidaData):
 def iniciar_partida(db: Session, id: int):
     partida = db.query(Partida).filter(Partida.id == id).first()
     if (not partida):
-        raise PartidaNotFoundError(id)
+        raise ResourceNotFoundError(f"Partida con ID {id} no encontrada.")
     
     if (partida.juego or partida.iniciada):
-        raise PartidaYaIniciada(id)
+        raise ForbiddenError(f"La partida con ID {id} ya está iniciada.")
     
     if (not len(partida.jugadores) > 1):
-        raise PartidaConJugadoresInsuficientes(id)
+        raise ForbiddenError(f"Partida con ID {id} no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.")
     
     id_creador = get_id_creador(db, id)
     new_juego = Juego(turno=id_creador, partida_id=partida.id, partida=partida)
@@ -67,11 +67,11 @@ def iniciar_partida(db: Session, id: int):
 def get_juego_details(db: Session, partida_id):
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
     if (not partida):
-        raise PartidaNotFoundError(partida_id)
+        raise ResourceNotFoundError(f"Partida con ID {id} no encontrada.")
     
     juego = partida.juego[0]
     if (not juego):
-        raise JuegoNotFoundError(partida_id)
+        raise ResourceNotFoundError(f"Juego con ID {id} no encontrado.")
     
     return juego
 

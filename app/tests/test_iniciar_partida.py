@@ -72,7 +72,7 @@ def test_iniciar_partida_con_jugadores_insuficientes_403(test_data):
     # Verificamos la respuesta del servidor
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {
         response.status_code}"
-    assert response.json()['detail'] == "Partida con jugadores insuficientes", f"Fallo: Se esperaba 'Partida con jugadores insuficientes', pero se obtuvo {
+    assert response.json()['detail'] == "Partida con ID 2 no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.", f"Fallo: Se esperaba 'Partida con ID 2 no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.', pero se obtuvo {
         response.json()['detail']}"
     # Verificamos que no se haya iniciado la partida
     db = test_data
@@ -88,7 +88,7 @@ def test_iniciar_partida_ya_iniciada_403(test_data):
     # Verificamos la respuesta del servidor
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {
         response.status_code}"
-    assert response.json()['detail'] == "Partida ya Iniciada", f"Fallo: Se esperaba 'Partida Ya Iniciada', pero se obtuvo {
+    assert response.json()['detail'] == "La partida con ID 3 ya está iniciada.", f"Fallo: Se esperaba 'La partida con ID 3 ya está iniciada.', pero se obtuvo {
         response.json()['detail']}"
     # Verificamos que no se haya iniciado la partida
     db = test_data
@@ -104,5 +104,5 @@ def test_iniciar_partida_404(test_data):
     # Verificamos la respuesta del servidor
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {
         response.status_code}"
-    assert response.json()['detail'] == "Partida Not Found", f"Fallo: Se esperaba 'Partida Not Found', pero se obtuvo {
+    assert response.json()['detail'] == "Partida con ID 4 no encontrada.", f"Fallo: Se esperaba 'Partida con ID 4 no encontrada.', pero se obtuvo {
         response.json()['detail']}"
