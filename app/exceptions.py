@@ -12,6 +12,7 @@ class ResourceNotFoundError(Exception):
     def __init__(self, message):
         self.message = message
         super().__init__(message)
+
 @app.exception_handler(ResourceNotFoundError)
 async def resource_not_found_handler(request: Request, exc: ResourceNotFoundError):
     # Registrar detalles de la solicitud que falló
@@ -28,6 +29,7 @@ class ForbiddenError(Exception):
     def __init__(self, message):
         self.message = message
         super().__init__(message)
+        
 @app.exception_handler(ForbiddenError)
 async def forbidden_error_handler(request: Request, exc: ForbiddenError):
     # Registrar detalles de la solicitud que falló

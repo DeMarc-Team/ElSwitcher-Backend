@@ -1,13 +1,11 @@
 from fastapi import (
     APIRouter, 
-    HTTPException, 
     Depends
 )
 
 from sqlalchemy.orm import Session
 from fastapi import status
 
-from crud.exceptions import PartidaConJugadoresInsuficientes, PartidaNotFoundError, JuegoNotFoundError, PartidaYaIniciada
 import crud.partidas as crud
 from models import Base
 from database import engine, get_db
@@ -26,7 +24,6 @@ async def get_partidas(db: Session = Depends(get_db)):
 
 @router.get('/{partida_id:int}', response_model=PartidaDetails2)
 async def get_partida_details(partida_id: int, db: Session = Depends(get_db)):
-    try:
         response = crud.get_partida_details(db, partida_id)
         espacios_disponibles = 4 - len(response.jugadores)
         id_creador = crud.get_id_creador(db, partida_id)
@@ -38,8 +35,6 @@ async def get_partida_details(partida_id: int, db: Session = Depends(get_db)):
             "iniciada": response.iniciada,
             "espacios_disponibles": espacios_disponibles}
         return partidaDetails
-    except PartidaNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Partida Not Found")
 
 @router.post('/', response_model=PartidaDetails)
 async def create_partida(partida: PartidaData, db: Session = Depends(get_db)):
@@ -47,25 +42,13 @@ async def create_partida(partida: PartidaData, db: Session = Depends(get_db)):
 
 @router.put('/{partida_id:int}', status_code=200)
 async def iniciar_partida(partida_id: int, db: Session = Depends(get_db)):
-    try:
-        crud.iniciar_partida(db=db, id=partida_id)
-        return {"message": "Partida iniciada correctamemte", "partida_id": partida_id}
-    except PartidaNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Partida Not Found")
-    except PartidaYaIniciada as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Partida ya Iniciada")
-    except PartidaConJugadoresInsuficientes as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Partida con jugadores insuficientes")
-    
+    crud.iniciar_partida(db=db, id=partida_id)
+    return {"message": "Partida iniciada correctamemte", "partida_id": partida_id}
+
 # TODO: Terminar la especificación de este endpoint para que retorne únicamente los valores que se desean para el turno
 @router.get('/juego/{partida_id: int}', response_model=JuegoDetails)
 async def get_turno_details(partida_id: int,  db: Session = Depends(get_db)):
-    try:
-        return crud.get_juego_details(db=db, partida_id=partida_id)
-    except PartidaNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Partida Not Found")
-    except JuegoNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Juego Not Found")
+    return crud.get_juego_details(db=db, partida_id=partida_id)
 
 @router.get('/juego/{partida_id: int}/jugadores/{jugador_id: int}/cartas_figura', response_model=list[CartaFiguraData])
 async def get_cartas_figura_jugador(partida_id: int, jugador_id: int, db: Session = Depends(get_db)):
