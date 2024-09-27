@@ -10,7 +10,7 @@ def test_data():
     db = TestingSessionLocal()
 
     partida1 = Partida(nombre_partida="partida_no_iniciada", nombre_creador="Jugador1", iniciada=False)
-    jugador1 = Jugador(nombre="Jugador1", partida_id=1)
+    jugador1 = Jugador(nombre="Jugador1", partida_id=1, es_creador=True)
     jugador2 = Jugador(nombre="Jugador2", partida_id=1)
     partida2 = Partida(nombre_partida="partida_iniciada", nombre_creador="Jugador1", iniciada=True)
     partida3 = Partida(nombre_partida="partida_llena", nombre_creador="Jugador1", iniciada=False)
