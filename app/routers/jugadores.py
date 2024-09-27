@@ -6,7 +6,7 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
-from crud.exceptions import PartidaNotFoundError, PartidaLlenaError
+from crud.exceptions import PartidaYaIniciada, PartidaNotFoundError, PartidaLlenaError
 import crud.jugadores as crud
 from models import Base, Jugador
 from database import engine, get_db
@@ -34,3 +34,5 @@ async def join_to_partida(partida_id: int, jugador:JugadorData, db: Session = De
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Partida Not Found")
     except PartidaLlenaError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Partida Full")
+    except PartidaYaIniciada as e:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Partida Iniciada")

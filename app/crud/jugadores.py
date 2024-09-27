@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from crud.exceptions import PartidaNotFoundError, PartidaLlenaError
+from crud.exceptions import PartidaYaIniciada, PartidaNotFoundError, PartidaLlenaError
 from models import Jugador
 from schemas import JugadorData
 from crud.partidas import get_partida_details
@@ -10,6 +10,9 @@ def create_jugador(db: Session, jugador: JugadorData):
     partida = get_partida_details(db, jugador.partida_id)
     if (not partida):
         raise PartidaNotFoundError(jugador.partida_id)
+    
+    if (partida.iniciada):
+        raise PartidaYaIniciada(jugador.partida_id)
     
     numero_jugadores = len(partida.jugadores)
     if (numero_jugadores >= 4):
