@@ -65,17 +65,6 @@ def iniciar_partida(db: Session, id: int):
     repartir_cartas_movimiento(db, partida)
     db.commit()
     db.flush()
-    
-def get_juego_details(db: Session, partida_id):
-    partida = db.query(Partida).filter(Partida.id == partida_id).first()
-    if (not partida):
-        raise ResourceNotFoundError(f"Partida con ID {id} no encontrada.")
-    
-    juego = partida.juego[0]
-    if (not juego):
-        raise ResourceNotFoundError(f"Juego con ID {id} no encontrado.")
-    
-    return juego
 
 def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
