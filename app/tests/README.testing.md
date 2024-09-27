@@ -35,7 +35,7 @@ def test_nombre_codigo(test_data):
     # Testeo si se respondio correctamente:
     assert ... , mensaje de error
     # Testeo si se actualizo la db correctamente:
-    db = test_data
+    db = test_data #(o TestingSessionLocal)
     # Query ...
     assert ... , mensaje de error
     db.close()
