@@ -48,7 +48,7 @@ def iniciar_partida(db: Session, id: int):
     if (not partida):
         raise PartidaNotFoundError(id)
     
-    if (partida.juego):
+    if (partida.juego or partida.iniciada):
         raise PartidaYaIniciada(id)
     
     if (not len(partida.jugadores) > 1):

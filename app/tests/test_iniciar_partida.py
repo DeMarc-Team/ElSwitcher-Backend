@@ -1,6 +1,5 @@
 from tests_setup import client, TestingSessionLocal
-from models import Jugador
-from models import Partida
+from models import Jugador, Partida, Juego
 
 import pytest
 
@@ -19,6 +18,11 @@ def test_data():
                        nombre_creador="Creador")
     creador2 = Jugador(nombre="Creador", partida_id=2,
                        es_creador=True, partidas=partida2)
+    
+    partida3 = Partida(nombre_partida="partida_ya_iniciada", nombre_creador="Creador", iniciada=True)
+    juego3 = Juego(turno=6, partida_id=3, partida=partida3)
+    creador3 = Jugador(nombre="Creador", partida_id=3, es_creador=True, partidas=partida3)
+    jugador3 = Jugador(nombre="Jugador1", partida_id=3, partidas=partida3)
 
     db.add(partida1)
     db.add(creador1)
@@ -26,6 +30,10 @@ def test_data():
     db.add(jugador2)
     db.add(partida2)
     db.add(creador2)
+    db.add(partida3)
+    db.add(juego3)
+    db.add(creador3)
+    db.add(jugador3)
 
     db.commit()
     db.flush()
@@ -34,6 +42,7 @@ def test_data():
 
     db.query(Jugador).delete()
     db.query(Partida).delete()
+    db.query(Juego).delete()
     db.commit()
     db.flush()
     db.close()
@@ -56,7 +65,7 @@ def test_iniciar_partida_200(test_data):
     db.close()
 
 
-def test_iniciar_partida_403(test_data):
+def test_iniciar_partida_con_jugadores_insuficientes_403(test_data):
     '''Test para iniciar una partida sin suficientes jugadores'''
     response = client.put("partidas/2")
     print(f"Response: {response.json()}")
@@ -71,3 +80,29 @@ def test_iniciar_partida_403(test_data):
     assert not partida.iniciada, f"Fallo: Se esperaba que la partida no estuviera iniciada, pero se obtuvo {partida.iniciada}"
     assert not partida.juego, f"Fallo: Se esperaba que la partida no tuviera juego, pero se obtuvo {partida.juego}"
     db.close()
+
+def test_iniciar_partida_ya_iniciada_403(test_data):
+    '''Test para iniciar una partida que ya esta iniciada'''
+    response = client.put("partidas/3")
+    print(f"Response: {response.json()}")
+    # Verificamos la respuesta del servidor
+    assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {
+        response.status_code}"
+    assert response.json()['detail'] == "Partida ya Iniciada", f"Fallo: Se esperaba 'Partida Ya Iniciada', pero se obtuvo {
+        response.json()['detail']}"
+    # Verificamos que no se haya iniciado la partida
+    db = test_data
+    partida = db.query(Partida).filter(Partida.id == 3).first()
+    assert partida.iniciada, f"Fallo: Se esperaba que la partida estuviera iniciada, pero se obtuvo {partida.iniciada}"
+    assert partida.juego, f"Fallo: Se esperaba que la partida tuviera juego, pero se obtuvo {partida.juego}"
+    db.close()
+
+def test_iniciar_partida_404(test_data):
+    '''Test para iniciar una partida que no existe'''
+    response = client.put("partidas/4")
+    print(f"Response: {response.json()}")
+    # Verificamos la respuesta del servidor
+    assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {
+        response.status_code}"
+    assert response.json()['detail'] == "Partida Not Found", f"Fallo: Se esperaba 'Partida Not Found', pero se obtuvo {
+        response.json()['detail']}"
