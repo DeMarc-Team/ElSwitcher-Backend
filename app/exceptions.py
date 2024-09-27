@@ -3,17 +3,12 @@ from fastapi.responses import JSONResponse
 # from fastapi.exceptions import HTTPException
 from fastapi import status
 
-#from main import app
-from fastapi import FastAPI
-app = FastAPI()
-
 class ResourceNotFoundError(Exception):
     """Excepción lanzada cuando un recurso no se encuentra."""
     def __init__(self, message):
         self.message = message
         super().__init__(message)
 
-@app.exception_handler(ResourceNotFoundError)
 async def resource_not_found_handler(request: Request, exc: ResourceNotFoundError):
     # Registrar detalles de la solicitud que falló
     print(f"Request URL: {request.url}")
@@ -30,7 +25,6 @@ class ForbiddenError(Exception):
         self.message = message
         super().__init__(message)
         
-@app.exception_handler(ForbiddenError)
 async def forbidden_error_handler(request: Request, exc: ForbiddenError):
     # Registrar detalles de la solicitud que falló
     print(f"Request URL: {request.url}")
