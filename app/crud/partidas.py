@@ -62,6 +62,7 @@ def iniciar_partida(db: Session, id: int):
     db.add(new_juego)
     partida.iniciada = True
     repartir_cartas_figura(db, partida)
+    repartir_cartas_movimiento(db, partida)
     db.commit()
     db.flush()
     
