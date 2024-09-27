@@ -37,7 +37,7 @@ def test_data():
     db.close()
 
 
-def test_get_jugadores_partida_existente(test_data):
+def test_get_jugadores_200(test_data):
     # Llamamos al endpoint para obtener jugadores de la partida con ID 1 (existente)
     response = client.get("partidas/1/jugadores")
     print(f"Response: {response.json()}")
@@ -48,7 +48,7 @@ def test_get_jugadores_partida_existente(test_data):
     assert response.json()[2]['nombre'] == "Jugador2", f"Fallo: Se esperaba Jugador2, pero se obtuvo {response.json()[2]['nombre']}"
     #Test exitoso: Se obtuvieron los jugadores de una partida existente
 
-def test_get_jugadores_partida_inexistente():
+def test_get_jugadores_404():
     # Llamamos al endpoint para obtener jugadores de la partida con ID 2 (inexistente)
     response = client.get("partidas/2/jugadores")
     print(f"Response: {response.json()}")
