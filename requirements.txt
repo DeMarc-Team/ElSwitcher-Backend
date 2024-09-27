@@ -12,6 +12,7 @@ httpcore==1.0.5
 httpx==0.27.2
 idna==3.9
 iniconfig==2.0.0
+mock==5.1.0
 packaging==24.1
 pluggy==1.5.0
 pycparser==2.22
