@@ -1,6 +1,7 @@
 from database import Base
 
 from sqlalchemy import Integer, Boolean, String, ForeignKey
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 
@@ -26,6 +27,13 @@ class Partida(Base):
 
     jugadores: Mapped[list[Jugador]] = relationship('Jugador', back_populates='partidas')
     juego = relationship('Juego', back_populates='partida')
+
+    @hybrid_property
+    def id_creador(self) -> int:
+        jugador_creador = next((jugador for jugador in self.jugadores if jugador.es_creador), None)
+        if jugador_creador is not None:
+            return jugador_creador.id_jugador
+        raise Exception('No se encontró el jugador creador')
 
 # JUEGO --------------------------------------------------------
 class Juego(Base):
