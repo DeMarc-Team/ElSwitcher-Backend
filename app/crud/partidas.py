@@ -57,16 +57,15 @@ def iniciar_partida(db: Session, id: int):
         raise ForbiddenError(f"Partida con ID {id} no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.")
     
     id_creador = get_id_creador(db, id)
-    new_juego = Juego(partida_id=partida.id, partida=partida)
-
+    new_juego = Juego(jugadores=partida.jugadores, partida_id=partida.id, partida=partida)
 
     db.add(new_juego)
     partida.iniciada = True
     repartir_cartas_figura(db, partida)
     repartir_cartas_movimiento(db, partida)
-    shuffle(partida.jugadores)
-    db.commit()
     db.flush()
+    shuffle(partida.juego[0].jugadores)
+    db.commit()
 
 def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()

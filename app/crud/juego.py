@@ -31,3 +31,21 @@ def get_turno_details(db: Session, partida_id):
     )
     
     return turno_details
+
+def siguiente_turno(db: Session, partida_id):
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+    if (not partida):
+        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
+    
+    if (not partida.iniciada):
+        raise ForbiddenError(f"La partida con ID {partida_id} todavía no comenzó.")
+    
+    juego = partida.juego[0]
+    actual_jugador = juego.jugadores[0]
+    juego.jugadores.remove(actual_jugador)
+    db.flush()
+    actual_jugador.orden = len(juego.jugadores)
+    juego.jugadores.append(actual_jugador)
+    db.commit()
+    
+    return actual_jugador.id_jugador
