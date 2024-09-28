@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 
 from exceptions import ResourceNotFoundError
-from models import Partida, Jugador, TurnoDetails
+from models import Partida, Jugador
+from schemas import TurnoDetails
 
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
