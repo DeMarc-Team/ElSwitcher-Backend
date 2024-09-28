@@ -4,7 +4,6 @@ from fastapi import (
 )
 
 from sqlalchemy.orm import Session
-from fastapi import status
 
 import crud.partidas as crud
 from models import Base
@@ -18,11 +17,19 @@ router = APIRouter(
     tags=["partidas"]
 )
 
-@router.get('/', response_model=list[PartidaDetails])
+@router.get('/',
+            response_model=list[PartidaDetails],
+            summary="Obtener partidas",
+            description="Devuelve la lista de partidas disponibles.",
+            tags=["Partidas"])
 async def get_partidas(db: Session = Depends(get_db)):
     return crud.get_partidas(db)
 
-@router.get('/{partida_id:int}', response_model=PartidaDetails2)
+@router.get('/{partida_id:int}',
+            response_model=PartidaDetails2,
+            summary="Obtener detalles de una partida",
+            description="Devuelve los detalles de la partida especificada por partida_id.",
+            tags=["Partidas"])
 async def get_partida_details(partida_id: int, db: Session = Depends(get_db)):
         response = crud.get_partida_details(db, partida_id)
         espacios_disponibles = 4 - len(response.jugadores)
@@ -36,20 +43,35 @@ async def get_partida_details(partida_id: int, db: Session = Depends(get_db)):
             "espacios_disponibles": espacios_disponibles}
         return partidaDetails
 
-@router.post('/', response_model=PartidaDetails)
+@router.post('/',
+             response_model=PartidaDetails,
+             summary="Crear partida",
+             description="Crea una nueva partida.",
+             tags=["Partidas"])
 async def create_partida(partida: PartidaData, db: Session = Depends(get_db)):
     return crud.create_partida(db=db, partida=partida)
 
-@router.put('/{partida_id:int}', status_code=200)
+@router.put('/{partida_id:int}',
+            summary="Actualizar partida",
+            description="Actualiza los datos de la partida especificada por partida_id.",
+            tags=["Partidas"])
 async def iniciar_partida(partida_id: int, db: Session = Depends(get_db)):
     crud.iniciar_partida(db=db, id=partida_id)
     return {"message": "Partida iniciada correctamemte", "partida_id": partida_id}
 
 # TODO: Terminar la especificación de este endpoint para que retorne únicamente los valores que se desean para el turno
-@router.get('/juego/{partida_id: int}', response_model=JuegoDetails)
+@router.get('/juego/{partida_id: int}',
+            response_model=JuegoDetails,
+            summary="Obtener detalles de un turno",
+            description="Devuelve los detalles de un turno.",
+            tags=["Juego"])
 async def get_turno_details(partida_id: int,  db: Session = Depends(get_db)):
     return crud.get_juego_details(db=db, partida_id=partida_id)
 
-@router.get('/juego/{partida_id:int}/jugadores/{jugador_id:int}/cartas_figura', response_model=list[CartaFiguraData])
+@router.get('/juego/{partida_id:int}/jugadores/{jugador_id:int}/cartas_figura',
+             response_model=list[CartaFiguraData],
+             summary="Obtener cartas figura de un jugador",
+             description="Devuelve las cartas figura de un jugador.",
+             tags=["Juego"])
 async def get_cartas_figura_jugador(partida_id: int, jugador_id: int, db: Session = Depends(get_db)):
     return crud.get_cartas_figura_jugador(db=db, partida_id=partida_id, jugador_id=jugador_id)
