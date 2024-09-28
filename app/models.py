@@ -69,10 +69,11 @@ class CartaMovimiento(Base):
     __tablename__ = 'cartas_de_movimiento'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
     
-    def get_random_movimiento():
+    def random_movimiento():
         import random
         return random.choice(['m1', 'm2', 'm3'])
-    movimiento: Mapped[str] = mapped_column(String, nullable=False, default = get_random_movimiento)
+    
+    movimiento: Mapped[str] = mapped_column(String, nullable=False, default=lambda: CartaMovimiento.random_movimiento())
 
     movimientos_de = relationship('Jugador', back_populates='mano_movimientos') # Las relaciones necesitan que exista además una foreign key
     jugador_id = mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
