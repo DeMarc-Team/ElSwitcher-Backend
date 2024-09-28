@@ -36,6 +36,10 @@ async def get_turno_details(partida_id: int,  db: Session = Depends(get_db)):
 async def get_cartas_figura_jugador(partida_id: int, jugador_id: int, db: Session = Depends(get_db)):
     return crud.partidas.get_cartas_figura_jugador(db=db, partida_id=partida_id, jugador_id=jugador_id)
 
-@router.get('/{id_partida:int}/jugadores/{id_jugador:int}/cartas_movimiento', response_model=list[CartaMovimientoData])
+@router.get('/{id_partida:int}/jugadores/{id_jugador:int}/cartas_movimiento',
+            response_model=list[CartaMovimientoData],
+            summary="Obtener cartas de movimiento de un jugador",
+            description="Devuelve las cartas de movimiento de un jugador.",
+            tags=["Juego"])
 async def get_movimientos_jugador(id_partida: int, id_jugador: int, db: Session = Depends(get_db)):
     return crud.juego.get_movimientos_jugador(db, id_partida, id_jugador)
