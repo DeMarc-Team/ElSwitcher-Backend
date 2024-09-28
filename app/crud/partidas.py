@@ -56,7 +56,7 @@ def iniciar_partida(db: Session, id: int):
         raise ForbiddenError(f"Partida con ID {id} no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.")
     
     id_creador = get_id_creador(db, id)
-    new_juego = Juego(turno=id_creador, partida_id=partida.id, partida=partida)
+    new_juego = Juego(jugador_id=id_creador, partida_id=partida.id, partida=partida)
 
 
     db.add(new_juego)

@@ -23,10 +23,10 @@ def get_turno_details(db: Session, partida_id):
     
     juego = partida.juego[0]
     
-    nombre_jugador_del_turno = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == juego.turno)).first().nombre
+    nombre_jugador_del_turno = juego.jugador_del_turno.nombre
     
     turno_details = TurnoDetails(
-        id_jugador=juego.turno,
+        id_jugador=juego.jugador_id,
         nombre_jugador=nombre_jugador_del_turno
     )
     

@@ -40,7 +40,8 @@ class Partida(Base):
 class Juego(Base):
     __tablename__ = 'juegos'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
-    turno: Mapped[int] =  mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
+    jugador_id: Mapped[int] =  mapped_column(Integer, ForeignKey('jugadores.id_jugador'), unique=True)
+    jugador_del_turno: Mapped[Jugador] = relationship('Jugador')
     
     partida_id: Mapped[int] = mapped_column(Integer, ForeignKey('partidas.id'), unique=True)
     partida: Mapped[Partida] = relationship('Partida', back_populates='juego')
