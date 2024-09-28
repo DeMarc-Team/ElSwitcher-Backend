@@ -2,7 +2,6 @@ from tests_setup import client, TestingSessionLocal
 from models import Partida, Jugador, CartaFigura, CartaMovimiento, Juego
 import mock
 import pytest
-import ipdb
 
 @pytest.fixture(scope="function")
 def test_db():
