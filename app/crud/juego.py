@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from exceptions import ResourceNotFoundError
+from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida, Jugador
 from schemas import TurnoDetails
 
@@ -18,10 +18,10 @@ def get_turno_details(db: Session, partida_id):
     if (not partida):
         raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
     
-    try:
-        juego = partida.juego[0]
-    except:
-        raise ResourceNotFoundError(f"Juego asociado a la partida con ID {partida_id} no encontrado.")
+    if (not partida.iniciada):
+        raise ForbiddenError(f"La partida con ID {partida_id} todavía no comenzó.")
+    
+    juego = partida.juego[0]
     
     nombre_jugador_del_turno = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == juego.turno)).first().nombre
     
