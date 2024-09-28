@@ -35,7 +35,7 @@ def test_db():
     finally:
         db.close()
         
-def test_creacion_de_juego(test_db):
+def test_get_turno_details(test_db):
     '''Test para crear iniciar una partida con un juego asociado'''
     nueva_partida = {
         "nombre_partida": "Partida_nueva",
