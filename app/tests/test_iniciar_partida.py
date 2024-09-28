@@ -20,7 +20,7 @@ def test_data():
                        es_creador=True, partidas=partida2)
     
     partida3 = Partida(nombre_partida="partida_ya_iniciada", nombre_creador="Creador", iniciada=True)
-    juego3 = Juego(turno=6, partida_id=3, partida=partida3)
+    juego3 = Juego(jugador_id=6, partida_id=3, partida=partida3)
     creador3 = Jugador(nombre="Creador", partida_id=3, es_creador=True, partidas=partida3)
     jugador3 = Jugador(nombre="Jugador1", partida_id=3, partidas=partida3)
 
