@@ -7,6 +7,7 @@ from schemas import PartidaData
 from models import Jugador
 from models import Juego
 from models import CartaFigura, random_figura
+from models import CartaMovimiento
 
 def get_id_creador(db: Session, partida_id):
     jugador = db.query(Jugador).filter((Jugador.es_creador == True) & (Jugador.partida_id == partida_id)).first()
@@ -61,6 +62,7 @@ def iniciar_partida(db: Session, id: int):
     db.add(new_juego)
     partida.iniciada = True
     repartir_cartas_figura(db, partida)
+    repartir_cartas_movimiento(db, partida)
     db.commit()
     db.flush()
     
@@ -86,3 +88,12 @@ def repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=3):
         for i in range(n_cartas_por_jugador):
             new_carta = CartaFigura(figura=random_figura(), jugador_id=jugador.id_jugador)
             db.add(new_carta)
+    
+def repartir_cartas_movimiento(db: Session, partida, n_cartas_por_jugador=3):
+    for jugador in partida.jugadores:
+        for i in range(n_cartas_por_jugador):
+            new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
+            db.add(new_carta)
+            
+    db.commit()
+    db.flush()

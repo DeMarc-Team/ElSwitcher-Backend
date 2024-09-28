@@ -16,6 +16,7 @@ class Jugador(Base):
     partidas = relationship("Partida", back_populates="jugadores")
 
     mazo_cartas_de_figura:Mapped[list['CartaFigura']] = relationship('CartaFigura', back_populates='poseida_por')
+    mano_movimientos: Mapped[list['CartaMovimiento']] = relationship('CartaMovimiento', back_populates='movimientos_de')
 
 # PARTIDA ------------------------------------------------------
 class Partida(Base):
@@ -60,4 +61,19 @@ class CartaFigura(Base):
     revelada: Mapped[Boolean] = mapped_column(Boolean, default=True) # Default true para que en la demo se vea ajsja
 
     poseida_por = relationship('Jugador', back_populates='mazo_cartas_de_figura') # Las relaciones necesitan que exista además una foreign key
+    jugador_id = mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
+    
+# CartaMovimiento --------------------------------------------------
+class CartaMovimiento(Base):
+
+    __tablename__ = 'cartas_de_movimiento'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
+    
+    def random_movimiento():
+        import random
+        return random.choice(['m1', 'm2', 'm3'])
+    
+    movimiento: Mapped[str] = mapped_column(String, nullable=False, default=lambda: CartaMovimiento.random_movimiento())
+
+    movimientos_de = relationship('Jugador', back_populates='mano_movimientos') # Las relaciones necesitan que exista además una foreign key
     jugador_id = mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
