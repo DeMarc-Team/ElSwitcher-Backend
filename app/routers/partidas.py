@@ -52,7 +52,7 @@ async def create_partida(partida: PartidaData, db: Session = Depends(get_db)):
     return crud.create_partida(db=db, partida=partida)
 
 @router.put('/{partida_id:int}',
-            summary="Actualizar partida",
+            summary="Iniciar partida",
             description="Actualiza los datos de la partida especificada por partida_id.",
             tags=["Partidas"])
 async def iniciar_partida(partida_id: int, db: Session = Depends(get_db)):
