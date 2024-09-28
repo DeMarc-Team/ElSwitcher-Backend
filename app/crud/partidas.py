@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import func, select
+from sqlalchemy import func
+from random import shuffle
 
 from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida
@@ -56,13 +57,14 @@ def iniciar_partida(db: Session, id: int):
         raise ForbiddenError(f"Partida con ID {id} no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.")
     
     id_creador = get_id_creador(db, id)
-    new_juego = Juego(jugador_id=id_creador, partida_id=partida.id, partida=partida)
+    new_juego = Juego(partida_id=partida.id, partida=partida)
 
 
     db.add(new_juego)
     partida.iniciada = True
     repartir_cartas_figura(db, partida)
     repartir_cartas_movimiento(db, partida)
+    shuffle(partida.jugadores)
     db.commit()
     db.flush()
 
