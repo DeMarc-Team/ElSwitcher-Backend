@@ -1,7 +1,6 @@
 from tests_setup import client, TestingSessionLocal
 from models import Partida, Jugador, CartaFigura, CartaMovimiento, Juego
 from crud.juego import siguiente_turno
-from schemas import JuegoDetails
 import pytest
 
 @pytest.fixture(scope="function")
