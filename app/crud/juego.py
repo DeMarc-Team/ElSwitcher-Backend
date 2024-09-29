@@ -70,6 +70,6 @@ def get_tablero(db: Session, partida_id: int):
     juego = db.query(Juego).filter(Juego.partida_id == partida_id).first()
 
     if (juego == None):
-        return "[]" # Si no hay juego, devolver un tablero vacío
+        return None # Si no hay juego, devolver un tablero vacío
 
     return juego.tablero

@@ -52,9 +52,25 @@ async def get_turno_details(id_partida: int,  db: Session = Depends(get_db)):
 async def terminar_turno(id_partida: int, id_jugador, db: Session = Depends(get_db)):
     return crud.juego.terminar_turno(db, id_partida, id_jugador)
 
-@router.get('{id_partida:int}/tablero',
+@router.get('/{id_partida:int}/tablero',
             summary='Obetener el tablero del juego',
             response_model=Json,
             )
 async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
-    return crud.juego.get_tablero(db,id_partida)
+    """Obtiene el tablero de una partida
+
+    Args:
+        id_partida (int): id de la partida
+
+    Returns:
+        Tablero de la partida en formato JSON
+
+    Details:
+        Response 200 en caso de que el tablero se haya obtenido correctamente.
+        Response 404 en caso de que la partida no exista o no haya sido iniciada.
+    """
+    tablero = crud.juego.get_tablero(db, id_partida)
+    if tablero is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Partida no encontrada")
+    return tablero
