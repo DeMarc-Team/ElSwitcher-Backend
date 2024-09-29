@@ -3,7 +3,7 @@ from database import Base
 from sqlalchemy import Integer, Boolean, String, ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, Mapped, mapped_column
-
+from sqlalchemy.ext.orderinglist import ordering_list
 
 # JUGADOR ------------------------------------------------------
 class Jugador(Base):
@@ -15,6 +15,10 @@ class Jugador(Base):
     partida_id: Mapped[int] = mapped_column(Integer, ForeignKey('partidas.id'))
     partidas = relationship("Partida", back_populates="jugadores")
 
+    juego_id: Mapped[int] = mapped_column(Integer, ForeignKey('juegos.id'), nullable=True)
+    juegos: Mapped[list['Juego']] = relationship("Juego", back_populates="jugadores")
+    
+    orden: Mapped[int] = mapped_column(Integer, nullable=True)
     mazo_cartas_de_figura:Mapped[list['CartaFigura']] = relationship('CartaFigura', back_populates='poseida_por')
     mano_movimientos: Mapped[list['CartaMovimiento']] = relationship('CartaMovimiento', back_populates='movimientos_de')
 
@@ -40,7 +44,21 @@ class Partida(Base):
 class Juego(Base):
     __tablename__ = 'juegos'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
-    turno: Mapped[int] =  mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
+    
+    jugadores: Mapped[list[Jugador]] = relationship('Jugador', order_by='Jugador.orden',
+                                                    collection_class=ordering_list('orden'))
+    
+    @hybrid_property
+    def jugador_del_turno(self) -> Jugador:
+        if self.partida and self.partida.jugadores:
+            return self.jugadores[0]  # Retorna el jugador en la primera posición
+        return None
+    
+    @hybrid_property
+    def jugador_id(self) -> int:
+        if self.partida and self.partida.jugadores:
+            return self.jugadores[0].id_jugador  # Retorna el jugador en la primera posición
+        return None
     
     partida_id: Mapped[int] = mapped_column(Integer, ForeignKey('partidas.id'), unique=True)
     partida: Mapped[Partida] = relationship('Partida', back_populates='juego')

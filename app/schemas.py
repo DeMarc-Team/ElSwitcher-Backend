@@ -33,10 +33,12 @@ class JuegoData(BaseModel):
 
 class JuegoDetails(JuegoData):
     id: int
-    turno: int
+    id_jugador: int
     partida_id: int
 
-
+class TurnoDetails(BaseModel):
+    id_jugador: int
+    nombre_jugador: str
 
 class CartaFiguraData(BaseModel):
     figura: str

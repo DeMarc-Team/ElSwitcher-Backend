@@ -19,7 +19,8 @@ def create_jugador(db: Session, jugador: JugadorData):
         raise ForbiddenError(f"Partida con ID {jugador.partida_id} está llena. Máximo de jugadores: 4.")
     
     try:
-        new_jugador = Jugador(nombre=jugador.nombre, partida_id=jugador.partida_id, mazo_cartas_de_figura=[])
+        # WARNING: La asignación del orden actualmente podría generar race conditions
+        new_jugador = Jugador(nombre=jugador.nombre, partida_id=jugador.partida_id, orden=len(partida.jugadores), mazo_cartas_de_figura=[])
         db.add(new_jugador)
         db.commit()
         db.flush()

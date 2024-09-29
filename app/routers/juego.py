@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 import crud.juego
 import crud.partidas
 from models import Base
-from schemas import JuegoDetails, CartaFiguraData, CartaMovimientoData
+from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails
 from database import engine, get_db
 
 
@@ -18,15 +18,6 @@ router = APIRouter(
     prefix="/juego",
     tags=["juego"]
 )
-
-# TODO: Terminar de adaptar este endpoint a la especificación.
-@router.get('/{partida_id: int}',
-            response_model=JuegoDetails,
-            summary="Obtener detalles de un turno",
-            description="Devuelve los detalles de un turno.",
-            tags=["Juego"])
-async def get_turno_details(partida_id: int,  db: Session = Depends(get_db)):
-    return crud.partidas.get_juego_details(db=db, partida_id=partida_id)
 
 @router.get('/{partida_id:int}/jugadores/{jugador_id:int}/cartas_figura',
              response_model=list[CartaFiguraData],
@@ -43,3 +34,11 @@ async def get_cartas_figura_jugador(partida_id: int, jugador_id: int, db: Sessio
             tags=["Juego"])
 async def get_movimientos_jugador(id_partida: int, id_jugador: int, db: Session = Depends(get_db)):
     return crud.juego.get_movimientos_jugador(db, id_partida, id_jugador)
+
+@router.get('/{id_partida:int}/turno',
+            response_model=TurnoDetails,
+            summary="Obtener la información de quien posee el turno.",
+            description="Devuelve el nombre y el identificador de quien posee el turno en una partida.",
+            tags=["Juego"])
+async def get_turno_details(id_partida: int,  db: Session = Depends(get_db)):
+    return crud.juego.get_turno_details(db=db, partida_id=id_partida)
