@@ -9,6 +9,7 @@
 - Solo añadr prints a los test para debug y para cuando fallan, si tienen exito no se mostrara ningun print al correr con pytest.
 - Siempre luego de un test, borrar todo lo subido a la db!!!!
 - Si se esta haciendo el unitest de un endpoint solo se lo deberia llamar a el, no utilizar otros endpoints (que no haya mas de una linea del estilo client.get("partidas/1/jugadores")). Crear la base de datos en el fixture y si se necesita acceder, acceder desde el test como se muestra en el ejemplo.
+- En `test_data` no se debe crear la base de datos con secuencialidad ni algoritmia. Solo poner lo que se necesita como precondicion para testear.
 - ... abajo mas informacion :)
 
 ## ¿Que testear?
@@ -24,7 +25,7 @@ Crear un archivo test_nombre.py con el siguiente formato:
 @pytest.fixture(scope="function")
 def test_data(): # Definir la función test data (Si hace falta).
     db = TestingSessionLocal()
-    # Se crean entidades en la base de datos
+    # Se crean entidades (sin secuancialidad) en la base de datos
     # ...
     yield  # Este es el punto donde se ejecutan las pruebas
     # Limpieza de la base de datos
