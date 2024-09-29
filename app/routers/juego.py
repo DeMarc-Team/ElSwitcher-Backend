@@ -42,3 +42,10 @@ async def get_movimientos_jugador(id_partida: int, id_jugador: int, db: Session 
             tags=["Juego"])
 async def get_turno_details(id_partida: int,  db: Session = Depends(get_db)):
     return crud.juego.get_turno_details(db=db, partida_id=id_partida)
+
+@router.put('/{id_partida:int}/jugadores/{id_jugador:int}/turno',
+            summary="Terminar el turno del jugador actual.",
+            description="Termina el turno del jugador actual, si es que el id del mismo coincide con el del parámetro.",
+            tags=["Juego"])
+async def terminar_turno(id_partida: int, id_jugador, db: Session = Depends(get_db)):
+    return crud.juego.terminar_turno(db, id_partida, id_jugador)
