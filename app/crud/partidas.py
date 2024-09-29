@@ -68,7 +68,10 @@ def iniciar_partida(db: Session, id: int):
 
 def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
     
-    get_partida_details(db, partida_id) # raises ResourceNotFoundError if not found
+    partida = get_partida_details(db, partida_id) # raises ResourceNotFoundError if not found
+    
+    if (not partida):
+        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
     
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
     if (not jugador):
