@@ -70,7 +70,4 @@ async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
         Response 404 en caso de que la partida no exista o no haya sido iniciada.
     """
     tablero = crud.juego.get_tablero(db, id_partida)
-    if tablero is None:
-        from fastapi import HTTPException
-        raise HTTPException(status_code=404, detail="Partida no encontrada")
     return tablero

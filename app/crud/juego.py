@@ -69,7 +69,7 @@ def terminar_turno(db: Session, partida_id, jugador_id):
 def get_tablero(db: Session, partida_id: int):
     juego = db.query(Juego).filter(Juego.partida_id == partida_id).first()
 
-    if (juego == None):
-        return None # Si no hay juego, devolver un tablero vacío
+    if (juego == None): # Si no hay juego, devolver un tablero vacío
+        raise ResourceNotFoundError(f"Partida no encontrada")
 
     return juego.tablero
