@@ -13,8 +13,7 @@ from schemas import PartidaData, PartidaDetails, PartidaDetails2, JuegoDetails, 
 Base.metadata.create_all(bind=engine)
 
 router = APIRouter(
-    prefix="/partidas",
-    tags=["partidas"]
+    prefix="/partidas"
 )
 
 @router.get('/',

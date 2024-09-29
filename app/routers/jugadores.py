@@ -12,8 +12,7 @@ from schemas import JugadorData, JugadorOnCreateResponse
 Base.metadata.create_all(bind=engine)
 
 router = APIRouter(
-    prefix="/partidas",
-    tags=["partidas"]
+    prefix="/partidas"
 )
 
 
