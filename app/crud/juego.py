@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from exceptions import ResourceNotFoundError, ForbiddenError
-from models import Partida, Jugador
+from models import Partida, Jugador, Juego
 from schemas import TurnoDetails
 
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
@@ -65,3 +65,11 @@ def terminar_turno(db: Session, partida_id, jugador_id):
         raise ForbiddenError(f"El ID del jugador que posee el turno no es {jugador_id}.")
     
     siguiente_turno(db, partida_id)
+
+def get_tablero(db: Session, partida_id: int):
+    juego = db.query(Juego).filter(Juego.partida_id == partida_id).first()
+
+    if (juego == None):
+        return None # Si no hay juego, devolver un tablero vacío
+
+    return juego.tablero
