@@ -79,10 +79,14 @@ def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
 
     return mazo_del_jugador
 
-def repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=3):
+def repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=3, n_cartas_reveladas=2):
     for jugador in partida.jugadores:
-        for i in range(n_cartas_por_jugador):
-            new_carta = CartaFigura(jugador_id=jugador.id_jugador)
+        for i in range(n_cartas_por_jugador-n_cartas_reveladas):
+            new_carta = CartaFigura(jugador_id=jugador.id_jugador, revelada=False)
+            db.add(new_carta)
+
+        for i in range(n_cartas_reveladas):
+            new_carta = CartaFigura(jugador_id=jugador.id_jugador, revelada=True)
             db.add(new_carta)
     
 def repartir_cartas_movimiento(db: Session, partida, n_cartas_por_jugador=3):
