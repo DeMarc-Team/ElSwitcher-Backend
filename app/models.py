@@ -85,16 +85,16 @@ class Juego(Base):
 
 # CartaFigura --------------------------------------------------
 
-def random_figura(): # TODO: No supe poner esto como metodo de la clase CartaFigura pero quedaria mejor
-    import random
-    return random.choice(['f1','f2','f3'])
-
 class CartaFigura(Base):
 
     __tablename__ = 'cartas_de_figura'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
-    figura: Mapped[str] = mapped_column(String, nullable=False, default = random_figura())
-
+    
+    def random_figura():
+        import random
+        return random.choice(['f1','f2','f3'])
+    
+    figura: Mapped[str] = mapped_column(String, nullable=False, default=lambda: CartaFigura.random_figura())
     revelada: Mapped[Boolean] = mapped_column(Boolean, default=True) # Default true para que en la demo se vea ajsja
 
     poseida_por = relationship('Jugador', back_populates='mazo_cartas_de_figura') # Las relaciones necesitan que exista además una foreign key

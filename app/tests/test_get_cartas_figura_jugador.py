@@ -32,7 +32,7 @@ def test_db():
 Se crea una partida
 Y se inicia para ver si el jugador recibio las cartas
 """
-@mock.patch('crud.partidas.random_figura', mock.Mock(return_value='f1'))
+@mock.patch('models.CartaFigura.random_figura', mock.Mock(return_value='f1'))
 def test_get_cartas_figura_jugador(test_db):
     # Access the test_db to avoid the unused fixture warning
     nueva_partida = {
@@ -69,7 +69,7 @@ def test_get_cartas_figura_jugador(test_db):
         assert carta['figura'] == 'f1', f"Fallo: Se esperaba la figura f1, pero se obtuvo {carta['figura']}"
 
 def test_get_cartas_figura_jugador_diferentes_figuras(test_db):
-    with mock.patch('crud.partidas.random_figura', mock.Mock(side_effect=['f1', 'f2', 'f3','f1', 'f2', 'f3'])):
+    with mock.patch('models.CartaFigura.random_figura', mock.Mock(side_effect=['f1', 'f2', 'f3','f1', 'f2', 'f3'])):
         assert test_db is not None
         nueva_partida = {
             'nombre_partida': 'partida4',
@@ -101,7 +101,7 @@ def test_get_cartas_figura_jugador_diferentes_figuras(test_db):
 
 
 def test_get_cartas_figura_jugador_con_creador_y_otro_jugador(test_db):
-    with mock.patch('crud.partidas.random_figura', mock.Mock(return_value='f1')):
+    with mock.patch('models.CartaFigura.random_figura', mock.Mock(return_value='f1')):
         assert test_db is not None
         nueva_partida = {
             'nombre_partida': 'partida5',
