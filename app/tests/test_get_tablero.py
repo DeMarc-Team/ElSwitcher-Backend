@@ -35,7 +35,6 @@ def test_data():
     db.add(juego)
 
     db.commit()
-    db.flush()
     db.close()
 
     # Cerramos la sesión antes de salir del fixture
@@ -48,7 +47,6 @@ def test_data():
     db.query(CartaFigura).delete()
     db.query(CartaMovimiento).delete()
     db.commit()
-    db.flush()
     db.close()
 
 @mock.patch('crud.juego.get_tablero', mock.Mock(return_value=tablero_mock))

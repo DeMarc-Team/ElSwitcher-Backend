@@ -43,14 +43,12 @@ def test_data():
     db.add(jugador32)
 
     db.commit()
-    db.flush()
 
     yield db
 
     db.query(Jugador).delete()
     db.query(Partida).delete()
     db.commit()
-    db.flush()
     db.close()
 
 

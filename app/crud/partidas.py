@@ -38,11 +38,9 @@ def create_partida(db: Session, partida: PartidaData):
     new_partida = Partida(nombre_partida=partida.nombre_partida, nombre_creador=partida.nombre_creador)
     db.add(new_partida)
     db.flush()
-    print(f"Id partida creada: {new_partida.id}")
     new_jugador = Jugador(nombre=partida.nombre_creador, es_creador=True, partida_id=new_partida.id)
     db.add(new_jugador)
     db.commit()
-    db.flush()
     return new_partida
 
 def iniciar_partida(db: Session, id: int):

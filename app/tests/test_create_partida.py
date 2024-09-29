@@ -9,7 +9,6 @@ def test_db():
     db.query(Partida).delete()
     db.query(Jugador).delete()
     db.commit()
-    db.flush()
     db.close()
 
 def test_create_partida(test_db):

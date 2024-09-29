@@ -23,7 +23,6 @@ def create_jugador(db: Session, jugador: JugadorData):
         new_jugador = Jugador(nombre=jugador.nombre, partida_id=jugador.partida_id, orden=len(partida.jugadores), mazo_cartas_de_figura=[])
         db.add(new_jugador)
         db.commit()
-        db.flush()
         return new_jugador
     except Exception as e:
         db.rollback()

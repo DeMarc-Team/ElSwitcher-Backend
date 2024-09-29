@@ -15,7 +15,6 @@ def test_data():
     db.add(jugador1)
     db.add(jugador2)
     db.commit()
-    db.flush()
     db.close()
 
     yield  db
@@ -23,7 +22,6 @@ def test_data():
     db.query(Jugador).delete()
     db.query(Partida).delete()
     db.commit()
-    db.flush()
     db.close()
 
 def test_get_details_partida_200(test_data):

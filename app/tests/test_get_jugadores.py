@@ -23,7 +23,6 @@ def test_data():
     db.add(jugador2)
 
     db.commit()
-    db.flush()
     db.close()
 
     # Cerramos la sesión antes de salir del fixture
@@ -33,7 +32,6 @@ def test_data():
     db.query(Jugador).delete()
     db.query(Partida).delete()
     db.commit()
-    db.flush()
     db.close()
 
 
