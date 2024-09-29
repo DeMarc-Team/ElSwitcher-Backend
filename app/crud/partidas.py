@@ -67,7 +67,13 @@ def iniciar_partida(db: Session, id: int):
     db.commit()
 
 def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
+    
+    get_partida_details(db, partida_id) # raises ResourceNotFoundError if not found
+    
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
+    if (not jugador):
+        raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
+    
     mazo_del_jugador = jugador.mazo_cartas_de_figura
 
     return mazo_del_jugador
