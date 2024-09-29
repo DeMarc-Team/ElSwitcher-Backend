@@ -44,7 +44,5 @@ class CartaFiguraData(BaseModel):
     figura: str
     revelada: bool
 
-
-
 class CartaMovimientoData(BaseModel):
     movimiento: str

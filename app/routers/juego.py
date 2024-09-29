@@ -11,6 +11,8 @@ from models import Base
 from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails
 from database import engine, get_db
 
+from pydantic import Json
+
 
 Base.metadata.create_all(bind=engine)
 
@@ -49,3 +51,10 @@ async def get_turno_details(id_partida: int,  db: Session = Depends(get_db)):
             tags=["Juego"])
 async def terminar_turno(id_partida: int, id_jugador, db: Session = Depends(get_db)):
     return crud.juego.terminar_turno(db, id_partida, id_jugador)
+
+@router.get('{id_partida:int}/tablero',
+            summary='Obetener el tablero del juego',
+            response_model=Json,
+            )
+async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
+    return crud.juego.get_tablero(db,id_partida)

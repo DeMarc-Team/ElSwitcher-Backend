@@ -41,6 +41,24 @@ class Partida(Base):
         raise Exception('No se encontró el jugador creador')
 
 # JUEGO --------------------------------------------------------
+def random_tablero():
+    """Genera una lista de 36 fichas de 4 colores distintos mezcladas aleatoriamente
+    Returns:
+        String: Lista de fichas (Como JSON)
+    """
+    from random import shuffle
+    import json
+    set_de_fichas = [1 for i in range(9) ] + [2 for i in range(9) ] + [3 for i in range(9) ] + [4 for i in range(9) ] # 36 fichas de 4 colores distintos
+    shuffle(set_de_fichas) # Mezclar las fichas
+    tablero = []
+    for i in range(6):
+        tablero.append(set_de_fichas[i*6:i*6+6])  # Agregar de a 6 las casillas del set mezclado
+
+    tablero_as_json = json.dumps(tablero)
+
+    return tablero_as_json
+
+
 class Juego(Base):
     __tablename__ = 'juegos'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -63,6 +81,7 @@ class Juego(Base):
     partida_id: Mapped[int] = mapped_column(Integer, ForeignKey('partidas.id'), unique=True)
     partida: Mapped[Partida] = relationship('Partida', back_populates='juego')
 
+    tablero = mapped_column(String, nullable=False, default=random_tablero())
 
 # CartaFigura --------------------------------------------------
 
