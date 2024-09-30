@@ -33,13 +33,12 @@ class Partida(Base):
     jugadores: Mapped[list[Jugador]] = relationship('Jugador', back_populates='partidas')
     juego = relationship('Juego', back_populates='partida')
 
-    @hybrid_property # TODO: Revisar el cambio de que pueda no haber un creador si la partida está iniciada
+    @hybrid_property
     def id_creador(self) -> int:
         jugador_creador = next((jugador for jugador in self.jugadores if jugador.es_creador), None)
         if jugador_creador is not None:
             return jugador_creador.id_jugador
-        if self.iniciada == False:
-            raise Exception('No se encontró el jugador creador')
+        raise Exception('No se encontró el jugador creador')
 
 # JUEGO --------------------------------------------------------
 def random_tablero():
