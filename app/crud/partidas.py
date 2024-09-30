@@ -62,6 +62,8 @@ def iniciar_partida(db: Session, id: int):
     repartir_cartas_movimiento(db, partida)
     db.flush()
     shuffle(partida.juego[0].jugadores)
+
+    assert len(partida.juego[0].jugadores) == len(partida.jugadores), "La cantidad de jugadores en el juego deberia ser igual a la cantidad de jugadores en la partida"
     db.commit()
 
 def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
@@ -90,3 +92,36 @@ def repartir_cartas_movimiento(db: Session, partida, n_cartas_por_jugador=3):
         for i in range(n_cartas_por_jugador):
             new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
             db.add(new_carta)
+
+def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
+    partida = get_partida_details(db, partida_id) # raises ResourceNotFoundError if not found
+    if (not partida):
+        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
+
+    jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
+    if (not jugador):
+        raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
+    
+    partida_iniciada = partida.iniciada or partida.juego != []
+    jugador_es_creador = jugador.id_jugador == partida.id_creador or jugador.es_creador == True
+    
+    assert partida_iniciada or partida.id_creador is not None, "La partida deberia tener un creador"
+    if (jugador_es_creador and not partida_iniciada):
+        raise ForbiddenError(f"El creador con ID {jugador_id} no puede abandonar la partida con ID {partida_id} antes de iniciarla.")
+    
+    db.delete(jugador)
+    partida.jugadores.remove(jugador)
+    db.flush()
+
+    assert (jugador not in partida.jugadores) and (not partida.iniciada or jugador not in partida.juego[0].jugadores), "El jugador deberia haber sido eliminado de la partida y juego"
+    assert len(partida.jugadores) >= 1, "La partida deberia tener jugadores"
+    assert not partida.iniciada or (len(partida.juego[0].jugadores) >= 1), "El juego deberia existir y tener jugadores si la partida esta iniciada"
+    if (len(partida.jugadores) <= 1 and partida_iniciada):
+        # TODO: Declarar ganador al jugador que queda
+        ganador = partida.jugadores[0]
+        db.delete(ganador)
+        juego = db.query(Juego).filter(Juego.partida_id == partida_id).first()
+        db.delete(partida)
+        db.delete(juego)
+    
+    db.commit()
