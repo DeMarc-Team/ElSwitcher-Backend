@@ -22,6 +22,10 @@ class Jugador(Base):
     mazo_cartas_de_figura:Mapped[list['CartaFigura']] = relationship('CartaFigura', back_populates='poseida_por')
     mano_movimientos: Mapped[list['CartaMovimiento']] = relationship('CartaMovimiento', back_populates='movimientos_de')
 
+    def __repr__(self): # pragma: no cover
+        return (f"<Jugador(id_jugador={self.id_jugador}, nombre='{self.nombre}', "
+                f"es_creador={self.es_creador}, partida_id={self.partida_id}, "
+                f"juego_id={self.juego_id}, orden={self.orden})>")
 # PARTIDA ------------------------------------------------------
 class Partida(Base):
     __tablename__ = 'partidas'
@@ -39,6 +43,11 @@ class Partida(Base):
         if jugador_creador is not None:
             return jugador_creador.id_jugador
         raise Exception('No se encontró el jugador creador')
+    
+    def __repr__(self): # pragma: no cover
+        return (f"<Partida(id={self.id}, nombre_partida='{self.nombre_partida}', "
+                f"nombre_creador='{self.nombre_creador}', iniciada={self.iniciada}, "
+                f"jugadores_count={len(self.jugadores)})>")
 
 # JUEGO --------------------------------------------------------
 def random_tablero():
@@ -83,6 +92,14 @@ class Juego(Base):
 
     tablero = mapped_column(String, nullable=False, default=random_tablero())
 
+    def __repr__(self): # pragma: no cover
+        jugadores_ids = [jugador.id_jugador for jugador in self.jugadores]
+        return (f"<Juego(id={self.id}, partida_id={self.partida_id}, "
+                f"jugadores_count={len(self.jugadores)}, "
+                f"jugador_turno_id={self.jugador_id}, "
+                f"tablero='{self.tablero}')>")
+    
+
 # CartaFigura --------------------------------------------------
 
 class CartaFigura(Base):
@@ -99,6 +116,10 @@ class CartaFigura(Base):
 
     poseida_por = relationship('Jugador', back_populates='mazo_cartas_de_figura') # Las relaciones necesitan que exista además una foreign key
     jugador_id = mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
+
+    def __repr__(self): # pragma: no cover
+        return (f"<CartaFigura(id={self.id}, figura='{self.figura}', "
+                f"revelada={self.revelada}, jugador_id={self.jugador_id})>")
     
 # CartaMovimiento --------------------------------------------------
 class CartaMovimiento(Base):
@@ -114,3 +135,7 @@ class CartaMovimiento(Base):
 
     movimientos_de = relationship('Jugador', back_populates='mano_movimientos') # Las relaciones necesitan que exista además una foreign key
     jugador_id = mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
+
+    def __repr__(self): # pragma: no cover
+        return (f"<CartaMovimiento(id={self.id}, movimiento='{self.movimiento}', "
+                f"jugador_id={self.jugador_id})>")
