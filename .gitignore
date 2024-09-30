@@ -278,4 +278,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Databases
+maindata.db
+test.db
+
 # End of https://www.toptal.com/developers/gitignore/api/python,linux,venv,windows,visualstudiocode,macos

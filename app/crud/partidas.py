@@ -1,23 +1,96 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import func
+from random import shuffle
 
-from models.partidas import Partida
-from schemas.partidas import PartidaData
+from exceptions import ResourceNotFoundError, ForbiddenError
+from models import Partida
+from schemas import PartidaData
+from models import Jugador
+from models import Juego
+from models import CartaFigura
+from models import CartaMovimiento
 
-"""
-    WARNING: Estas funciones no están implementadas, solo están para estructurar el esqueleto del repositorio.
-"""
+def get_id_creador(db: Session, partida_id):
+    jugador = db.query(Jugador).filter((Jugador.es_creador == True) & (Jugador.partida_id == partida_id)).first()
+    if (not jugador):
+        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
+    return jugador.id_jugador
 
 def get_partidas(db: Session):
-    return []
+    subquery = (
+        db.query(Partida.id, func.count(Partida.jugadores).label('jugadores_count'))
+        .outerjoin(Partida.jugadores)
+        .group_by(Partida.id)
+    ).subquery()
 
-def get_partida_by_id(db: Session, id: int):
-    return []
+    return db.query(Partida).join(subquery, Partida.id == subquery.c.id).filter(
+        Partida.iniciada == False,
+        subquery.c.jugadores_count < 4
+    ).all()
 
-def get_partidas_by_name(db: Session, nombre: str):
-    return []
+def get_partida_details(db: Session, id: int):
+    partidaDetails = db.query(Partida).filter(Partida.id == id).first()
+    if (not partidaDetails):
+        raise ResourceNotFoundError(f"Partida con ID {id} no encontrada.")
+    return partidaDetails
 
 def create_partida(db: Session, partida: PartidaData):
-    return []
+    new_partida = Partida(nombre_partida=partida.nombre_partida, nombre_creador=partida.nombre_creador)
+    db.add(new_partida)
+    db.flush()
+    new_jugador = Jugador(nombre=partida.nombre_creador, es_creador=True, partida_id=new_partida.id)
+    db.add(new_jugador)
+    db.commit()
+    return new_partida
 
-def delete_partida(db: Session, id: int):
-    return []
+def iniciar_partida(db: Session, id: int):
+    partida = db.query(Partida).filter(Partida.id == id).first()
+    if (not partida):
+        raise ResourceNotFoundError(f"Partida con ID {id} no encontrada.")
+    
+    if (partida.juego or partida.iniciada):
+        raise ForbiddenError(f"La partida con ID {id} ya está iniciada.")
+    
+    if (not len(partida.jugadores) > 1):
+        raise ForbiddenError(f"Partida con ID {id} no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.")
+    
+    new_juego = Juego(jugadores=partida.jugadores, partida_id=partida.id, partida=partida)
+
+    db.add(new_juego)
+    partida.iniciada = True
+    repartir_cartas_figura(db, partida,3,3)
+    repartir_cartas_movimiento(db, partida)
+    db.flush()
+    shuffle(partida.juego[0].jugadores)
+    db.commit()
+
+def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
+    
+    partida = get_partida_details(db, partida_id) # raises ResourceNotFoundError if not found
+    
+    if (not partida):
+        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
+    
+    jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
+    if (not jugador):
+        raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
+    
+    mazo_del_jugador = jugador.mazo_cartas_de_figura
+
+    return mazo_del_jugador
+
+def repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=3, n_cartas_reveladas=2):
+    for jugador in partida.jugadores:
+        for i in range(n_cartas_por_jugador-n_cartas_reveladas):
+            new_carta = CartaFigura(jugador_id=jugador.id_jugador, revelada=False)
+            db.add(new_carta)
+
+        for i in range(n_cartas_reveladas):
+            new_carta = CartaFigura(jugador_id=jugador.id_jugador, revelada=True)
+            db.add(new_carta)
+    
+def repartir_cartas_movimiento(db: Session, partida, n_cartas_por_jugador=3):
+    for jugador in partida.jugadores:
+        for i in range(n_cartas_por_jugador):
+            new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
+            db.add(new_carta)
