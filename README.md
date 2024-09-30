@@ -1,6 +1,29 @@
 # ElSwitcher-Backend
 
-### Para iniciar la app
+### Comandos del Makefile
+#### Para levantar el Backend
+```
+make run
+```
+#### Para correr los tests del Backend
+```
+make test
+```
+#### Para correr los tests del Backend y obtener el informe de coverage
+```
+make test_w_coverage
+```
+
+#### Limpiar archivos basura de Python
+```
+make clean
+```
+#### Borrar el entorno virutal y limpiar archivos basura de Python
+```
+make full_clean
+```
+
+### Para iniciar la app manualmente
 
 Para iniciar esta simple aplicación, se pueden seguir los siguientes pasos:
 
