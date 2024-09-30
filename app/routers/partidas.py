@@ -58,11 +58,3 @@ async def iniciar_partida(partida_id: int, db: Session = Depends(get_db)):
     crud.iniciar_partida(db=db, id=partida_id)
     return {"message": "Partida iniciada correctamemte", "partida_id": partida_id}
 
-@router.delete('/{partida_id:int}/jugadores/{jugador_id:int}',
-            summary="Abandonar partida",
-            description="Elimina al jugador, decide si termiar la partida y actualiza los datos de la partida especificada por partida_id.",
-            tags=["Partidas"],
-            status_code=200)
-async def abandonar_partida(partida_id: int, jugador_id : int, db: Session = Depends(get_db)):
-    crud.abandonar_partida(db=db, partida_id=partida_id, jugador_id=jugador_id)
-    return {"detail": "El jugador abandonó la partida exitosamente"}
