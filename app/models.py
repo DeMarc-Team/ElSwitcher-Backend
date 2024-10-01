@@ -19,8 +19,8 @@ class Jugador(Base):
     juegos: Mapped[list['Juego']] = relationship("Juego", back_populates="jugadores")
     
     orden: Mapped[int] = mapped_column(Integer, nullable=True)
-    mazo_cartas_de_figura:Mapped[list['CartaFigura']] = relationship('CartaFigura', back_populates='poseida_por')
-    mano_movimientos: Mapped[list['CartaMovimiento']] = relationship('CartaMovimiento', back_populates='movimientos_de')
+    mazo_cartas_de_figura:Mapped[list['CartaFigura']] = relationship('CartaFigura', back_populates='poseida_por', cascade="all, delete-orphan")
+    mano_movimientos: Mapped[list['CartaMovimiento']] = relationship('CartaMovimiento', back_populates='movimientos_de', cascade="all, delete-orphan")
 
     def __repr__(self): # pragma: no cover
         return (f"<Jugador(id_jugador={self.id_jugador}, nombre='{self.nombre}', "
@@ -34,8 +34,8 @@ class Partida(Base):
     nombre_creador = mapped_column(String(200))
     iniciada = mapped_column(Boolean, default=False)
 
-    jugadores: Mapped[list[Jugador]] = relationship('Jugador', back_populates='partidas')
-    juego = relationship('Juego', back_populates='partida')
+    jugadores: Mapped[list[Jugador]] = relationship('Jugador', back_populates='partidas', cascade="all, delete-orphan")
+    juego = relationship('Juego', back_populates='partida', cascade="all, delete-orphan")
 
     @hybrid_property
     def id_creador(self) -> int:
