@@ -1,5 +1,5 @@
 from tests_setup import client, TestingSessionLocal
-from models import Partida, Jugador, CartaFigura, CartaMovimiento, Juego
+from models import Partida, Jugador, CartaFigura, CartaMovimiento
 import pytest
 
 def iniciar_partida_de_cuatro(db):
@@ -32,9 +32,6 @@ def iniciar_partida_de_cuatro(db):
     # Iniciamos la partida
     response = client.put(f"/partidas/{partida.id}")
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    
-    # Verificamos que la partida tenga un objeto de juego asociado
-    assert len(partida.juego) == 1
     
     return partida
    
@@ -69,7 +66,6 @@ def test_db():
         db.query(CartaFigura).delete()
         db.query(CartaMovimiento).delete()
         db.query(Jugador).delete()
-        db.query(Juego).delete()
         db.query(Partida).delete()
         db.commit()
     except Exception as e:
@@ -78,7 +74,7 @@ def test_db():
     
     partida_sin_iniciar = crear_partida_sin_iniciar(db)
     partida_de_cuatro = iniciar_partida_de_cuatro(db)
-    
+
     yield db, partida_de_cuatro, partida_sin_iniciar
 
     # Se limpia lo que quedó en la base de datos
@@ -86,7 +82,6 @@ def test_db():
         db.query(CartaFigura).delete()
         db.query(CartaMovimiento).delete()
         db.query(Jugador).delete()
-        db.query(Juego).delete()
         db.query(Partida).delete()
         db.commit()
     except Exception as e:
@@ -98,9 +93,10 @@ def test_db():
 def test_terminar_turno(test_db):
     '''Test sobre el funcionamiento de terminar un turno'''
     db, partida, _ = test_db
-    
+
     # Refrescamos el objeto de la partida luego de los cambios en la db
     db.refresh(partida)
+
     
     # Verificamos que la partida esté iniciada
     assert partida.iniciada
@@ -110,13 +106,13 @@ def test_terminar_turno(test_db):
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     id_jugador_inicial = response.json()['id_jugador']
     id_jugador_anterior = None
-    
+
     for i in range(0, len(partida.jugadores)):
         # Obtenemos el id del jugador actual
         response = client.get(f'juego/{partida.id}/turno')
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
         id_jugador_actual = response.json()['id_jugador']
-        
+
         # Verificamos que efectivamente se haya cambiador el turno
         assert id_jugador_actual != id_jugador_anterior, f"Fallo: Se esperaba un cambio de turno en el jugador {id_jugador_actual}, pero esto no ocurrió."
         
@@ -124,7 +120,7 @@ def test_terminar_turno(test_db):
         
         # Terminamos el turno del jugador actual
         response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
-        
+
     # Obtenemos el id del nuevo jugador actual
     response = client.get(f'juego/{partida.id}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"

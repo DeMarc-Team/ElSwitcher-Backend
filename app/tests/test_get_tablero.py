@@ -31,8 +31,6 @@ def test_data():
 
     # Iniciar la partida y crear el juego
     partida.iniciada = True
-    juego = Juego(partida_id=partida.id)
-    db.add(juego)
 
     db.commit()
     db.close()
@@ -43,7 +41,6 @@ def test_data():
     # Limpiamos la base de datos después de la prueba
     db.query(Jugador).delete()
     db.query(Partida).delete()
-    db.query(Juego).delete()
     db.query(CartaFigura).delete()
     db.query(CartaMovimiento).delete()
     db.commit()
