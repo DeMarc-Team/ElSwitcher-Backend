@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 import crud.partidas as crud
 from models import Base
 from database import engine, get_db
-from schemas import PartidaData, PartidaDetails, PartidaDetails2, JuegoDetails, CartaFiguraData
+from schemas import PartidaData, PartidaDetails, PartidaDetails2, JuegoDetails, CartaFiguraData, CartaMovimientoData
 
 from pydantic import Json
 
@@ -88,3 +88,12 @@ async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
     """
     tablero = crud.juego.get_tablero(db, id_partida)
     return tablero
+
+
+@router.get('/{id_partida:int}/jugadores/{id_jugador:int}/cartas_movimiento',
+            response_model=list[CartaMovimientoData],
+            summary="Obtener cartas de movimiento de un jugador",
+            description="Devuelve las cartas de movimiento de un jugador.",
+            tags=["Juego"])
+async def get_movimientos_jugador(id_partida: int, id_jugador: int, db: Session = Depends(get_db)):
+    return crud.get_movimientos_jugador(db, id_partida, id_jugador)
