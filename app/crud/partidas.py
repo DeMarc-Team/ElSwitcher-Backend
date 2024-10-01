@@ -3,8 +3,12 @@ from sqlalchemy import func
 from random import shuffle
 
 from exceptions import ResourceNotFoundError, ForbiddenError
+from models import Partida
 from schemas import PartidaData
-from models import Jugador, CartaFigura, CartaMovimiento, Partida
+from models import Jugador
+from models import Juego
+from models import CartaFigura
+from models import CartaMovimiento
 
 def get_id_creador(db: Session, partida_id):
     jugador = db.query(Jugador).filter((Jugador.es_creador == True) & (Jugador.partida_id == partida_id)).first()
@@ -44,17 +48,20 @@ def iniciar_partida(db: Session, id: int):
     if (not partida):
         raise ResourceNotFoundError(f"Partida con ID {id} no encontrada.")
     
-    if (partida.iniciada):
+    if (partida.juego or partida.iniciada):
         raise ForbiddenError(f"La partida con ID {id} ya está iniciada.")
     
     if (not len(partida.jugadores) > 1):
         raise ForbiddenError(f"Partida con ID {id} no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.")
+    
+    new_juego = Juego(jugadores=partida.jugadores, partida_id=partida.id, partida=partida)
 
+    db.add(new_juego)
     partida.iniciada = True
     repartir_cartas_figura(db, partida,3,3)
     repartir_cartas_movimiento(db, partida)
     db.flush()
-    shuffle(partida.jugadores)
+    shuffle(partida.juego[0].jugadores)
     db.commit()
 
 def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):

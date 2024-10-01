@@ -1,5 +1,5 @@
 from tests_setup import client, TestingSessionLocal
-from models import Jugador, Partida
+from models import Jugador, Partida, Juego
 
 import pytest
 
@@ -20,6 +20,7 @@ def test_data():
                        es_creador=True, partidas=partida2)
     
     partida3 = Partida(nombre_partida="partida_ya_iniciada", nombre_creador="Creador", iniciada=True)
+    juego3 = Juego(partida_id=3, partida=partida3)
     creador3 = Jugador(nombre="Creador", partida_id=3, es_creador=True, partidas=partida3)
     jugador3 = Jugador(nombre="Jugador1", partida_id=3, partidas=partida3)
 
@@ -30,6 +31,7 @@ def test_data():
     db.add(partida2)
     db.add(creador2)
     db.add(partida3)
+    db.add(juego3)
     db.add(creador3)
     db.add(jugador3)
 
@@ -39,6 +41,7 @@ def test_data():
 
     db.query(Jugador).delete()
     db.query(Partida).delete()
+    db.query(Juego).delete()
     db.commit()
     db.close()
 
@@ -56,6 +59,7 @@ def test_iniciar_partida_200(test_data):
     db = test_data
     partida = db.query(Partida).filter(Partida.id == 1).first()
     assert partida.iniciada, f"Fallo: Se esperaba que la partida estuviera iniciada, pero se obtuvo {partida.iniciada}"
+    assert partida.juego, f"Fallo: Se esperaba que la partida tuviera juego, pero se obtuvo {partida.juego}"
     db.close()
 
 
@@ -72,6 +76,7 @@ def test_iniciar_partida_con_jugadores_insuficientes_403(test_data):
     db = test_data
     partida = db.query(Partida).filter(Partida.id == 2).first()
     assert not partida.iniciada, f"Fallo: Se esperaba que la partida no estuviera iniciada, pero se obtuvo {partida.iniciada}"
+    assert not partida.juego, f"Fallo: Se esperaba que la partida no tuviera juego, pero se obtuvo {partida.juego}"
     db.close()
 
 def test_iniciar_partida_ya_iniciada_403(test_data):
@@ -87,6 +92,7 @@ def test_iniciar_partida_ya_iniciada_403(test_data):
     db = test_data
     partida = db.query(Partida).filter(Partida.id == 3).first()
     assert partida.iniciada, f"Fallo: Se esperaba que la partida estuviera iniciada, pero se obtuvo {partida.iniciada}"
+    assert partida.juego, f"Fallo: Se esperaba que la partida tuviera juego, pero se obtuvo {partida.juego}"
     db.close()
 
 def test_iniciar_partida_404(test_data):

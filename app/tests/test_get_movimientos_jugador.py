@@ -1,5 +1,5 @@
 from tests_setup import client, TestingSessionLocal
-from models import Partida, Jugador, CartaFigura, CartaMovimiento
+from models import Partida, Jugador, CartaFigura, CartaMovimiento, Juego
 import mock
 import pytest
 
@@ -12,6 +12,7 @@ def test_db():
         db.query(CartaFigura).delete()
         db.query(CartaMovimiento).delete()
         db.query(Jugador).delete()
+        db.query(Juego).delete()
         db.query(Partida).delete()
         db.commit()
     except Exception as e:
@@ -25,6 +26,7 @@ def test_db():
         db.query(CartaFigura).delete()
         db.query(CartaMovimiento).delete()
         db.query(Jugador).delete()
+        db.query(Juego).delete()
         db.query(Partida).delete()
         db.commit()
     except Exception as e:
