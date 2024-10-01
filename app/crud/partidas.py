@@ -47,20 +47,17 @@ def iniciar_partida(db: Session, id: int):
     if (not partida):
         raise ResourceNotFoundError(f"Partida con ID {id} no encontrada.")
     
-    if (partida.juego or partida.iniciada):
+    if (partida.iniciada):
         raise ForbiddenError(f"La partida con ID {id} ya está iniciada.")
     
-    if (not len(partida.jugadores) > 1):
-        raise ForbiddenError(f"Partida con ID {id} no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.")
+    # if (not len(partida.jugadores) > 1):
+    #     raise ForbiddenError(f"Partida con ID {id} no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.")
     
-    new_juego = Juego(jugadores=partida.jugadores, partida_id=partida.id, partida=partida)
-
-    db.add(new_juego)
     partida.iniciada = True
     repartir_cartas_figura(db, partida,3,3)
     repartir_cartas_movimiento(db, partida)
     db.flush()
-    shuffle(partida.juego[0].jugadores)
+    shuffle(partida.jugadores)
     db.commit()
 
 def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
