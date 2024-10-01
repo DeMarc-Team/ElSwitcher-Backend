@@ -19,11 +19,6 @@ class Jugador(Base):
         Integer, ForeignKey('partidas.id'), nullable=False)
     partidas = relationship("Partida", back_populates="jugadores")
 
-    juego_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey('juegos.id'), nullable=True)
-    juegos: Mapped[list['Juego']] = relationship(
-        "Juego", back_populates="jugadores")
-
     orden: Mapped[int] = mapped_column(Integer, nullable=True)
     mazo_cartas_de_figura: Mapped[list['CartaFigura']] = relationship(
         'CartaFigura', back_populates='poseida_por', cascade="all, delete-orphan")
@@ -32,8 +27,7 @@ class Jugador(Base):
 
     def __repr__(self):  # pragma: no cover
         return (f"<Jugador(id_jugador={self.id_jugador}, nombre='{self.nombre}', "
-                f"es_creador={self.es_creador}, partida_id={self.partida_id}, "
-                f"juego_id={self.juego_id}, orden={self.orden})>")
+                f"es_creador={self.es_creador}, partida_id={self.partida_id}, orden={self.orden})>")
 # PARTIDA ------------------------------------------------------
 
 
