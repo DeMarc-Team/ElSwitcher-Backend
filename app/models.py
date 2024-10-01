@@ -37,12 +37,13 @@ class Partida(Base):
     jugadores: Mapped[list[Jugador]] = relationship('Jugador', back_populates='partidas')
     juego = relationship('Juego', back_populates='partida')
 
-    @hybrid_property
+    @hybrid_property # TODO: Revisar el cambio de que pueda no haber un creador si la partida está iniciada
     def id_creador(self) -> int:
         jugador_creador = next((jugador for jugador in self.jugadores if jugador.es_creador), None)
         if jugador_creador is not None:
             return jugador_creador.id_jugador
-        raise Exception('No se encontró el jugador creador')
+        if self.iniciada == False:
+            raise Exception('No se encontró el jugador creador')
     
     def __repr__(self): # pragma: no cover
         return (f"<Partida(id={self.id}, nombre_partida='{self.nombre_partida}', "
