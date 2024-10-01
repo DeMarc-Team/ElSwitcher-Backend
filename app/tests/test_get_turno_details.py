@@ -1,5 +1,5 @@
 from tests_setup import client, TestingSessionLocal
-from models import Partida, Jugador, CartaFigura, CartaMovimiento
+from models import Partida, Jugador, CartaFigura, CartaMovimiento, Juego
 from crud.juego import siguiente_turno
 import pytest
 
@@ -12,6 +12,7 @@ def test_db():
         db.query(CartaFigura).delete()
         db.query(CartaMovimiento).delete()
         db.query(Jugador).delete()
+        db.query(Juego).delete()
         db.query(Partida).delete()
         db.commit()
     except Exception as e:
@@ -25,6 +26,7 @@ def test_db():
         db.query(CartaFigura).delete()
         db.query(CartaMovimiento).delete()
         db.query(Jugador).delete()
+        db.query(Juego).delete()
         db.query(Partida).delete()
         db.commit()
     except Exception as e:
@@ -67,10 +69,15 @@ def test_get_turno_details(test_db):
     response = client.put(f"/partidas/{partida.id}")
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     
+    # Verificamos que la partida tenga un objeto de juego asociado
+    assert len(partida.juego) == 1
+    
+    juego = partida.juego[0]
+    
     # Verificamos el funcionamiento del endpoint según la especificación de la api
     datos_turno = {
-        "id_jugador": partida.jugador_id,
-        "nombre_jugador": partida.jugador_del_turno.nombre
+        "id_jugador": juego.jugador_id,
+        "nombre_jugador": juego.jugador_del_turno.nombre
     }
     
     response = client.get(f'/juego/{partida.id}/turno')
@@ -146,6 +153,11 @@ def test_siguiente_turno(test_db):
     # Este refresh es necesario, dado que una nueva query no actualiza el valor de partida (hasta que la sesión cierre)
     db.refresh(partida)
     
+    # Verificamos que la partida tenga un objeto de juego asociado
+    assert len(partida.juego) == 1
+    
+    juego = partida.juego[0]
+    
     # Obtenemos el jugador actual
     response = client.get(f'/juego/{partida.id}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
@@ -153,7 +165,7 @@ def test_siguiente_turno(test_db):
     id_primer_jugador = response.json()['id_jugador']
     
     # Forzamos el cambio al siguiente jugador
-    siguiente_turno(db, partida.id)
+    siguiente_turno(db, juego.partida_id)
     db.refresh(partida)    
     
     # Obtenemos el nuevo jugador actual
@@ -166,7 +178,7 @@ def test_siguiente_turno(test_db):
     assert id_primer_jugador != id_segundo_jugador
     
     # Forzamos nuevamente el cambio al siguiente jugador
-    siguiente_turno(db, partida.id)
+    siguiente_turno(db, juego.partida_id)
     db.refresh(partida)
     
     # Obtenemos el nuevo jugador actual

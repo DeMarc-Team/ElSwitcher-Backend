@@ -1,7 +1,10 @@
 from tests_setup import client, TestingSessionLocal
-from models import Partida, Jugador, CartaFigura
+from models import Partida, Jugador, CartaFigura, Juego
 import mock
 import pytest
+from os import remove
+
+import pdb
 
 @pytest.fixture(scope="function")
 def test_db():
@@ -12,6 +15,7 @@ def test_db():
     try:
         db.query(Jugador).delete()
         db.query(CartaFigura).delete()
+        db.query(Juego).delete()
         db.query(Partida).delete()
         db.commit()
     except Exception as e:
