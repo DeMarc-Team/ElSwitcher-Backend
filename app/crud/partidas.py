@@ -117,3 +117,12 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
         # TODO: Declarar ganador al jugador que queda
         db.delete(partida)    
     db.commit()
+
+
+def get_tablero(db: Session, partida_id: int):
+    partida = db.query(Partida).filter(Partida.partida_id == partida_id).first()
+
+    if (partida == None): # Si no hay juego, devolver un tablero vacío
+        raise ResourceNotFoundError(f"Partida no encontrada")
+
+    return partida.tablero

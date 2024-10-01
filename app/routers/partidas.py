@@ -10,6 +10,8 @@ from models import Base
 from database import engine, get_db
 from schemas import PartidaData, PartidaDetails, PartidaDetails2, JuegoDetails, CartaFiguraData
 
+from pydantic import Json
+
 Base.metadata.create_all(bind=engine)
 
 router = APIRouter(
@@ -66,3 +68,23 @@ async def iniciar_partida(partida_id: int, db: Session = Depends(get_db)):
 async def abandonar_partida(partida_id: int, jugador_id : int, db: Session = Depends(get_db)):
     crud.abandonar_partida(db=db, partida_id=partida_id, jugador_id=jugador_id)
     return {"detail": "El jugador abandonó la partida exitosamente"}
+
+@router.get('/{id_partida:int}/tablero',
+            summary='Obetener el tablero del juego',
+            response_model=Json,
+            tags=["Juego"])
+async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
+    """Obtiene el tablero de una partida
+
+    Args:
+        id_partida (int): id de la partida
+
+    Returns:
+        Tablero de la partida en formato JSON
+
+    Details:
+        Response 200 en caso de que el tablero se haya obtenido correctamente.
+        Response 404 en caso de que la partida no exista o no haya sido iniciada.
+    """
+    tablero = crud.juego.get_tablero(db, id_partida)
+    return tablero
