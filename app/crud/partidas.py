@@ -107,7 +107,6 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
     partida_iniciada = partida.iniciada or partida.juego != []
     jugador_es_creador = jugador.id_jugador == partida.id_creador or jugador.es_creador == True
     
-    assert partida_iniciada or partida.id_creador is not None, "La partida deberia tener un creador"
     if (jugador_es_creador and not partida_iniciada):
         raise ForbiddenError(f"El creador con ID {jugador_id} no puede abandonar la partida con ID {partida_id} antes de iniciarla.")
     
@@ -115,15 +114,7 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
     partida.jugadores.remove(jugador)
     db.flush()
 
-    assert (jugador not in partida.jugadores) and (not partida.iniciada or jugador not in partida.juego[0].jugadores), "El jugador deberia haber sido eliminado de la partida y juego"
-    assert len(partida.jugadores) >= 1, "La partida deberia tener jugadores"
-    assert not partida.iniciada or (len(partida.juego[0].jugadores) >= 1), "El juego deberia existir y tener jugadores si la partida esta iniciada"
     if (len(partida.jugadores) <= 1 and partida_iniciada):
         # TODO: Declarar ganador al jugador que queda
-        ganador = partida.jugadores[0]
-        db.delete(ganador)
-        juego = db.query(Juego).filter(Juego.partida_id == partida_id).first()
-        db.delete(partida)
-        db.delete(juego)
-    
+        db.delete(partida)    
     db.commit()
