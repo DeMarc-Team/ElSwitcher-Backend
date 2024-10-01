@@ -6,7 +6,6 @@ from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida
 from schemas import PartidaData
 from models import Jugador
-from models import Juego
 from models import CartaFigura
 from models import CartaMovimiento
 

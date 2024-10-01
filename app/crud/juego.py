@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from exceptions import ResourceNotFoundError, ForbiddenError
-from models import Partida, Jugador, Juego
+from models import Partida, Jugador
 from schemas import TurnoDetails
 
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
