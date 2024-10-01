@@ -9,10 +9,10 @@ from sqlalchemy.ext.orderinglist import ordering_list
 class Jugador(Base):
     __tablename__ = 'jugadores'
     id_jugador: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
-    nombre: Mapped[str] = mapped_column(String(255))
+    nombre: Mapped[str] = mapped_column(String(255), nullable=False)
     es_creador: Mapped[Boolean] = mapped_column(Boolean, default=False)
     
-    partida_id: Mapped[int] = mapped_column(Integer, ForeignKey('partidas.id'))
+    partida_id: Mapped[int] = mapped_column(Integer, ForeignKey('partidas.id'), nullable=False)
     partidas = relationship("Partida", back_populates="jugadores")
 
     juego_id: Mapped[int] = mapped_column(Integer, ForeignKey('juegos.id'), nullable=True)
@@ -30,8 +30,8 @@ class Jugador(Base):
 class Partida(Base):
     __tablename__ = 'partidas'
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
-    nombre_partida = mapped_column(String(255))
-    nombre_creador = mapped_column(String(200))
+    nombre_partida = mapped_column(String(255), nullable=False)
+    nombre_creador = mapped_column(String(200), nullable=False)
     iniciada = mapped_column(Boolean, default=False)
 
     jugadores: Mapped[list[Jugador]] = relationship('Jugador', back_populates='partidas', cascade="all, delete-orphan")
@@ -87,7 +87,7 @@ class Juego(Base):
             return self.jugadores[0].id_jugador  # Retorna el jugador en la primera posición
         return None
     
-    partida_id: Mapped[int] = mapped_column(Integer, ForeignKey('partidas.id'), unique=True)
+    partida_id: Mapped[int] = mapped_column(Integer, ForeignKey('partidas.id'), unique=True, nullable=False)
     partida: Mapped[Partida] = relationship('Partida', back_populates='juego')
 
     tablero = mapped_column(String, nullable=False, default=random_tablero())
