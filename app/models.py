@@ -56,7 +56,9 @@ class Partida(Base):
             (jugador for jugador in self.jugadores if jugador.es_creador), None)
         if jugador_creador is not None:
             return jugador_creador.id_jugador
-        raise Exception('No se encontró el jugador creador')
+
+        if self.iniciada == False:
+            raise Exception('No se encontró el jugador creador')
 
     def __repr__(self):  # pragma: no cover
         return (f"<Partida(id={self.id}, nombre_partida='{self.nombre_partida}', "
