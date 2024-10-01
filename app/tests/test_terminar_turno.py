@@ -1,5 +1,5 @@
 from tests_setup import client, TestingSessionLocal
-from models import Partida, Jugador, CartaFigura, CartaMovimiento, Juego
+from models import Partida, Jugador, CartaFigura, CartaMovimiento
 import pytest
 
 def iniciar_partida_de_cuatro(db):

@@ -1,5 +1,5 @@
 from tests_setup import client, TestingSessionLocal
-from models import Jugador, Partida, Juego
+from models import Jugador, Partida
 
 import pytest
 

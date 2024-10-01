@@ -1,5 +1,5 @@
 from tests_setup import client, TestingSessionLocal
-from models import Partida, Jugador, CartaFigura, CartaMovimiento, Juego
+from models import Partida, Jugador, CartaFigura, CartaMovimiento
 from crud.juego import siguiente_turno
 import pytest
 

@@ -1,5 +1,5 @@
 from tests_setup import client, TestingSessionLocal
-from models import Partida, Jugador, CartaFigura, Juego
+from models import Partida, Jugador, CartaFigura
 import mock
 import pytest
 from os import remove

@@ -1,5 +1,5 @@
 from tests_setup import client, TestingSessionLocal
-from models import Partida, Jugador, Juego
+from models import Partida, Jugador
 import pytest
 
 @pytest.fixture(scope="function")
