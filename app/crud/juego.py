@@ -61,6 +61,8 @@ def terminar_turno(db: Session, partida_id, jugador_id):
         raise ForbiddenError(f"El ID del jugador que posee el turno no es {jugador_id}.")
     
     siguiente_turno(db, partida_id)
+    
+    db.commit()
 
 def get_tablero(db: Session, partida_id: int):
     juego = db.query(Partida).filter(Partida.id == partida_id).first()
