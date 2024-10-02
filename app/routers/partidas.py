@@ -135,7 +135,7 @@ async def get_movimientos_jugador(
     tags=["Juego"],
 )
 async def get_turno_details(id_partida: int, db: Session = Depends(get_db)):
-    return crud.juego.get_turno_details(db=db, partida_id=id_partida)
+    return crud.get_turno_details(db=db, partida_id=id_partida)
 
 @router.get('/{partida_id:int}/jugadores/{jugador_id:int}/cartas_figura',
             response_model=list[CartaFiguraData],

@@ -66,7 +66,7 @@ class Partida(Base):
 
     @hybrid_property
     def jugador_del_turno(self) -> Jugador:
-        if self.partida and self.partida.jugadores:
+        if self.jugadores:
             # Retorna el jugador en la primera posición
             return self.jugadores[0]
         return None

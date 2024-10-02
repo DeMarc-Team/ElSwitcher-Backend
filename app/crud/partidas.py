@@ -145,12 +145,10 @@ def get_turno_details(db: Session, partida_id):
     if (not partida.iniciada):
         raise ForbiddenError(f"La partida con ID {partida_id} todavía no comenzó.")
     
-    juego = partida.juego[0]
-    
-    nombre_jugador_del_turno = juego.jugador_del_turno.nombre
+    nombre_jugador_del_turno = partida.jugador_del_turno.nombre
     
     turno_details = TurnoDetails( # TODO: En vez de hacerlo aca al formato, quizas deberia hacerse en el router
-        id_jugador=juego.jugador_id,
+        id_jugador=partida.jugador_del_turno.id_jugador,
         nombre_jugador=nombre_jugador_del_turno
     )
     
