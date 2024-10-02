@@ -38,7 +38,7 @@ def siguiente_turno(db: Session, partida_id):
     if (not partida.iniciada):
         raise ForbiddenError(f"La partida con ID {partida_id} todavía no comenzó.")
     
-    actual_jugador = partida.jugador_del_turno
+
     partida.jugadores.append(partida.jugadores.pop(0))
     db.flush()
     for jugador in partida.jugadores:
