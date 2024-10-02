@@ -32,9 +32,7 @@ def iniciar_partida_de_cuatro(db):
     # Iniciamos la partida
     response = client.put(f"/partidas/{partida.id}")
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    
-    # Verificamos que la partida tenga un objeto de juego asociado
-    assert len(partida.juego) == 1
+
     
     return partida
    
@@ -69,7 +67,6 @@ def test_db():
         db.query(CartaFigura).delete()
         db.query(CartaMovimiento).delete()
         db.query(Jugador).delete()
-        db.query(Juego).delete()
         db.query(Partida).delete()
         db.commit()
     except Exception as e:
@@ -86,7 +83,6 @@ def test_db():
         db.query(CartaFigura).delete()
         db.query(CartaMovimiento).delete()
         db.query(Jugador).delete()
-        db.query(Juego).delete()
         db.query(Partida).delete()
         db.commit()
     except Exception as e:
@@ -106,14 +102,14 @@ def test_terminar_turno(test_db):
     assert partida.iniciada
     
     # Obtenemos el id del jugador que tiene el primer turno
-    response = client.get(f'juego/{partida.id}/turno')
+    response = client.get(f'partidas/{partida.id}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     id_jugador_inicial = response.json()['id_jugador']
     id_jugador_anterior = None
     
     for i in range(0, len(partida.jugadores)):
         # Obtenemos el id del jugador actual
-        response = client.get(f'juego/{partida.id}/turno')
+        response = client.get(f'partidas/{partida.id}/turno')
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
         id_jugador_actual = response.json()['id_jugador']
         
@@ -123,10 +119,10 @@ def test_terminar_turno(test_db):
         id_jugador_anterior = id_jugador_actual
         
         # Terminamos el turno del jugador actual
-        response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
+        response = client.put(f'partidas/{partida.id}/jugadores/{id_jugador_actual}/turno')
         
     # Obtenemos el id del nuevo jugador actual
-    response = client.get(f'juego/{partida.id}/turno')
+    response = client.get(f'partidas/{partida.id}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     id_jugador_actual = response.json()['id_jugador']
         
@@ -144,7 +140,7 @@ def test_varias_rondas(test_db):
     assert partida.iniciada
     
     # Obtenemos el id del jugador que tiene el primer turno
-    response = client.get(f'juego/{partida.id}/turno')
+    response = client.get(f'partidas/{partida.id}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     id_jugador_inicial = response.json()['id_jugador']
     
@@ -154,7 +150,7 @@ def test_varias_rondas(test_db):
     for i in range(0, len(partida.jugadores)):
         
         # Obtenemos el id del jugador actual
-        response = client.get(f'juego/{partida.id}/turno')
+        response = client.get(f'partidas/{partida.id}/turno')
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
         id_jugador_actual = response.json()['id_jugador']
         
@@ -165,13 +161,13 @@ def test_varias_rondas(test_db):
         id_jugador_anterior = id_jugador_actual
         
         # Terminamos el turno del jugador actual
-        response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
+        response = client.put(f'partidas/{partida.id}/jugadores/{id_jugador_actual}/turno')
 
     # Hacemos 4 rondas mas para ver si tal orden se mantiene
     for i in range(0, 4 * len(partida.jugadores)):
         
         # Obtenemos el id del jugador actual
-        response = client.get(f'juego/{partida.id}/turno')
+        response = client.get(f'partidas/{partida.id}/turno')
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
         id_jugador_actual = response.json()['id_jugador']
         
@@ -182,22 +178,22 @@ def test_varias_rondas(test_db):
         id_jugador_anterior = id_jugador_actual
         
         # Terminamos el turno del jugador actual
-        response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
+        response = client.put(f'partidas/{partida.id}/jugadores/{id_jugador_actual}/turno')
 
 def test_casos_prohibidos(test_db):
     '''Test sobre el la confiabilidad de una ronda de turnos.'''
     db, partida_iniciada, partida_sin_iniciar = test_db
     
     # Intentamos terminar el turno de una partida inexistente.
-    response = client.put(f'juego/{999999}/jugadores/{999999}/turno')
+    response = client.put(f'partidas/{999999}/jugadores/{999999}/turno')
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
     
     # Intentamos terminar el turno de una partida no iniciada.
-    response = client.put(f'juego/{partida_sin_iniciar.id}/jugadores/{999999}/turno')
+    response = client.put(f'partidas/{partida_sin_iniciar.id}/jugadores/{999999}/turno')
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
     
     # Intentamos terminar el turno de un jugador que no es el que posee el turno (o no existe).
-    response = client.put(f'juego/{partida_iniciada.id}/jugadores/{999999}/turno')
+    response = client.put(f'partidas/{partida_iniciada.id}/jugadores/{999999}/turno')
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
     
     

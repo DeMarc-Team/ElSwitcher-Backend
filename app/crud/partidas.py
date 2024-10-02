@@ -166,6 +166,7 @@ def siguiente_turno(db: Session, partida_id):
         raise ForbiddenError(f"La partida con ID {partida_id} todavía no comenzó.")
     
     actual_jugador = partida.jugadores.pop(0)
+    actual_jugador.orden = len(partida.jugadores)
     partida.jugadores.append(actual_jugador)
     
     db.commit()
