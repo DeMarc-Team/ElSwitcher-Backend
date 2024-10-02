@@ -87,3 +87,27 @@ def repartir_cartas_movimiento(db: Session, partida, n_cartas_por_jugador=3):
         for i in range(n_cartas_por_jugador):
             new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
             db.add(new_carta)
+
+def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
+    partida = get_partida_details(db, partida_id) # raises ResourceNotFoundError if not found
+    if (not partida):
+        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
+
+    jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
+    if (not jugador):
+        raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
+    
+    partida_iniciada = partida.iniciada or partida.juego != []
+    jugador_es_creador = jugador.id_jugador == partida.id_creador or jugador.es_creador == True
+    
+    if (jugador_es_creador and not partida_iniciada):
+        raise ForbiddenError(f"El creador con ID {jugador_id} no puede abandonar la partida con ID {partida_id} antes de iniciarla.")
+    
+    db.delete(jugador)
+    partida.jugadores.remove(jugador)
+    db.flush()
+
+    if (len(partida.jugadores) <= 1 and partida_iniciada):
+        # TODO: Declarar ganador al jugador que queda
+        db.delete(partida)    
+    db.commit()
