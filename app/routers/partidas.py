@@ -143,4 +143,13 @@ async def get_turno_details(id_partida: int, db: Session = Depends(get_db)):
             description="Devuelve las cartas figura de un jugador.",
             tags=["Juego"])
 async def get_cartas_figura_jugador(partida_id: int, jugador_id: int, db: Session = Depends(get_db)):
-    return crud.partidas.get_cartas_figura_jugador(db=db, partida_id=partida_id, jugador_id=jugador_id)
+    return crud.get_cartas_figura_jugador(db=db, partida_id=partida_id, jugador_id=jugador_id)
+
+
+@router.put('/{id_partida:int}/jugadores/{id_jugador:int}/turno',
+            summary="Terminar el turno del jugador actual.",
+            description="Termina el turno del jugador actual, si es que el id del mismo coincide con el del parámetro.",
+            tags=["Juego"])
+async def terminar_turno(id_partida: int, id_jugador, db: Session = Depends(get_db)):
+    return crud.terminar_turno(db, id_partida, id_jugador)
+
