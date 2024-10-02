@@ -64,7 +64,8 @@ class Partida(Base):
             (jugador for jugador in self.jugadores if jugador.es_creador), None)
         if jugador_creador is not None:
             return jugador_creador.id_jugador
-        raise ResourceNotFoundError(f"Creador no encontrado.")
+        if self.iniciada == False:
+            raise Exception('No se encontró el jugador creador')
     
     # JUEGO -----------------------
     @hybrid_property
