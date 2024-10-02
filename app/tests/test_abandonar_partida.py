@@ -21,20 +21,17 @@ def test_db():
     jugador6 = Jugador(nombre="Jugador2", partida_id=2)
     jugador7 = Jugador(nombre="Jugador3", partida_id=2)
     partida_iniciada = Partida(nombre_partida="partida_iniciada", nombre_creador="Creador", iniciada=True, jugadores=[creador2, jugador5, jugador6, jugador7])
-    juego2 = Juego(partida_id=2, partida=partida_iniciada, jugadores=[creador2, jugador5, jugador6, jugador7])
 
     db.add(creador2)
     db.add(jugador5)
     db.add(jugador6)
     db.add(jugador7)
     db.add(partida_iniciada)
-    db.add(juego2)
     db.commit()
     db.close()
 
     yield db
 
-    db.query(Juego).delete()
     db.query(Partida).delete()
     db.query(Jugador).delete()
     db.commit()
@@ -64,7 +61,6 @@ def test_abandonar_partida_no_iniciada_403(test_db):
     assert len(partida.jugadores) == 3, "Fallo: La cantidad de jugadores no debería haber cambiado."
     assert test_db.query(Jugador).filter(Jugador.id_jugador == id_creador).first() is not None, "Fallo: El jugador no debería haber sido eliminado."
     assert partida.iniciada == False, "Fallo: La partida no debería haber sido iniciada."
-    assert partida.juego == [], f"Fallo: La partida no debería tener un juego y se obtuvo {partida.juego}"
 
 def test_abandonar_partida_no_iniciada_200(test_db):
     '''Test de jugadores abandonando la partida no iniciada'''
@@ -89,7 +85,6 @@ def test_abandonar_partida_no_iniciada_200(test_db):
     assert len(partida.jugadores) == 2, "Fallo: La cantidad de jugadores no debería haber cambiado."
     assert test_db.query(Jugador).filter(Jugador.id_jugador == id_jugador).first() is None, "Fallo: El jugador debería haber sido eliminado."
     assert partida.iniciada == False, "Fallo: La partida no debería haber sido iniciada."
-    assert partida.juego == [], f"Fallo: La partida no debería tener un juego y se obtuvo {partida.juego}"
 
     test_db.commit()
 
@@ -117,7 +112,6 @@ def test_abandonar_partida_no_iniciada_200(test_db):
     assert len(partida.jugadores) == 1, f"Fallo: El creador deberia estar solo en la partida, en cambio hay {len(partida.jugadores)}."
     assert test_db.query(Jugador).filter(Jugador.id_jugador == id_jugador).first() is None, "Fallo: El jugador debería haber sido eliminado."
     assert partida.iniciada == False, "Fallo: La partida no debería haber sido iniciada."
-    assert partida.juego == [], f"Fallo: La partida no debería tener un juego y se obtuvo {partida.juego}"
 
 def test_abandonar_partida_iniciada_200(test_db):
     '''Test de jugadores abandonando la partida iniciada'''
@@ -142,7 +136,7 @@ def test_abandonar_partida_iniciada_200(test_db):
     assert len(partida.jugadores) == 3, "Fallo: La cantidad de jugadores en la partida deberia ser 3."
     assert test_db.query(Jugador).filter(Jugador.id_jugador == id_jugador).first() is None, "Fallo: El jugador debería haber sido eliminado."
     assert partida.iniciada == True, "Fallo: La partida debería estar iniciada."
-    assert len(partida.juego[0].jugadores) == 3, f"Fallo: El juego debería tener 3 jugadores y se obtuvo {len(partida.juego[0].jugadores)}"
+    assert len(partida.jugadores) == 3, f"Fallo: El juego debería tener 3 jugadores y se obtuvo {len(partida.jugadores)}"
 
     test_db.commit()
 
@@ -170,7 +164,7 @@ def test_abandonar_partida_iniciada_200(test_db):
     assert len(partida.jugadores) == 2, f"Fallo: La partida deberia tener 2 jugadores, en cambio hay {len(partida.jugadores)}."
     assert test_db.query(Jugador).filter(Jugador.id_jugador == id_jugador).first() is None, "Fallo: El jugador debería haber sido eliminado."
     assert partida.iniciada == True, "Fallo: La partida debería estar iniciada."
-    assert len(partida.juego[0].jugadores) == 2, f"Fallo: El juego debería tener 2 jugadores y se obtuvo {len(partida.juego[0].jugadores)}"
+    assert len(partida.jugadores) == 2, f"Fallo: El juego debería tener 2 jugadores y se obtuvo {len(partida.jugadores)}"
 
     test_db.commit()
 

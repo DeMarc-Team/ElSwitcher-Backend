@@ -107,14 +107,12 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
     if jugador_es_creador and not partida.iniciada:
         raise ForbiddenError(f"El creador con ID {jugador_id} no puede abandonar la partida con ID {partida_id} antes de iniciarla.")
 
-    # Eliminar el jugador de la partida sin actualizar partida_id a None
+    partida.jugadores.remove(jugador)
     db.delete(jugador)
-    db.flush()
 
     if len(partida.jugadores) <= 1 and partida.iniciada:
-        # TODO: Declarar ganador al jugador que queda
-        db.delete(partida.jugadores.pop())
-        db.delete(partida)
+        db.delete(partida.jugadores[0]) # Eliminar al jugador restante
+        db.delete(partida) # El jugador restante se elimina por cascade
     
     db.commit()
 
