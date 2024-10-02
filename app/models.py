@@ -73,7 +73,7 @@ class Partida(Base):
         return self.jugadores[0]
 
     @hybrid_property
-    def jugador_id(self) -> int:
+    def jugador_id(self) -> int: # FIXME: Sacar y usar partida.jugador_del_turno.id_jugador
         # Retorna el jugador en la primera posición
         return self.jugadores[0].id_jugador
 
