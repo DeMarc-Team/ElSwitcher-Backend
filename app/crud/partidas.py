@@ -55,7 +55,7 @@ def iniciar_partida(db: Session, id: int):
     _repartir_cartas_movimiento(db, partida)
     db.flush()
     shuffle(partida.jugadores)
-    for jugador in partida.jugadores:
+    for jugador in partida.jugadores: # FIXME: Revisar si es necesario
         jugador.orden = partida.jugadores.index(jugador)
     db.commit()
 
