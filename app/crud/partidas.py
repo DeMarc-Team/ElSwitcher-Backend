@@ -51,8 +51,8 @@ def iniciar_partida(db: Session, id: int):
         raise ForbiddenError(f"Partida con ID {id} no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.")
 
     partida.iniciada = True
-    repartir_cartas_figura(db, partida,3,3)
-    repartir_cartas_movimiento(db, partida)
+    _repartir_cartas_figura(db, partida,3,3)
+    _repartir_cartas_movimiento(db, partida)
     db.flush()
     shuffle(partida.jugadores)
     db.commit()
@@ -72,7 +72,7 @@ def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
 
     return mazo_del_jugador
 
-def repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=3, n_cartas_reveladas=2):
+def _repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=3, n_cartas_reveladas=2):
     for jugador in partida.jugadores:
         for i in range(n_cartas_por_jugador-n_cartas_reveladas):
             new_carta = CartaFigura(jugador_id=jugador.id_jugador, revelada=False)
@@ -82,7 +82,7 @@ def repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=3, n_carta
             new_carta = CartaFigura(jugador_id=jugador.id_jugador, revelada=True)
             db.add(new_carta)
     
-def repartir_cartas_movimiento(db: Session, partida, n_cartas_por_jugador=3):
+def _repartir_cartas_movimiento(db: Session, partida, n_cartas_por_jugador=3):
     for jugador in partida.jugadores:
         for i in range(n_cartas_por_jugador):
             new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
