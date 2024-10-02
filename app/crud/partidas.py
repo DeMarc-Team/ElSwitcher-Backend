@@ -52,9 +52,8 @@ def iniciar_partida(db: Session, id: int):
     if (partida.iniciada):
         raise ForbiddenError(f"La partida con ID {id} ya está iniciada.")
     
-    # if (not len(partida.jugadores) > 1):
-    #     raise ForbiddenError(f"Partida con ID {id} no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.")
-    #TODO: Hola soy el if de arriba, el emi me comentó debuggeando, si me ven comentado, es porque el muy imbecil se olvido -emi.
+    if (not len(partida.jugadores) > 1):
+        raise ForbiddenError(f"Partida con ID {id} no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.")
     
     partida.iniciada = True
     repartir_cartas_figura(db, partida,3,3)
