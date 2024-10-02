@@ -1,6 +1,4 @@
 from sqlalchemy.orm import Session
-
-import ipdb
 from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Jugador
 from schemas import JugadorData
