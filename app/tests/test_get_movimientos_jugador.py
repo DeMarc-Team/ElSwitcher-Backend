@@ -12,7 +12,6 @@ def test_db():
         db.query(CartaFigura).delete()
         db.query(CartaMovimiento).delete()
         db.query(Jugador).delete()
-        db.query(Juego).delete()
         db.query(Partida).delete()
         db.commit()
     except Exception as e:
@@ -26,7 +25,6 @@ def test_db():
         db.query(CartaFigura).delete()
         db.query(CartaMovimiento).delete()
         db.query(Jugador).delete()
-        db.query(Juego).delete()
         db.query(Partida).delete()
         db.commit()
     except Exception as e:
@@ -65,7 +63,7 @@ def test_get_cartas_movimiento(test_db):
     response = client.put(f"partidas/{id_partida}")
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
 
-    response = client.get(f"/juego/{id_partida}/jugadores/{player_id}/cartas_movimiento")
+    response = client.get(f"/partidas/{id_partida}/jugadores/{player_id}/cartas_movimiento")
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
 
     cartas = response.json()
@@ -100,7 +98,7 @@ def test_get_movimientos_jugador_diferentes_movimientos(test_db):
         response = client.put(f"partidas/{id_partida}")
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
 
-        response = client.get(f"juego/{id_partida}/jugadores/{player_id}/cartas_movimiento")
+        response = client.get(f"partidas/{id_partida}/jugadores/{player_id}/cartas_movimiento")
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
 
         cartas = response.json()
@@ -146,7 +144,7 @@ def test_get_movimientos_jugador_con_creador_y_otro_jugador(test_db):
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
 
         # Verificar las cartas del creador
-        response = client.get(f"juego/{id_partida}/jugadores/{otro_jugador_id}/cartas_movimiento")
+        response = client.get(f"partidas/{id_partida}/jugadores/{otro_jugador_id}/cartas_movimiento")
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
         cartas_creador = response.json()
         
@@ -156,7 +154,7 @@ def test_get_movimientos_jugador_con_creador_y_otro_jugador(test_db):
             assert carta['movimiento'] == 'm1', f"Fallo: Se esperaba el movimiento m1, pero se obtuvo {carta['movimiento']}"
 
         # Verificar las cartas del otro jugador
-        response = client.get(f"juego/{id_partida}/jugadores/{otro_jugador_id}/cartas_movimiento")
+        response = client.get(f"partidas/{id_partida}/jugadores/{otro_jugador_id}/cartas_movimiento")
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
         cartas_otro_jugador = response.json()
         
@@ -195,13 +193,13 @@ def test_get_movimientos_jugador_sin_cartas(test_db):
     print(f"Id otro jugador: {otro_jugador_id}")
 
     # Verificar que el creador no tiene cartas
-    response = client.get(f"/juego/{id_partida}/jugadores/{otro_jugador_id}/cartas_movimiento")
+    response = client.get(f"/partidas/{id_partida}/jugadores/{otro_jugador_id}/cartas_movimiento")
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     cartas_creador = response.json()
     assert len(cartas_creador) == 0, f"Fallo: Se esperaba una lista vacía, pero se obtuvo {cartas_creador}"
 
     # Verificar que el otro jugador no tiene cartas
-    response = client.get(f"/juego/{id_partida}/jugadores/{otro_jugador_id}/cartas_movimiento")
+    response = client.get(f"/partidas/{id_partida}/jugadores/{otro_jugador_id}/cartas_movimiento")
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     cartas_otro_jugador = response.json()
     assert len(cartas_otro_jugador) == 0, f"Fallo: Se esperaba una lista vacía, pero se obtuvo {cartas_otro_jugador}"
