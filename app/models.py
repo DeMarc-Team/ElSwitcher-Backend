@@ -26,8 +26,7 @@ class Jugador(Base):
 
     def __repr__(self):  # pragma: no cover
         return (f"<Jugador(id_jugador={self.id_jugador}, nombre='{self.nombre}', "
-                f"es_creador={self.es_creador}, partida_id={self.partida_id}, "
-                f"juego_id={self.juego_id}, orden={self.orden})>")
+                f"es_creador={self.es_creador}, partida_id={self.partida_id}, orden={self.orden})>")
 # PARTIDA ------------------------------------------------------
 def random_tablero():
     """Genera una lista de 36 fichas de 4 colores distintos mezcladas aleatoriamente
@@ -60,10 +59,10 @@ class Partida(Base):
         'Jugador', back_populates='partidas', cascade="all, delete-orphan", order_by='Jugador.orden', collection_class=ordering_list('orden'))
     @hybrid_property
     def id_creador(self) -> int:
-        jugador_creador = next(
-            (jugador for jugador in self.jugadores if jugador.es_creador), None)
-        if jugador_creador is not None:
-            return jugador_creador.id_jugador
+        id_jugador_creador = next(
+            (jugador.id_jugador for jugador in self.jugadores if jugador.es_creador), None)
+        if id_jugador_creador is not None or self.iniciada:
+            return id_jugador_creador
         if self.iniciada == False:
             raise Exception('No se encontró el jugador creador')
     
