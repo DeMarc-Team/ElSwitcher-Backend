@@ -15,14 +15,11 @@ def test_data():
     db.add(jugador1)
     db.add(jugador2)
     db.commit()
-    db.close()
 
     yield  db
 
-    db.query(Jugador).delete()
-    db.query(Partida).delete()
-    db.commit()
     db.close()
+
 
 def test_get_details_partida_200(test_data):
     response = client.get("partidas/1") 

@@ -23,16 +23,10 @@ def test_data():
     db.add(jugador2)
 
     db.commit()
+
+    yield  db
     db.close()
 
-    # Cerramos la sesión antes de salir del fixture
-    yield  db # Este es el punto donde se ejecutan las pruebas
-
-    # Limpiamos la base de datos después de la prueba
-    db.query(Jugador).delete()
-    db.query(Partida).delete()
-    db.commit()
-    db.close()
 
 
 def test_get_jugadores_200(test_data):

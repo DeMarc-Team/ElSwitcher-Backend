@@ -29,14 +29,10 @@ def test_data():
     db.add(jugador6)
 
     db.commit()
-    db.close()
 
     yield  db
-
-    db.query(Jugador).delete()
-    db.query(Partida).delete()
-    db.commit()
     db.close()
+
 
 def test_get_partidas_200(test_data):
     '''Test para obtener las partidas no iniciadas y no llenas'''

@@ -6,19 +6,9 @@ import pytest
 @pytest.fixture(scope="function")
 def test_db():
     db = TestingSessionLocal()
-
     yield db
+    db.close()
 
-    try:
-        db.query(Jugador).delete()
-        db.query(CartaFigura).delete()
-        db.query(Partida).delete()
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise e
-    finally:
-        db.close()
 
 
 

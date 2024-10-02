@@ -46,9 +46,6 @@ def test_data():
 
     yield db
 
-    db.query(Jugador).delete()
-    db.query(Partida).delete()
-    db.commit()
     db.close()
 
 

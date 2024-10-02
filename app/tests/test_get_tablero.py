@@ -33,17 +33,8 @@ def test_data():
     partida.iniciada = True
 
     db.commit()
-    db.close()
 
-    # Cerramos la sesión antes de salir del fixture
-    yield db  # Este es el punto donde se ejecutan las pruebas
-
-    # Limpiamos la base de datos después de la prueba
-    db.query(Jugador).delete()
-    db.query(Partida).delete()
-    db.query(CartaFigura).delete()
-    db.query(CartaMovimiento).delete()
-    db.commit()
+    yield db
     db.close()
 
 @mock.patch('crud.juego.get_tablero', mock.Mock(return_value=tablero_mock))

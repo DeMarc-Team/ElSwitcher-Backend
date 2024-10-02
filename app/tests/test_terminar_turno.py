@@ -60,35 +60,12 @@ def crear_partida_sin_iniciar(db):
 @pytest.fixture(scope="function")
 def test_db():
     db = TestingSessionLocal()
-    
-    # Se limpia lo que tenía anteriormente la base de datos
-    try:
-        db.query(CartaFigura).delete()
-        db.query(CartaMovimiento).delete()
-        db.query(Jugador).delete()
-        db.query(Partida).delete()
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise e
-    
+
     partida_sin_iniciar = crear_partida_sin_iniciar(db)
     partida_de_cuatro = iniciar_partida_de_cuatro(db)
 
     yield db, partida_de_cuatro, partida_sin_iniciar
-
-    # Se limpia lo que quedó en la base de datos
-    try:
-        db.query(CartaFigura).delete()
-        db.query(CartaMovimiento).delete()
-        db.query(Jugador).delete()
-        db.query(Partida).delete()
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise e
-    finally:
-        db.close()
+    db.close()
 
 def test_terminar_turno(test_db):
     '''Test sobre el funcionamiento de terminar un turno'''

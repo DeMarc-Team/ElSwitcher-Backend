@@ -6,9 +6,6 @@ import pytest
 def test_db():
     db = TestingSessionLocal()
     yield db
-    db.query(Partida).delete()
-    db.query(Jugador).delete()
-    db.commit()
     db.close()
 
 def test_create_partida(test_db):
