@@ -8,6 +8,7 @@ from schemas import PartidaData
 from models import Jugador
 from models import CartaFigura
 from models import CartaMovimiento
+from schemas import TurnoDetails
 
 def get_id_creador(db: Session, partida_id):
     jugador = db.query(Jugador).filter((Jugador.es_creador == True) & (Jugador.partida_id == partida_id)).first()
@@ -52,6 +53,7 @@ def iniciar_partida(db: Session, id: int):
     
     # if (not len(partida.jugadores) > 1):
     #     raise ForbiddenError(f"Partida con ID {id} no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.")
+    #TODO: Hola soy el if de arriba, el emi me comentó debuggeando, si me ven comentado, es porque el muy imbecil se olvido -emi.
     
     partida.iniciada = True
     repartir_cartas_figura(db, partida,3,3)
@@ -133,3 +135,23 @@ def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
     
     movimientos_del_jugador = jugador.mano_movimientos
     return movimientos_del_jugador
+
+
+def get_turno_details(db: Session, partida_id):
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+    if (not partida):
+        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
+    
+    if (not partida.iniciada):
+        raise ForbiddenError(f"La partida con ID {partida_id} todavía no comenzó.")
+    
+    juego = partida.juego[0]
+    
+    nombre_jugador_del_turno = juego.jugador_del_turno.nombre
+    
+    turno_details = TurnoDetails( # TODO: En vez de hacerlo aca al formato, quizas deberia hacerse en el router
+        id_jugador=juego.jugador_id,
+        nombre_jugador=nombre_jugador_del_turno
+    )
+    
+    return turno_details
