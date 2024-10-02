@@ -119,7 +119,7 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
 
 
 def get_tablero(db: Session, partida_id: int):
-    partida = db.query(Partida).filter(Partida.partida_id == partida_id).first()
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
 
     if (partida == None): # Si no hay juego, devolver un tablero vacío
         raise ResourceNotFoundError(f"Partida no encontrada")

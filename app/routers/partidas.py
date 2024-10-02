@@ -110,7 +110,7 @@ async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
         Response 200 en caso de que el tablero se haya obtenido correctamente.
         Response 404 en caso de que la partida no exista o no haya sido iniciada.
     """
-    tablero = crud.juego.get_tablero(db, id_partida)
+    tablero = crud.get_tablero(db, id_partida)
     return tablero
 
 
