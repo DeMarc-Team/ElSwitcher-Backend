@@ -162,7 +162,7 @@ def test_varias_rondas(test_db):
         
         # Terminamos el turno del jugador actual
         response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
-
+    assert len(orden_de_turnos) == len(partida.jugadores)
     # Hacemos 4 rondas mas para ver si tal orden se mantiene
     for i in range(0, 4 * len(partida.jugadores)):
         
@@ -174,7 +174,7 @@ def test_varias_rondas(test_db):
         # Verificamos que efectivamente se haya cambiador el turno
         assert id_jugador_actual != id_jugador_anterior, f"Fallo: Se esperaba un cambio de turno en el jugador {id_jugador_actual}, pero esto no ocurrió."
         
-        assert orden_de_turnos[i%4] == id_jugador_actual
+        assert orden_de_turnos[i%len(partida.jugadores)] == id_jugador_actual
         id_jugador_anterior = id_jugador_actual
         
         # Terminamos el turno del jugador actual
