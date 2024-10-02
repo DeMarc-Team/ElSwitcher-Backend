@@ -39,12 +39,12 @@ def siguiente_turno(db: Session, partida_id):
         raise ForbiddenError(f"La partida con ID {partida_id} todavía no comenzó.")
     
     actual_jugador = partida.jugador_del_turno
-    partida.jugadores.remove(actual_jugador)
+    partida.jugadores.append(partida.jugadores.pop(0))
     db.flush()
-    actual_jugador.orden = len(partida.jugadores)
-    partida.jugadores.append(actual_jugador)
+    for jugador in partida.jugadores:
+        jugador.orden = partida.jugadores.index(jugador)
+
     db.commit()
-    
     return actual_jugador.id_jugador
 
 def terminar_turno(db: Session, partida_id, jugador_id):
