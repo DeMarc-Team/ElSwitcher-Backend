@@ -158,6 +158,7 @@ def test_siguiente_turno(test_db):
     
     # Obtenemos el nuevo jugador actual
     response = client.get(f'/juego/{partida.id}/turno')
+    test_db.flush()
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     
     id_segundo_jugador = response.json()['id_jugador']
