@@ -31,8 +31,6 @@ def test_data():
 
     # Iniciar la partida y crear el juego
     partida.iniciada = True
-    juego = Juego(partida_id=partida.id)
-    db.add(juego)
 
     db.commit()
     db.close()
@@ -43,28 +41,27 @@ def test_data():
     # Limpiamos la base de datos después de la prueba
     db.query(Jugador).delete()
     db.query(Partida).delete()
-    db.query(Juego).delete()
     db.query(CartaFigura).delete()
     db.query(CartaMovimiento).delete()
     db.commit()
     db.close()
 
-@mock.patch('crud.juego.get_tablero', mock.Mock(return_value=tablero_mock))
+@mock.patch('crud.partidas.get_tablero', mock.Mock(return_value=tablero_mock))
 def test_get_tablero_200(test_data):
     # Llamamos al endpoint para obtener el tablero de la partida con ID 1 (existente)
-    response = client.get("juego/1/tablero")
+    response = client.get("partidas/1/tablero")
     print(f"Response: {response.json()}")
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     assert json.dumps(response.json()) == tablero_mock, f"Fallo: Se esperaba el tablero {tablero_mock}, pero se obtuvo {response.json()}"
 
 def test_get_tablero_404(test_data):
-    response = client.get("juego/2/tablero")
+    response = client.get("partidas/2/tablero")
     print(f"Response: {response.json()}")
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
     assert len(response.json()) == 1, f"Fallo: Se esperaba 1 mensaje de error, pero se obtuvieron {len(response.json())}"
 
 def test_get_tablero_format(test_data):
-    response = client.get("juego/1/tablero")
+    response = client.get("partidas/1/tablero")
     print(f"Response: {response.json()}")
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     tablero = response.json()
