@@ -52,6 +52,7 @@ def test_iniciar_partida_200(test_data):
     db = test_data
     partida = db.query(Partida).filter(Partida.id == 1).first()
     assert partida.iniciada, f"Fallo: Se esperaba que la partida estuviera iniciada, pero se obtuvo {partida.iniciada}"
+    assert len(partida.jugadores) == 3, f"Fallo: Se esperaba que la partida tuviera 3 jugadores, pero se obtuvo {len(partida.jugadores)}"
     db.close()
 
 
