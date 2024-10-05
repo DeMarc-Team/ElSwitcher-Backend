@@ -1,6 +1,40 @@
 from sqlalchemy import inspect
+from sqlalchemy.sql import text
 from models import Base, Partida, Jugador 
 from database import engine
+
+def verificar_permisos(inspector, engine):
+    """Verifica si se tienen permisos para acceder a la base de datos y realiza comprobaciones adicionales."""
+    with engine.connect() as connection:
+        try:
+            inspector = inspect(engine)
+
+            connection.execute(text("SELECT 1"))
+            print("Permisos verificados: Acceso a la base de datos permitido.")
+
+            tablas = inspector.get_table_names()
+            print("Tablas disponibles en la base de datos:", tablas)
+
+            # Comprobar el acceso a tablas
+            for tabla in tablas:
+                if tabla in tablas:
+                    print(f"Permisos confirmados para la tabla: {tabla}")
+                    connection.execute(text(f"SELECT * FROM {tabla} LIMIT 1"))
+                else:
+                    print(f"Fallo: No se tiene acceso a la tabla '{tabla}' o no existe.")
+
+            # Verificación de columnas en cada tabla
+            for tabla in tablas:
+                if tabla in tablas:
+                    columnas = inspector.get_columns(tabla)
+                    columnas_nombres = [col['name'] for col in columnas]
+                    print(f"Columnas en la tabla '{tabla}': {columnas_nombres}")
+
+            print("Verificación de permisos completada.")
+        
+        except Exception as e:
+            print(f"Error al verificar permisos: {e}")
+            raise
 
 def verificar_columnas(inspector, tabla, columnas_esperadas):
     columnas_creadas = inspector.get_columns(tabla)
@@ -14,6 +48,8 @@ def test_db_creation(): #test_db):
     '''Test para verificar la correcta creación de la base de datos'''
     #inspector = inspect(test_db.get_bind())
     inspector = inspect(engine)
+
+    verificar_permisos(inspector, engine)
 
     # Verificamos que las tablas existen
     tablas_esperadas = ['cartas_de_figura', 'cartas_de_movimiento', 'jugadores', 'partidas']
