@@ -25,7 +25,7 @@ def crear_partida(db: Session, nombre_partida: str = "Partida", nombre_creador: 
     
     db.add(creador)
     db.add(partida)
-    
+
     db.commit()
     return partida, creador
 
@@ -49,7 +49,6 @@ def unir_jugadores(db: Session, partida: Partida = "Partida", numero_de_jugadore
     nuevos_jugadores = []
     for i in range(numero_de_jugadores):
         nuevo_jugador = Jugador(nombre=f"Jugador{i+2}", partidas=partida, es_creador=False, orden=len(partida.jugadores))
-
         db.add(nuevo_jugador)
         partida.jugadores.append(nuevo_jugador)
         nuevos_jugadores.append(nuevo_jugador)
