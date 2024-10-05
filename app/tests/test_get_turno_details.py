@@ -1,16 +1,7 @@
 from tests_setup import client, TestingSessionLocal
 from models import Partida, Jugador, CartaFigura, CartaMovimiento
 from crud.juego import siguiente_turno
-import pytest
-
-@pytest.fixture(scope="function")
-def test_db():
-    db = TestingSessionLocal()
-    
-    yield db
-
-    db.close()
-        
+   
 def test_get_turno_details(test_db):
     '''Test para crear iniciar una partida con un juego asociado'''
     db = test_db
