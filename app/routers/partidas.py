@@ -1,6 +1,8 @@
 from fastapi import (
     APIRouter, 
-    Depends
+    Depends,
+    WebSocket,
+    WebSocketDisconnect
 )
 
 from sqlalchemy.orm import Session
@@ -9,6 +11,8 @@ import crud.partidas as crud
 from models import Base
 from database import engine, get_db
 from schemas import PartidaData, PartidaDetails, PartidaDetails2, JuegoDetails, CartaFiguraData
+from websockets_manager.ws_home_manager import ws_home_manager
+from uuid import uuid4
 
 Base.metadata.create_all(bind=engine)
 
@@ -48,6 +52,7 @@ async def get_partida_details(partida_id: int, db: Session = Depends(get_db)):
              description="Crea una nueva partida.",
              tags=["Partidas"])
 async def create_partida(partida: PartidaData, db: Session = Depends(get_db)):
+    await ws_home_manager.send_actualizar_partidas()
     return crud.create_partida(db=db, partida=partida)
 
 @router.put('/{partida_id:int}',
@@ -56,6 +61,7 @@ async def create_partida(partida: PartidaData, db: Session = Depends(get_db)):
             tags=["Partidas"])
 async def iniciar_partida(partida_id: int, db: Session = Depends(get_db)):
     crud.iniciar_partida(db=db, id=partida_id)
+    await ws_home_manager.send_actualizar_partidas()
     return {"details": "Partida iniciada correctamemte", "partida_id": partida_id}
 
 @router.delete('/{partida_id:int}/jugadores/{jugador_id:int}',
@@ -65,4 +71,18 @@ async def iniciar_partida(partida_id: int, db: Session = Depends(get_db)):
             status_code=200)
 async def abandonar_partida(partida_id: int, jugador_id : int, db: Session = Depends(get_db)):
     crud.abandonar_partida(db=db, partida_id=partida_id, jugador_id=jugador_id)
+    await ws_home_manager.send_actualizar_partidas()
     return {"detail": "El jugador abandonó la partida exitosamente"}
+
+@router.websocket('/')
+async def start_socket(websocket: WebSocket):
+    user_id = uuid4()
+    try:
+        await ws_home_manager.connect(user_id, websocket)
+        
+        while True:
+            data = await websocket.receive_json()
+            print(f"Websocket received: {data}")
+        
+    except WebSocketDisconnect:
+        ws_home_manager.disconnect(user_id)
