@@ -45,8 +45,13 @@ def verificar_columnas(inspector, tabla, columnas_esperadas):
     assert columnas_esperadas == columnas_creadas_nombres, f"Fallo: No se crearon todas las columnas en '{tabla}'. Se esperaban {columnas_esperadas}, pero se encontraron {columnas_creadas_nombres}"
 
 def test_db_creation(): #test_db):
-    '''Test para verificar la correcta creación de la base de datos'''
-    #inspector = inspect(test_db.get_bind())
+    '''
+    Test para verificar la correcta creación de la base de datos.
+
+    Atencion: Este test se realiza sobre la base de datos real,
+    no sobre la base de datos de prueba.
+    '''
+    #inspector = inspect(test_db.get_bind()) # El test se hace sobre la db real para verificar que se crearon las tablas
     inspector = inspect(engine)
 
     verificar_permisos(inspector, engine)
