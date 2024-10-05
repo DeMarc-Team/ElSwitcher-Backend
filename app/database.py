@@ -4,18 +4,16 @@ from sqlalchemy.orm import DeclarativeBase
 import os
 
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), "maindata.db")
-URL_DATABASE = f"sqlite:///{DATABASE_PATH}" # Definir la ruta de la base de datos
+URL_DATABASE = f"sqlite:///{DATABASE_PATH}"
 
-engine = create_engine(URL_DATABASE) # Crear el motor de la base de datos
+engine = create_engine(URL_DATABASE)
 
-localSession = sessionmaker(autocommit=False, autoflush=False, bind=engine) # Crear la sesión local
+localSession = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-class Base(DeclarativeBase): # Crear la clase Base para los modelos
+class Base(DeclarativeBase):
     pass
 
-Base.metadata.create_all(bind=engine) # Crear las tablas basadas en la metadata de Base
-
-def get_db(): # Función para obtener la sesión
+def get_db():
     db = localSession()
     try:
         yield db

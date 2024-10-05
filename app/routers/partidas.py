@@ -6,8 +6,11 @@ from fastapi import (
 from sqlalchemy.orm import Session
 
 import crud.partidas as crud
-from database import get_db
+from models import Base
+from database import engine, get_db
 from schemas import PartidaData, PartidaDetails, PartidaDetails2, JuegoDetails, CartaFiguraData
+
+Base.metadata.create_all(bind=engine)
 
 router = APIRouter(
     prefix="/partidas"
