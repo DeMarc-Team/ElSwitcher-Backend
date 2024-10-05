@@ -42,6 +42,7 @@ def test_get_jugadores_200(test_data):
                           {'nombre': 'Jugador2', 'id_jugador': 3}]
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
 
+
 # ----------------------------------------------------------------
 
 def test_get_jugadores_404():
