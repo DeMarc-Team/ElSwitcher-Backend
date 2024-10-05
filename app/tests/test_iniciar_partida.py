@@ -47,7 +47,9 @@ def test_iniciar_partida_200(test_data):
     # Verificamos la respuesta del servidor
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {
         response.status_code}"
+
     respuesta_esperada = {'details': 'Partida iniciada correctamemte', 'partida_id': 1}
+
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada}, pero se obtuvo {response.json}"
     
     # Verificamos que se haya iniciado la partida
