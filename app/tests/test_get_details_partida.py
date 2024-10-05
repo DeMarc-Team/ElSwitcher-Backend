@@ -47,6 +47,7 @@ def test_get_details_partida_200(test_data):
     response = client.get("partidas/1") 
     print(f"Response: {response.json()}")
 
+
     assert response.status_code == 200 , f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     respuesta_esperada = {'nombre_partida': 'partida_details',
                           'nombre_creador': 'Creador',
@@ -61,6 +62,7 @@ def test_get_details_partida_200(test_data):
 def test_get_details_partida_404(test_data):
     response = client.get("partidas/2") 
     print(f"Response: {response.json()}")
+    
     
     assert response.status_code == 404 , f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
     respuesta_esperada = {'detail': 'Partida con ID 2 no encontrada.'}
