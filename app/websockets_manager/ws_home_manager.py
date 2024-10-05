@@ -12,7 +12,6 @@ class WsMessage(BaseModel):
     data: str = None
 
     def json(self):
-        # return {"action": self.action, "data": self.data}
         return self.model_dump_json()
 
 
@@ -23,8 +22,6 @@ class ConnectionManager:
     async def connect(self, user_id: int, websocket: WebSocket):
         await websocket.accept()
         self.active_connections[user_id] = websocket
-        message = WsMessage(action=MessageType.ACTUALIZAR_PARTIDAS)
-        await websocket.send_text(message.json())
 
     async def send_actualizar_partidas(self):
         await self.broadcast(WsMessage(action=MessageType.ACTUALIZAR_PARTIDAS))
