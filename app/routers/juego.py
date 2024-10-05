@@ -54,7 +54,7 @@ async def get_turno_details(id_partida: int,  db: Session = Depends(get_db)):
             tags=["Juego"])
 async def terminar_turno(id_partida: int, id_jugador, db: Session = Depends(get_db)):
     crud.juego.terminar_turno(db, id_partida, id_jugador)
-    await ws_partida_manager.send_actualizar_sala_espera(id_partida)
+    await ws_partida_manager.send_actualizar_turno(id_partida)
 
 
 @router.get('/{id_partida:int}/tablero',
