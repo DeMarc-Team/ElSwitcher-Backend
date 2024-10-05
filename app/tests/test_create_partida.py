@@ -35,7 +35,6 @@ def test_create_partida(test_db):
     assert partida.iniciada == False, f"Fallo: Se esperaba False como estado de la partida, pero se obtuvo {partida.iniciada}"
     assert len(partida.jugadores) == 1, f"Fallo: Se esperaba 1 jugador en la partida, pero se obtuvo {len(partida.jugadores)}"
     
-
     creador = test_db.query(Jugador).filter(Jugador.id_jugador == 1).first()
     print(creador)
 
