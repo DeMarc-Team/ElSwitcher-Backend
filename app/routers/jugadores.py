@@ -13,6 +13,8 @@ from websockets_manager.ws_partidas_manager import ws_partidas_manager
 
 Base.metadata.create_all(bind=engine)
 
+Base.metadata.create_all(bind=engine)
+
 router = APIRouter(
     prefix="/partidas"
 )
