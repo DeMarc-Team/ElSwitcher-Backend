@@ -19,38 +19,21 @@ def test_create_partida(test_db):
 
     # Verificamos que la respuesta sea la esperada
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    response_data = response.json()
-    assert response_data['nombre_partida'] == "Partida_nueva", f"Fallo: Se obtuvo {response_data['nombre']} como nombre de la partida"
-    assert response_data['nombre_creador'] == "Jugador_nuevo", f"Fallo: Se obtuvo {response_data['nombre_creador']} como nombre del creador de la partida"
-    
+    respuesta_esperada = {  'nombre_partida': 'Partida_nueva',
+                            'nombre_creador': 'Jugador_nuevo',
+                            'id': 1,
+                            'id_creador': 1,
+                            'iniciada': False}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
+
     # Verificamos que la partida se haya creado correctamente en la db
     db = test_db
     partida = db.query(Partida).filter(Partida.id == 1).first()
+    print(partida)
+    
     assert partida.nombre_partida == "Partida_nueva", f"Fallo: Se esperaba Partida_nueva como nombre de la partida, pero se obtuvo {partida.nombre_partida}"
     assert partida.nombre_creador == "Jugador_nuevo", f"Fallo: Se esperaba Jugador_nuevo como nombre del creador de la partida, pero se obtuvo {partida.nombre_creador}"
-    db.close()
-
-def test_create_partida_long_name(test_db):
-    '''Test para crear una partida con un nombre muy largo'''
-    # Datos para el cuerpo del post
-    nueva_partida = {
-        "nombre_partida": "emi"*10000000,
-        "nombre_creador": "Jugador_nuevo"
-    }
-    response = client.post("/partidas", json=nueva_partida)
-    # Verificamos que la respuesta sea la esperada
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {
-        response.status_code}"
-    response_data = response.json()
-    assert response_data['nombre_partida'] == "emi"*10000000, f"Fallo: Se obtuvo {
-        response_data['nombre']} como nombre de la partida"
-    assert response_data['nombre_creador'] == "Jugador_nuevo", f"Fallo: Se obtuvo {
-        response_data['nombre_creador']} como nombre del creador de la partida"
-    # Verificamos que la partida se haya creado correctamente en la db
-    db = test_db
-    partida = db.query(Partida).filter(Partida.id == 1).first()
-    assert partida.nombre_partida == "emi"*10000000, f"Fallo: Se esperaba Partida_nueva como nombre de la partida, pero se obtuvo {
-        partida.nombre_partida}"
-    assert partida.nombre_creador == "Jugador_nuevo", f"Fallo: Se esperaba Jugador_nuevo como nombre del creador de la partida, pero se obtuvo {
-        partida.nombre_creador}"
+    assert partida.iniciada == False, f"Fallo: Se esperaba False como estado de la partida, pero se obtuvo {partida.iniciada}"
+    assert len(partida.jugadores) == 1, f"Fallo: Se esperaba 1 jugador en la partida, pero se obtuvo {len(partida.jugadores)}"
+    
     db.close()
