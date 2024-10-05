@@ -35,6 +35,7 @@ def unir_jugadores(db: Session, partida: Partida = "Partida", numero_de_jugadore
     Valores por defecto:
     - partida = Partida
     - numero_de_jugadores = 1
+    - nombre = Jugador{i} donde i va desde 2 hasta 4
     '''
     assert partida.iniciada == False, "La partida ya ha sido iniciada"
     assert len(partida.jugadores) <= 4, "La partida ya tiene 4 jugadores"
@@ -42,7 +43,7 @@ def unir_jugadores(db: Session, partida: Partida = "Partida", numero_de_jugadore
     assert numero_de_jugadores > 0, "Y el creador? boludito"
 
     for i in range(numero_de_jugadores):
-        nuevo_jugador = Jugador(nombre=f"Jugador {i}", partida=partida, es_creador=False, orden=len(partida.jugadores))
+        nuevo_jugador = Jugador(nombre=f"Jugador{i+2}", partida=partida, es_creador=False, orden=len(partida.jugadores))
         db.add(nuevo_jugador)
         partida.jugadores.append(nuevo_jugador)
         db.commit()
