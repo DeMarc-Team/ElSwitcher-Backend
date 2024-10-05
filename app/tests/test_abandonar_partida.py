@@ -47,6 +47,7 @@ def test_abandonar_partida_no_iniciada_creador_403(test_db):
     respuesta_esperada = {"detail": f"El creador con ID {id_creador} no puede abandonar la partida con ID {id_partida} antes de iniciarla."}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{respuesta_esperada}', pero se obtuvo {response.json()}"
 
+# ----------------------------------------------------------------
 
 # ----------------------------------------------------------------
 
@@ -78,7 +79,6 @@ def test_abandonar_partida_no_iniciada_no_creador_200(test_db):
     assert jugador == None, f"Fallo: Se esperaba que el jugador fuera eliminado de la base de datos, pero se encontró {jugador}"
 
 # ----------------------------------------------------------------
-
 
 def test_abandonar_partida_iniciada_creador_200(test_db):
     '''Test de creador abandonando su partida iniciada'''
