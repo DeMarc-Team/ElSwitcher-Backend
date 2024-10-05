@@ -52,8 +52,9 @@ async def get_partida_details(partida_id: int, db: Session = Depends(get_db)):
              description="Crea una nueva partida.",
              tags=["Partidas"])
 async def create_partida(partida: PartidaData, db: Session = Depends(get_db)):
+    partida_details = crud.create_partida(db=db, partida=partida)
     await ws_home_manager.send_actualizar_partidas()
-    return crud.create_partida(db=db, partida=partida)
+    return partida_details
 
 @router.put('/{partida_id:int}',
             summary="Iniciar partida",
