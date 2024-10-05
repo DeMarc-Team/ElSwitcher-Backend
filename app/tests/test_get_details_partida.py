@@ -24,16 +24,20 @@ def test_data():
 def test_get_details_partida_200(test_data):
     response = client.get("partidas/1") 
     print(f"Response: {response.json()}")
+
     assert response.status_code == 200 , f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    assert response.json()['id'] == 1, f"Fallo: Se esperaba 1, pero se obtuvo {response.json()['id']}"
-    assert response.json()['nombre_partida'] == "partida_details", f"Fallo: Se esperaba 'partida_details', pero se obtuvo {response.json()[0]['nombre_partida']}"
-    assert response.json()['nombre_creador'] == "Creador", f"Fallo: Se esperaba 'Creador', pero se obtuvo {response.json()[0]['nombre_creador']}"
-    assert response.json()['id_creador'] == 1, f"Fallo: Se esperaba 1, pero se obtuvo {response.json()[0]['id_creador']}"
-    assert response.json()['iniciada'] == False, f"Fallo: Se esperaba False, pero se obtuvo {response.json()[0]['iniciada']}"
-    assert response.json()['espacios_disponibles'] == 2, f"Fallo: Se esperaba 2, pero se obtuvo {response.json()[0]['espacios_disponibles']}"
+    respuesta_esperada = {'nombre_partida': 'partida_details',
+                          'nombre_creador': 'Creador',
+                          'id': 1,
+                          'id_creador': 1,
+                          'iniciada': False,
+                          'espacios_disponibles': 2}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
 
 def test_get_details_partida_404(test_data):
     response = client.get("partidas/2") 
     print(f"Response: {response.json()}")
+    
     assert response.status_code == 404 , f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
-    assert response.json()['detail'] == "Partida con ID 2 no encontrada.", f"Fallo: Se esperaba 'Partida con ID 2 no encontrada.', pero se obtuvo {response.json()['detail']}"
+    respuesta_esperada = {'detail': 'Partida con ID 2 no encontrada.'}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
