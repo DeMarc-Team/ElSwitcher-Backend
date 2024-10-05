@@ -19,6 +19,13 @@ def test_create_partida(test_db):
                             'iniciada': False}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
 
+    respuesta_esperada = {  'nombre_partida': 'Partida_nueva',
+                            'nombre_creador': 'Jugador_nuevo',
+                            'id': 1,
+                            'id_creador': 1,
+                            'iniciada': False}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
+
     # Verificamos que la partida se haya creado correctamente en la db
     partida = test_db.query(Partida).filter(Partida.id == 1).first()
     print(partida)
