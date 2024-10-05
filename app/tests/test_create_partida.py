@@ -1,12 +1,5 @@
-from tests_setup import client, TestingSessionLocal
+from tests_setup import client
 from models import Partida, Jugador
-import pytest
-
-@pytest.fixture(scope="function")
-def test_db():
-    db = TestingSessionLocal()
-    yield db
-    db.close()
 
 def test_create_partida(test_db):
     '''Test para crear una partida'''
@@ -27,8 +20,7 @@ def test_create_partida(test_db):
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
 
     # Verificamos que la partida se haya creado correctamente en la db
-    db = test_db
-    partida = db.query(Partida).filter(Partida.id == 1).first()
+    partida = test_db.query(Partida).filter(Partida.id == 1).first()
     print(partida)
     
     assert partida.nombre_partida == "Partida_nueva", f"Fallo: Se esperaba Partida_nueva como nombre de la partida, pero se obtuvo {partida.nombre_partida}"
@@ -36,11 +28,11 @@ def test_create_partida(test_db):
     assert partida.iniciada == False, f"Fallo: Se esperaba False como estado de la partida, pero se obtuvo {partida.iniciada}"
     assert len(partida.jugadores) == 1, f"Fallo: Se esperaba 1 jugador en la partida, pero se obtuvo {len(partida.jugadores)}"
     
-    creador = db.query(Jugador).filter(Jugador.id_jugador == 1).first()
+    creador = test_db.query(Jugador).filter(Jugador.id_jugador == 1).first()
     print(creador)
     assert creador.nombre == "Jugador_nuevo", f"Fallo: Se esperaba Jugador_nuevo como nombre del creador, pero se obtuvo {creador.nombre}"
     assert creador.es_creador == True, f"Fallo: Se esperaba True como es_creador del creador, pero se obtuvo {creador.es_creador}"
     assert creador.partidas == partida, f"Fallo: Se esperaba la partida creada como partida del creador, pero se obtuvo {creador.partidas}"
     assert creador.orden == 0, f"Fallo: Se esperaba 0 como orden del creador, pero se obtuvo {creador.orden}"
 
-    db.close()
+    test_db.close()
