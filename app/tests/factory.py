@@ -10,6 +10,7 @@ def crear_partida(db: Session, nombre_partida: str = "Partida", nombre_creador: 
     Valores por defecto:
     - nombre_partida = Partida
     - nombre_creador = Creador
+    - iniciada = False
     - tablero = '[[2, 1, 3, 4, 2, 3], [4, 2, 1, 1, 3, 3], [2, 1, 3, 2, 3, 4], [4, 1, 1, 2, 2, 4], [1, 3, 1, 2, 1, 3], [2, 3, 4, 4, 4, 4]]'
     '''
     partida = Partida(nombre_partida=nombre_partida,
