@@ -91,7 +91,7 @@ async def start_socket(websocket: WebSocket):
     except WebSocketDisconnect:
         ws_home_manager.disconnect(user_id)
         
-@router.websocket('/{partida_id:int}/{jugador_id:int}')
+@router.websocket('/{partida_id:int}/jugador/{jugador_id:int}')
 async def start_socket(partida_id: int, jugador_id : int, websocket: WebSocket):
     try:
         await ws_partida_manager.connect(partida_id, jugador_id, websocket)
