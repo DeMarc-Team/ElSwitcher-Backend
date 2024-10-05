@@ -34,6 +34,8 @@ def test_get_details_partida_200(test_data):
                           'espacios_disponibles': 2}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
 
+# ----------------------------------------------------------------
+
 def test_get_details_partida_404(test_data):
     response = client.get("partidas/2") 
     print(f"Response: {response.json()}")

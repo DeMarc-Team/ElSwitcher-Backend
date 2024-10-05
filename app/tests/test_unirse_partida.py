@@ -66,6 +66,7 @@ def test_unirse_partida_200(test_data):
     assert len(jugadores) == 4, f"Fallo: Se esperaban 4 jugadores, pero se obtuvieron {len(jugadores)}"
     db.close()
 
+# ----------------------------------------------------------------
 
 def test_unirse_partida_llena_403(test_data):
     '''Test al unirse a una partida llena'''
@@ -84,6 +85,8 @@ def test_unirse_partida_llena_403(test_data):
     assert len(jugadores) == 4, f"Fallo: Se esperaban 4 jugadores, pero se obtuvieron {len(jugadores)}"
     db.close()
 
+# ----------------------------------------------------------------
+
 def test_unirse_partida_iniciada_403(test_data):
     '''Test al unirse a una partida ya iniciada'''
     body = {"nombre": "Jugador5"}
@@ -100,6 +103,8 @@ def test_unirse_partida_iniciada_403(test_data):
     jugadores = db.query(Jugador).filter(Jugador.partida_id == 3).all()
     assert len(jugadores) == 2, f"Fallo: Se esperaban 2 jugadores, pero se obtuvieron {len(jugadores)}"
     db.close()
+
+# ----------------------------------------------------------------
 
 def test_unirse_partida_404(test_data):
     '''Test al unirse a una partida inexistente'''

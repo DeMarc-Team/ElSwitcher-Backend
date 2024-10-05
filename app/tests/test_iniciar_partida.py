@@ -57,6 +57,7 @@ def test_iniciar_partida_200(test_data):
     assert len(partida.jugadores) == 3, f"Fallo: Se esperaba que la partida tuviera 3 jugadores, pero se obtuvo {len(partida.jugadores)}"
     db.close()
 
+# ----------------------------------------------------------------
 
 def test_iniciar_partida_con_jugadores_insuficientes_403(test_data):
     '''Test para iniciar una partida sin suficientes jugadores'''
@@ -75,6 +76,8 @@ def test_iniciar_partida_con_jugadores_insuficientes_403(test_data):
     assert not partida.iniciada, f"Fallo: Se esperaba que la partida no estuviera iniciada, pero se obtuvo {partida.iniciada}"
     db.close()
 
+# ----------------------------------------------------------------
+
 def test_iniciar_partida_ya_iniciada_403(test_data):
     '''Test para iniciar una partida que ya esta iniciada'''
     response = client.put("partidas/3")
@@ -90,6 +93,8 @@ def test_iniciar_partida_ya_iniciada_403(test_data):
     partida = db.query(Partida).filter(Partida.id == 3).first()
     assert partida.iniciada, f"Fallo: Se esperaba que la partida estuviera iniciada, pero se obtuvo {partida.iniciada}"
     db.close()
+
+# ----------------------------------------------------------------
 
 def test_iniciar_partida_404(test_data):
     '''Test para iniciar una partida que no existe'''

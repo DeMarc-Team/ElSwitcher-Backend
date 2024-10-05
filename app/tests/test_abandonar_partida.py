@@ -2,6 +2,8 @@ from tests_setup import client
 from factory import crear_partida, unir_jugadores, iniciar_partida
 from models import Partida, Jugador
 
+# ----------------------------------------------------------------
+
 def test_abandonar_partida_no_iniciada_creador_403(test_db):
     '''Test de creador abandonando su partida no iniciada (no deberia poder)'''
     partida, creador = crear_partida(test_db)
@@ -17,6 +19,7 @@ def test_abandonar_partida_no_iniciada_creador_403(test_db):
     respuesta_esperada = {"detail": f"El creador con ID {id_creador} no puede abandonar la partida con ID {id_partida} antes de iniciarla."}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{respuesta_esperada}', pero se obtuvo {response.json()}"
 
+# ----------------------------------------------------------------
 
 def test_abandonar_partida_no_iniciada_no_creador_200(test_db):
     '''Test de jugador no creador abandonando una partida no iniciada'''
@@ -45,6 +48,8 @@ def test_abandonar_partida_no_iniciada_no_creador_200(test_db):
     jugador = test_db.query(Jugador).filter(Jugador.id_jugador == id_jugador).first()
     assert jugador == None, f"Fallo: Se esperaba que el jugador fuera eliminado de la base de datos, pero se encontró {jugador}"
 
+# ----------------------------------------------------------------
+
 def test_abandonar_partida_iniciada_creador_200(test_db):
     '''Test de creador abandonando su partida iniciada'''
     partida, creador = crear_partida(test_db)
@@ -70,6 +75,8 @@ def test_abandonar_partida_iniciada_creador_200(test_db):
 
     jugador = test_db.query(Jugador).filter(Jugador.id_jugador == id_creador).first()
     assert jugador == None, f"Fallo: Se esperaba que el jugador fuera eliminado de la base de datos, pero se encontró {jugador}"
+
+# ----------------------------------------------------------------
 
 def test_abandonar_partida_iniciada_no_creador_200(test_db):
     '''Test de jugador no creador abandonando una partida iniciada'''
@@ -98,6 +105,8 @@ def test_abandonar_partida_iniciada_no_creador_200(test_db):
     jugador = test_db.query(Jugador).filter(Jugador.id_jugador == id_jugador).first()
     assert jugador == None, f"Fallo: Se esperaba que el jugador fuera eliminado de la base de datos, pero se encontró {jugador}"
 
+# ----------------------------------------------------------------
+
 def test_abandonar_partida_no_existente_404(test_db):
     '''Test de jugador abandonando una partida que no existe'''
     id_partida = 1
@@ -111,6 +120,8 @@ def test_abandonar_partida_no_existente_404(test_db):
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
     respuesta_esperada = {'detail': f'Partida con ID {id_partida} no encontrada.'}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{respuesta_esperada}', pero se obtuvo {response.json()}"
+
+# ----------------------------------------------------------------
 
 def test_abandonar_partida_jugador_no_existente_404(test_db):
     '''Test de jugador no existente abandonando una partida'''
@@ -126,6 +137,8 @@ def test_abandonar_partida_jugador_no_existente_404(test_db):
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
     respuesta_esperada = {'detail': f'Jugador con ID {id_jugador} no encontrado en la partida con ID {id_partida}.'}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{respuesta_esperada}', pero se obtuvo {response.json()}"
+
+# ----------------------------------------------------------------
 
 def test_abandonar_partida_iniciada_ultimo_jugador_200(test_db):
     '''Test de jugador abandonando una partida iniciada donde es el último jugador'''
