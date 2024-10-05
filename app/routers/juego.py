@@ -13,6 +13,7 @@ from database import engine, get_db
 
 from pydantic import Json
 
+from websockets_manager.ws_partida_manager import ws_partida_manager
 
 Base.metadata.create_all(bind=engine)
 
@@ -52,7 +53,8 @@ async def get_turno_details(id_partida: int,  db: Session = Depends(get_db)):
             description="Termina el turno del jugador actual, si es que el id del mismo coincide con el del parámetro.",
             tags=["Juego"])
 async def terminar_turno(id_partida: int, id_jugador, db: Session = Depends(get_db)):
-    return crud.juego.terminar_turno(db, id_partida, id_jugador)
+    crud.juego.terminar_turno(db, id_partida, id_jugador)
+    await ws_partida_manager.send_actualizar_sala_espera(id_partida)
 
 
 @router.get('/{id_partida:int}/tablero',
