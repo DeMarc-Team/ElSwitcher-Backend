@@ -38,9 +38,11 @@ def test_get_partidas_200(test_data):
     '''Test para obtener las partidas no iniciadas y no llenas'''
     response = client.get("partidas")
     print(f"Response: {response.json()}")
+    
     assert response.status_code == 200 , f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    assert len(response.json()) == 1 ,  f"Fallo: Se esperaba solo 1 partida (no iniciada ni llena), pero se obtuvo {len(response.json())}"
-    assert response.json()[0]['nombre_partida'] == "partida_no_iniciada", f"Fallo: Se esperaba 'partida_no_iniciada', pero se obtuvo {response.json()[0]['nombre_partida']}"
-    assert response.json()[0]['nombre_creador'] == "Jugador1", f"Fallo: Se esperaba 'Jugador1', pero se obtuvo {response.json()[0]['nombre_creador']}"
-    assert response.json()[0]['iniciada'] == False, f"Fallo: Se esperaba False, pero se obtuvo {response.json()[0]['iniciada']}"
-    #Test exitoso: Se obtuvo la unica partida no iniciada y no llena
+    respuesta_esperada = [{'nombre_partida': 'partida_no_iniciada',
+                           'nombre_creador': 'Jugador1',
+                           'id': 1,
+                           'id_creador': 1,
+                           'iniciada': False}]
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
