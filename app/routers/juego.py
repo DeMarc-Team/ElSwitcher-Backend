@@ -4,12 +4,17 @@ from fastapi import (
 )
 
 from sqlalchemy.orm import Session
-from pydantic import Json
 
 import crud.juego
 import crud.partidas
+from models import Base
 from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails
-from database import get_db
+from database import engine, get_db
+
+from pydantic import Json
+
+
+Base.metadata.create_all(bind=engine)
 
 router = APIRouter(
     prefix="/juego"

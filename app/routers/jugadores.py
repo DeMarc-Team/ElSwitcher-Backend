@@ -5,9 +5,11 @@ from fastapi import (
 from sqlalchemy.orm import Session
 
 import crud.jugadores as crud
-from models import Jugador
-from database import  get_db
+from models import Base, Jugador
+from database import engine, get_db
 from schemas import JugadorData, JugadorOnCreateResponse
+
+Base.metadata.create_all(bind=engine)
 
 router = APIRouter(
     prefix="/partidas"
