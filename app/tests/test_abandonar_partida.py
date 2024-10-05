@@ -10,7 +10,7 @@ def test_abandonar_partida_en_el_turno_200(test_db):
     id_jugador = jugador_del_turno.id_jugador
     id_partida = partida.id
     partida = iniciar_partida(db=test_db, partida=partida)
-
+    
     # Realizamos la petición
     response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
     print(f"Response: {response.json()}")
@@ -22,6 +22,7 @@ def test_abandonar_partida_en_el_turno_200(test_db):
 
     # Verificamos que la base de datos se haya actualizado correctamente
     partida = test_db.query(Partida).filter(Partida.id == id_partida).first()
+
     assert len(partida.jugadores) == 2, f"Fallo: Se esperaban 2 jugadores en la partida, pero se obtuvo {len(partida.jugadores)}"
     assert jugador_del_turno not in partida.jugadores, f"Fallo: Se esperaba que el jugador abandonara la partida, pero no se encontró en la lista de jugadores"
     assert partida.jugador_del_turno.id_jugador != id_jugador, f"Fallo: Se esperaba que el jugador del turno no fuera el jugador que abandonó, pero se obtuvo {partida.jugador_del_turno.id_jugador}"
@@ -45,6 +46,7 @@ def test_abandonar_partida_no_iniciada_creador_403(test_db):
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
     respuesta_esperada = {"detail": f"El creador con ID {id_creador} no puede abandonar la partida con ID {id_partida} antes de iniciarla."}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{respuesta_esperada}', pero se obtuvo {response.json()}"
+
 
 # ----------------------------------------------------------------
 
@@ -76,6 +78,7 @@ def test_abandonar_partida_no_iniciada_no_creador_200(test_db):
     assert jugador == None, f"Fallo: Se esperaba que el jugador fuera eliminado de la base de datos, pero se encontró {jugador}"
 
 # ----------------------------------------------------------------
+
 
 def test_abandonar_partida_iniciada_creador_200(test_db):
     '''Test de creador abandonando su partida iniciada'''
