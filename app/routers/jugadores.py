@@ -16,10 +16,6 @@ router = APIRouter(
     prefix="/partidas"
 )
 
-from models import Base
-from database import engine
-Base.metadata.create_all(bind=engine)
-
 @router.get('/{partida_id:int}/jugadores',
             response_model=list[JugadorOnCreateResponse],
             summary="Obtener jugadores de una partida",

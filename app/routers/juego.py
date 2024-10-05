@@ -20,10 +20,6 @@ router = APIRouter(
     prefix="/juego"
 )
 
-from models import Base
-from database import engine
-Base.metadata.create_all(bind=engine)
-
 @router.get('/{partida_id:int}/jugadores/{jugador_id:int}/cartas_figura',
             response_model=list[CartaFiguraData],
             summary="Obtener cartas figura de un jugador",
