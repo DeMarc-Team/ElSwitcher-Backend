@@ -79,7 +79,7 @@ async def abandonar_partida(partida_id: int, jugador_id : int, db: Session = Dep
     return {"detail": "El jugador abandonó la partida exitosamente"}
 
 @router.websocket('/')
-async def start_socket(websocket: WebSocket):
+async def start_home_socket(websocket: WebSocket):
     user_id = uuid4()
     try:
         await ws_home_manager.connect(user_id, websocket)
@@ -92,7 +92,7 @@ async def start_socket(websocket: WebSocket):
         ws_home_manager.disconnect(user_id)
         
 @router.websocket('/{partida_id:int}/jugador/{jugador_id:int}')
-async def start_socket(partida_id: int, jugador_id : int, websocket: WebSocket):
+async def start_partida_socket(partida_id: int, jugador_id: int, websocket: WebSocket):
     try:
         await ws_partida_manager.connect(partida_id, jugador_id, websocket)
         
