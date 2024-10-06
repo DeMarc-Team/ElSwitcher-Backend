@@ -13,7 +13,6 @@ from database import engine, get_db
 from schemas import PartidaData, PartidaDetails, PartidaDetails2, JuegoDetails, CartaFiguraData
 from websockets_manager.ws_home_manager import ws_home_manager
 from websockets_manager.ws_partida_manager import ws_partida_manager
-from uuid import uuid4
 
 Base.metadata.create_all(bind=engine)
 
@@ -80,9 +79,8 @@ async def abandonar_partida(partida_id: int, jugador_id : int, db: Session = Dep
 
 @router.websocket('/')
 async def start_home_socket(websocket: WebSocket):
-    user_id = uuid4()
     try:
-        await ws_home_manager.connect(user_id, websocket)
+        user_id = await ws_home_manager.connect(websocket)
         
         while True:
             data = await websocket.receive_json()
