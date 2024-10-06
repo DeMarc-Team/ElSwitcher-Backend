@@ -106,7 +106,7 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
     db.delete(jugador)
     db.flush()
 
-    if (len(partida.jugadores) <= 1 and partida.iniciada):
+    if (len(partida.jugadores) <= 0):
         # TODO: Declarar ganador al jugador que queda
         db.delete(partida)    
     

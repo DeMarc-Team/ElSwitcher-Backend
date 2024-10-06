@@ -1,13 +1,16 @@
 import pytest
+from tests_setup import TestingSessionLocal, engine
+from models import Base
 
 @pytest.fixture(autouse=True, scope='function')
-def setup_db():
+def test_db():
     # Limpiamos la base de datos antes de cada test
-    from models import Base
-    from tests_setup import engine
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
-    yield
+    # Creamos una nueva sesión de base de datos para cada test
+    db = TestingSessionLocal()
+    yield db
+    db.close()
 
 # Eliminamos la base de datos de prueba después de todos los tests
 @pytest.fixture(autouse=True, scope='session')

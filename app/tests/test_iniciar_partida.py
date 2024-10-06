@@ -43,11 +43,13 @@ def test_iniciar_partida_200(test_data):
     '''Test para iniciar una partida con suficientes jugadores'''
     response = client.put("partidas/1")
     print(f"Response: {response.json()}")
+    
     # Verificamos la respuesta del servidor
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {
         response.status_code}"
-    assert response.json() == {"message": "Partida iniciada correctamemte", "partida_id": 1}, f"Fallo: Se esperaba {
-        {'message': 'Partida iniciada correctamemte', 'partida_id': 1}}, pero se obtuvo {response.json}"
+    respuesta_esperada = {'details': 'Partida iniciada correctamemte', 'partida_id': 1}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada}, pero se obtuvo {response.json}"
+    
     # Verificamos que se haya iniciado la partida
     db = test_data
     partida = db.query(Partida).filter(Partida.id == 1).first()
@@ -55,43 +57,52 @@ def test_iniciar_partida_200(test_data):
     assert len(partida.jugadores) == 3, f"Fallo: Se esperaba que la partida tuviera 3 jugadores, pero se obtuvo {len(partida.jugadores)}"
     db.close()
 
+# ----------------------------------------------------------------
 
 def test_iniciar_partida_con_jugadores_insuficientes_403(test_data):
     '''Test para iniciar una partida sin suficientes jugadores'''
     response = client.put("partidas/2")
     print(f"Response: {response.json()}")
+    
     # Verificamos la respuesta del servidor
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {
         response.status_code}"
-    assert response.json()['detail'] == "Partida con ID 2 no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.", f"Fallo: Se esperaba 'Partida con ID 2 no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.', pero se obtuvo {
-        response.json()['detail']}"
+    respuesta_esperada = {'detail': 'Partida con ID 2 no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.'}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada}, pero se obtuvo {response.json()}"
+    
     # Verificamos que no se haya iniciado la partida
     db = test_data
     partida = db.query(Partida).filter(Partida.id == 2).first()
     assert not partida.iniciada, f"Fallo: Se esperaba que la partida no estuviera iniciada, pero se obtuvo {partida.iniciada}"
     db.close()
 
+# ----------------------------------------------------------------
+
 def test_iniciar_partida_ya_iniciada_403(test_data):
     '''Test para iniciar una partida que ya esta iniciada'''
     response = client.put("partidas/3")
     print(f"Response: {response.json()}")
+    
     # Verificamos la respuesta del servidor
-    assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {
-        response.status_code}"
-    assert response.json()['detail'] == "La partida con ID 3 ya está iniciada.", f"Fallo: Se esperaba 'La partida con ID 3 ya está iniciada.', pero se obtuvo {
-        response.json()['detail']}"
+    assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
+    respuesta_esperada = {'detail': 'La partida con ID 3 ya está iniciada.'}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada}, pero se obtuvo {response.json()}"
+    
     # Verificamos que no se haya iniciado la partida
     db = test_data
     partida = db.query(Partida).filter(Partida.id == 3).first()
     assert partida.iniciada, f"Fallo: Se esperaba que la partida estuviera iniciada, pero se obtuvo {partida.iniciada}"
     db.close()
 
+# ----------------------------------------------------------------
+
 def test_iniciar_partida_404(test_data):
     '''Test para iniciar una partida que no existe'''
     response = client.put("partidas/4")
     print(f"Response: {response.json()}")
+    
     # Verificamos la respuesta del servidor
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {
         response.status_code}"
-    assert response.json()['detail'] == "Partida con ID 4 no encontrada.", f"Fallo: Se esperaba 'Partida con ID 4 no encontrada.', pero se obtuvo {
-        response.json()['detail']}"
+    respuesta_esperada = {'detail': 'Partida con ID 4 no encontrada.'}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada}, pero se obtuvo {response.json()}"

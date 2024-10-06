@@ -54,54 +54,69 @@ def test_unirse_partida_200(test_data):
     body = {"nombre": "Jugador4"}
     response = client.post("partidas/1/jugadores", json=body)
     print(f"Response: {response.json()}")
+    
     # Verificamos la respuesta del servidor
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    assert len(response.json()) == 2, f"Fallo: Se esperaba 2 jugadores, pero se obtuvieron {len(response.json())}"
-    assert response.json()['id_jugador'] == 10, f"Fallo: Se esperaba el id 8, pero se obtuvo {response.json()['id_jugador']}"
-    assert response.json()['nombre'] == "Jugador4", f"Fallo: Se esperaba Jugador4, pero se obtuvo {response.json()['nombre']}"
+    respuesta_esperada = {'nombre': 'Jugador4', 'id_jugador': 10}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
+
     # Verificamos que se haya actualizado la db
     db = test_data
     jugadores = db.query(Jugador).filter(Jugador.partida_id == 1).all()
     assert len(jugadores) == 4, f"Fallo: Se esperaban 4 jugadores, pero se obtuvieron {len(jugadores)}"
     db.close()
 
+# ----------------------------------------------------------------
 
 def test_unirse_partida_llena_403(test_data):
     '''Test al unirse a una partida llena'''
     body = {"nombre": "Jugador5"}
     response = client.post("partidas/2/jugadores", json=body)
     print(f"Response: {response.json()}")
+
     # Verificamos la respuesta del servidor
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
-    assert len(response.json()) == 1, f"Fallo: Se esperaba 1 mensaje de error, pero se obtuvieron {len(response.json())}"
+    respuesta_esperada ={'detail': 'Partida con ID 2 está llena. Máximo de jugadores: 4.'}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
+
     # Verificamos que no se haya actualizado la db
     db = test_data
     jugadores = db.query(Jugador).filter(Jugador.partida_id == 2).all()
     assert len(jugadores) == 4, f"Fallo: Se esperaban 4 jugadores, pero se obtuvieron {len(jugadores)}"
     db.close()
 
+# ----------------------------------------------------------------
+
 def test_unirse_partida_iniciada_403(test_data):
     '''Test al unirse a una partida ya iniciada'''
     body = {"nombre": "Jugador5"}
     response = client.post("partidas/3/jugadores", json=body)
     print(f"Response: {response.json()}")
+    
     # Verificamos la respuesta del servidor
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
-    assert len(response.json()) == 1, f"Fallo: Se esperaba 1 mensaje de error, pero se obtuvieron {len(response.json())}"
+    respuesta_esperada = {'detail': 'La partida con ID 3 ya está iniciada.'}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
+    
     # Verificamos que no se haya actualizado la db
     db = test_data
     jugadores = db.query(Jugador).filter(Jugador.partida_id == 3).all()
     assert len(jugadores) == 2, f"Fallo: Se esperaban 2 jugadores, pero se obtuvieron {len(jugadores)}"
     db.close()
 
+# ----------------------------------------------------------------
+
 def test_unirse_partida_404(test_data):
     '''Test al unirse a una partida inexistente'''
     body = {"nombre": "Jugador5"}
     response = client.post("partidas/4/jugadores", json=body)
     print(f"Response: {response.json()}")
+    
     # Verificamos la respuesta del servidor
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
-    assert len(response.json()) == 1, f"Fallo: Se esperaba 1 mensaje de error, pero se obtuvieron {len(response.json())}"
+    respuesta_esperada = {'detail': 'Partida con ID 4 no encontrada.'}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
+
     # Verificamos que no se haya actualizado la db
     db = test_data
     partida = db.query(Partida).filter(Partida.id == 4).first()

@@ -83,7 +83,7 @@ class Partida(Base):
     def __repr__(self):  # pragma: no cover
         return (f"<Partida(id={self.id}, nombre_partida='{self.nombre_partida}', "
             f"nombre_creador='{self.nombre_creador}', iniciada={self.iniciada}, "
-            f"jugadores={len(self.jugadores)}, tablero='{self.tablero}')>")
+            f"numero_de_jugadores={len(self.jugadores)}, tablero='{self.tablero}')>")
 
 # CartaFigura --------------------------------------------------
 

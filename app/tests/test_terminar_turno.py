@@ -57,19 +57,10 @@ def crear_partida_sin_iniciar(db):
     
     return partida
 
-@pytest.fixture(scope="function")
-def test_db():
-    db = TestingSessionLocal()
-
-    partida_sin_iniciar = crear_partida_sin_iniciar(db)
-    partida_de_cuatro = iniciar_partida_de_cuatro(db)
-
-    yield db, partida_de_cuatro, partida_sin_iniciar
-    db.close()
-
 def test_terminar_turno(test_db):
     '''Test sobre el funcionamiento de terminar un turno'''
-    db, partida, _ = test_db
+    db = test_db
+    partida = iniciar_partida_de_cuatro(db)
 
     # Refrescamos el objeto de la partida luego de los cambios en la db
     db.refresh(partida)
@@ -109,7 +100,8 @@ def test_terminar_turno(test_db):
 
 def test_varias_rondas(test_db):
     '''Test sobre la confiabilidad de una ronda de turnos.'''
-    db, partida, _ = test_db
+    db = test_db
+    partida = iniciar_partida_de_cuatro(db)
     
     # Refrescamos el objeto de la partida luego de los cambios en la db
     db.refresh(partida)
@@ -163,7 +155,9 @@ def test_varias_rondas(test_db):
 
 def test_casos_prohibidos(test_db):
     '''Test sobre el la confiabilidad de una ronda de turnos.'''
-    db, partida_iniciada, partida_sin_iniciar = test_db
+    db = test_db
+    partida_iniciada = iniciar_partida_de_cuatro(db)
+    partida_sin_iniciar = crear_partida_sin_iniciar(db)
     
     # Intentamos terminar el turno de una partida inexistente.
     response = client.put(f'juego/{999999}/jugadores/{999999}/turno')
