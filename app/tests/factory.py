@@ -30,7 +30,7 @@ def crear_partida(db: Session, nombre_partida: str = "Partida", nombre_creador: 
     return partida, creador
 
 
-def unir_jugadores(db: Session, partida: Partida , numero_de_jugadores: int = 1) -> Jugador:
+def unir_jugadores(db: Session, partida: Partida = "Partida", numero_de_jugadores: int = 1) -> Jugador:
     '''
     Función para unir jugadores a una partida.
 

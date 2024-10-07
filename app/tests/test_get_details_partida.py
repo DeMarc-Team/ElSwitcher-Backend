@@ -19,6 +19,17 @@ def test_get_details_partida_200(test_db):
 
 # ----------------------------------------------------------------
 
+    assert response.status_code == 200 , f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
+    respuesta_esperada = {'nombre_partida': 'partida_details',
+                          'nombre_creador': 'Creador',
+                          'id': 1,
+                          'id_creador': 1,
+                          'iniciada': False,
+                          'espacios_disponibles': 2}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
+
+# ----------------------------------------------------------------
+
 def test_get_details_partida_404(test_db):
     id_partida = 1
     response = client.get(f"partidas/{id_partida}") 
