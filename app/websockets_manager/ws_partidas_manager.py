@@ -50,6 +50,8 @@ class PartidasConnectionManager:
 
     def disconnect(self, partida_id: int, jugador_id: int):
         self.active_connections[partida_id].pop(jugador_id)
+        if len(self.active_connections[partida_id]) == 0:
+            self.active_connections.pop(partida_id)
 
 
 ws_partidas_manager = PartidasConnectionManager()
