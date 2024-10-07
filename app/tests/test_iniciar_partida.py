@@ -20,6 +20,14 @@ def test_iniciar_partida_200(test_db):
     partida = test_db.query(Partida).filter(Partida.id == 1).first()
     assert partida.iniciada, f"Fallo: Se esperaba que la partida estuviera iniciada, pero se obtuvo {partida.iniciada}"
     assert len(partida.jugadores) == 3, f"Fallo: Se esperaba que la partida tuviera 3 jugadores, pero se obtuvo {len(partida.jugadores)}"
+    
+    # Verificamos que se hayan repartido las cartas de figura y cartas de movimiento
+    for jugador in partida.jugadores:
+        assert len(jugador.mazo_cartas_de_figura) == 3, f"Fallo: Se esperaba que el jugador tuviera 3 cartas de figura, pero se obtuvo {len(jugador.cartas_figura)}"
+        for carta in jugador.mazo_cartas_de_figura:
+            assert carta.revelada, f"Fallo: Se esperaba que la carta de figura estuviera revelada, pero se obtuvo {carta.revelada}"
+        assert len(jugador.mano_movimientos) == 3, f"Fallo: Se esperaba que el jugador tuviera 3 cartas de movimiento, pero se obtuvo {len(jugador.cartas_movimiento)}"
+    
     test_db.close()
 
 # ----------------------------------------------------------------
@@ -38,9 +46,13 @@ def test_iniciar_partida_con_jugadores_insuficientes_403(test_db):
     respuesta_esperada = {'detail': 'Partida con ID 1 no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.'}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada}, pero se obtuvo {response.json()}"
     
-    # Verificamos que no se haya iniciado la partida
+    # Verificamos la db
     partida = test_db.query(Partida).filter(Partida.id == 1).first()
     assert not partida.iniciada, f"Fallo: Se esperaba que la partida no estuviera iniciada, pero se obtuvo {partida.iniciada}"
+    assert len(partida.jugadores) == 1, f"Fallo: Se esperaba que la partida tuviera 1 jugador, pero se obtuvo {len(partida.jugadores)}"
+    assert partida.jugadores[0].es_creador, f"Fallo: Se esperaba que el jugador fuera el creador, pero se obtuvo {partida.jugadores[0].es_creador}"
+    assert partida.jugadores[0].mano_movimientos == [], f"Fallo: Se esperaba que el jugador no tuviera cartas de movimiento, pero se obtuvo {partida.jugadores[0].mano_movimientos}"
+    assert partida.jugadores[0].mazo_cartas_de_figura == [], f"Fallo: Se esperaba que el jugador no tuviera cartas de figura, pero se obtuvo {partida.jugadores[0].mazo_cartas_de_figura}"
     test_db.close()
 
 # ----------------------------------------------------------------
@@ -60,9 +72,10 @@ def test_iniciar_partida_ya_iniciada_403(test_db):
     respuesta_esperada = {'detail': 'La partida con ID 1 ya está iniciada.'}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada}, pero se obtuvo {response.json()}"
     
-    # Verificamos que no se haya iniciado la partida
+    # Verificamos la db
     partida = test_db.query(Partida).filter(Partida.id == 1).first()
     assert partida.iniciada, f"Fallo: Se esperaba que la partida estuviera iniciada, pero se obtuvo {partida.iniciada}"
+    assert len(partida.jugadores) == 2, f"Fallo: Se esperaba que la partida tuviera 2 jugadores, pero se obtuvo {len(partida.jugadores)}"
     test_db.close()
 
 # ----------------------------------------------------------------
