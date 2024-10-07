@@ -5,6 +5,7 @@ from random import shuffle
 from exceptions import ResourceNotFoundError, ForbiddenError
 from schemas import PartidaData
 from models import Jugador, CartaFigura, CartaMovimiento, Partida
+from crud.juego import terminar_turno
 
 def get_id_creador(db: Session, partida_id):
     jugador = db.query(Jugador).filter((Jugador.es_creador == True) & (Jugador.partida_id == partida_id)).first()
@@ -99,9 +100,11 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
     if (not jugador):
         raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
     
-    if (jugador.id_jugador == partida.id_creador and not partida.iniciada):
+    if (not partida.iniciada and jugador.id_jugador == partida.id_creador):
         raise ForbiddenError(f"El creador con ID {jugador_id} no puede abandonar la partida con ID {partida_id} antes de iniciarla.")
     
+    if (partida.iniciada and jugador == partida.jugador_del_turno):
+        terminar_turno(db, partida_id, jugador_id)
     partida.jugadores.remove(jugador)
     db.delete(jugador)
     db.flush()
