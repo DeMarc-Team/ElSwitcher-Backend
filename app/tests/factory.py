@@ -64,9 +64,14 @@ def unir_jugadores(db: Session, partida: Partida = "Partida", numero_de_jugadore
 
 def iniciar_partida(db: Session, partida: Partida) -> Partida:
     '''
-    Función para iniciar una partida.
+    Función para iniciar una partida. (y reparte cartas de figura y movimiento)
 
-    Devuelve la partida iniciada.
+    Devuelve la partida.
+
+    Valores por defecto:
+    - iniciada = True
+    - repartir_cartas_figura = 3 cartas por jugador, 3 cartas reveladas
+    - repartir_cartas_movimiento = 3 cartas por jugador
     '''
     assert partida.iniciada == False, "La partida ya ha sido iniciada"
     assert len(partida.jugadores) > 1, "La partida debe tener al menos 2 jugadores para poder iniciarla"
@@ -74,16 +79,19 @@ def iniciar_partida(db: Session, partida: Partida) -> Partida:
 
     partida.iniciada = True
 
-    repartir_cartas_figura(db, partida)
-    repartir_cartas_movimiento(db, partida)
+    repartir_cartas_figura(db, partida, 3, 3)
+    repartir_cartas_movimiento(db, partida, 3)
 
     db.commit()
 
     return partida
 
-def repartir_cartas_figura(db: Session, partida: Partida):
+def repartir_cartas_figura(db: Session, partida: Partida, n_cartas_reveladas, n_cartas_por_jugador=3):
     '''
     Función para repartir las cartas de figura a los jugadores de una partida.
+
+    Valores por defecto:
+    - n_cartas_por_jugador = 3
     '''
     assert partida.iniciada == True, "La partida no ha sido iniciada"
     assert len(partida.jugadores) > 1, "La partida debe tener al menos 2 jugadores para poder repartir las cartas de figura"
@@ -91,17 +99,20 @@ def repartir_cartas_figura(db: Session, partida: Partida):
 
     # Crear las cartas de figura
     for jugador in partida.jugadores:
-        for i in range(3):
-            carta = CartaFigura(poseida_por=jugador)
+        for i in range(n_cartas_por_jugador - len(jugador.mazo_cartas_de_figura)):
+            carta = CartaFigura(poseida_por=jugador, revelada=(i < n_cartas_reveladas))
             db.add(carta)
 
     db.commit()
     return partida
 
 
-def repartir_cartas_movimiento(db: Session, partida: Partida):
+def repartir_cartas_movimiento(db: Session, partida: Partida, n_cartas_por_jugador=3):
     '''
     Función para repartir las cartas de figura a los jugadores de una partida.
+
+    Valores por defecto:
+    - n_cartas_por_jugador = 3
     '''
     assert partida.iniciada == True, "La partida no ha sido iniciada"
     assert len(partida.jugadores) > 1, "La partida debe tener al menos 2 jugadores para poder repartir las cartas de figura"
@@ -109,7 +120,7 @@ def repartir_cartas_movimiento(db: Session, partida: Partida):
 
     # Crear las cartas de figura
     for jugador in partida.jugadores:
-        for i in range(3):
+        for i in range(n_cartas_por_jugador - len(jugador.mano_movimientos)):
             carta = CartaMovimiento(movimientos_de=jugador)
             db.add(carta)
 
