@@ -5,8 +5,8 @@ import mock
 # Tests
 
 
-def test_get_partidas_200(test_db):
-    """Test para obtener las partidas no iniciadas y no llenas"""
+def test_get_cartas_figura_happy_path(test_db):
+    """Test para obtener las cartas de figura de los jugadores en una partida iniciada"""
     # Creamos 3 partidas: una no iniciada, una iniciada y una llena
     partida, creador = crear_partida(
         db=test_db, nombre_partida="partida_no_iniciada", nombre_creador="Creador1"

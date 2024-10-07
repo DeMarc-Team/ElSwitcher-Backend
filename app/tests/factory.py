@@ -2,7 +2,8 @@ from sqlalchemy.orm import Session
 import mock
 from models import (Partida,
                     Jugador,
-                    CartaFigura
+                    CartaFigura,
+                    CartaMovimiento
                     )
 
 
@@ -75,6 +76,7 @@ def iniciar_partida(db: Session, partida: Partida) -> Partida:
     partida.iniciada = True
 
     repartir_cartas_figura(db, partida)
+    repartir_cartas_movimiento(db, partida)
 
     db.commit()
     return partida
@@ -96,6 +98,20 @@ def repartir_cartas_figura(db: Session, partida: Partida):
     db.commit()
     return partida
 
+def repartir_cartas_movimiento(db: Session, partida: Partida):
+    '''
+    Función para repartir las cartas de figura a los jugadores de una partida.
+    '''
+    assert partida.iniciada == True, "La partida no ha sido iniciada"
+    assert len(partida.jugadores) > 1, "La partida debe tener al menos 2 jugadores para poder repartir las cartas de figura"
+    assert len(partida.jugadores) <= 4, "La partida no puede tener más de 4 jugadores"
+
+    # Crear las cartas de figura
+    for jugador in partida.jugadores:
+        for i in range(3):
+            carta = CartaMovimiento(movimientos_de=jugador)
+            db.add(carta)
+            
 def abandonar_partida(db: Session, partida: Partida, jugador: Jugador) -> Partida:
     '''
     Función para abandonar una partida.
