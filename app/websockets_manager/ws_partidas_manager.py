@@ -17,11 +17,21 @@ class WsMessage(BaseModel):
 
 
 class PartidasConnectionManager:
+    """
+    La clase del objeto con el cual se manejan las conexiones de websockets asociadas al interior de las partidas.
+    """
+    
     def __init__(self):
         # Diccionario (id_partida, jugador_id) -> Websocket del jugador
         self.active_connections: dict[int, dict[int, WebSocket]] = {}
 
     async def connect(self, partida_id: int, jugador_id: int, websocket: WebSocket):
+        """
+        Acepta la conexión del websocket recibido y lo asocia con un jugador y una partida en un diccionario para poder accederlo.
+
+        No retorna ningún valor.
+        """
+        
         await websocket.accept()
         if partida_id not in self.active_connections.keys():
             self.active_connections[partida_id] = {}
