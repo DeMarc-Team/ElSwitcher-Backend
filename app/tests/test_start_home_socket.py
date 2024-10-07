@@ -1,7 +1,7 @@
 import pytest
 import mock
 from tests_setup import client
-from websockets_manager.ws_home_manager import ws_home_manager, WsMessage
+from websockets_manager.ws_home_manager import ws_home_manager, WsMessage, MessageType
 
 def test_start_home_socket():
     """
@@ -58,3 +58,7 @@ async def test_home_manager_actualizar_partidas():
         
     # Vaciamos el diccionario de conexiones para no interferir con otros tests
     ws_home_manager.active_connections = {}
+
+
+def test_respeto_a_la_api():
+    assert MessageType.ACTUALIZAR_PARTIDAS.value == "actualizar_partidas", f"Fallo: El mensaje ACTUALIZAR_PARTIDAS no se corresponde con la especificación de la api."

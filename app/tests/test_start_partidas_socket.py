@@ -107,3 +107,8 @@ async def test_partidas_mensajes_disjuntos():
     
     # Vaciamos el diccionario de conexiones para no interferir con otros tests
     ws_partidas_manager.active_connections = {}
+
+
+def test_respeto_a_la_api():
+    assert MessageType.ACTUALIZAR_SALA_ESPERA.value == "actualizar_sala_espera", f"Fallo: El mensaje ACTUALIZAR_SALA_ESPERA no se corresponde con la especificación de la api."
+    assert MessageType.ACTUALIZAR_TURNO.value == "actualizar_turno", f"Fallo: El mensaje ACTUALIZAR_TURNO no se corresponde con la especificación de la api."
