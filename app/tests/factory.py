@@ -1,5 +1,10 @@
 from sqlalchemy.orm import Session
-from models import Partida, Jugador
+import mock
+from models import (Partida,
+                    Jugador,
+                    CartaFigura
+                    )
+
 
 def crear_partida(db: Session, nombre_partida: str = "Partida", nombre_creador: str = "Creador") -> Partida:
     '''
@@ -68,7 +73,26 @@ def iniciar_partida(db: Session, partida: Partida) -> Partida:
     assert len(partida.jugadores) <= 4, "La partida no puede tener más de 4 jugadores"
 
     partida.iniciada = True
-    
+
+    repartir_cartas_figura(db, partida)
+
+    db.commit()
+    return partida
+
+def repartir_cartas_figura(db: Session, partida: Partida):
+    '''
+    Función para repartir las cartas de figura a los jugadores de una partida.
+    '''
+    assert partida.iniciada == True, "La partida no ha sido iniciada"
+    assert len(partida.jugadores) > 1, "La partida debe tener al menos 2 jugadores para poder repartir las cartas de figura"
+    assert len(partida.jugadores) <= 4, "La partida no puede tener más de 4 jugadores"
+
+    # Crear las cartas de figura
+    for jugador in partida.jugadores:
+        for i in range(3):
+            carta = CartaFigura(poseida_por=jugador)
+            db.add(carta)
+
     db.commit()
     return partida
 
