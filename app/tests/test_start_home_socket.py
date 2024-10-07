@@ -1,14 +1,17 @@
 import pytest
 import mock
 from tests_setup import client
-from websockets_manager.ws_home_manager import ws_home_manager, MessageType, WsMessage
+from websockets_manager.ws_home_manager import ws_home_manager, WsMessage
 
 def test_start_home_socket():
     """
     Test que prueba el establecimiento y almacenamiento de una conexion por medio de websockets orientada al home.
     """
     
-    with client.websocket_connect("/partidas/") as websocket:
+    # Vaciamos el diccionario de conexiones (precondicion)
+    ws_home_manager.active_connections = {}
+    
+    with client.websocket_connect("/partidas/"):
         num_of_connections = len(ws_home_manager.active_connections)
         
         # Revisamos que la conexion se haya almacenado.
@@ -17,6 +20,9 @@ def test_start_home_socket():
     # Revisamos que la conexion se haya eliminado.
     num_of_connections = len(ws_home_manager.active_connections)
     assert num_of_connections == 0, f"Fallo: Se esperaba que no hubieran conexiones por websockets en el home, pero hay {num_of_connections} conexiones."
+    
+    # Vaciamos el diccionario de conexiones para no interferir con otros tests
+    ws_home_manager.active_connections = {}
 
 
 # Este fixture evita que anyio intente usar trio, y use unicamente la libreria asyncio.
@@ -49,3 +55,6 @@ async def test_home_manager_actualizar_partidas():
         fake_ws.send_text.assert_called_with(
             WsMessage(action="actualizar_partidas").json()
         )
+        
+    # Vaciamos el diccionario de conexiones para no interferir con otros tests
+    ws_home_manager.active_connections = {}
