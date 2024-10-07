@@ -16,7 +16,7 @@ class WsMessage(BaseModel):
         return self.model_dump_json()
 
 
-class ConnectionManager:
+class PartidasConnectionManager:
     def __init__(self):
         # Diccionario (id_partida, jugador_id) -> Websocket del jugador
         self.active_connections: dict[int, dict[int, WebSocket]] = {}
@@ -42,4 +42,4 @@ class ConnectionManager:
         self.active_connections[partida_id].pop(jugador_id)
 
 
-ws_partida_manager = ConnectionManager()
+ws_partidas_manager = PartidasConnectionManager()

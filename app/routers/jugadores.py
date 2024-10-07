@@ -9,7 +9,7 @@ from models import Base, Jugador
 from database import engine, get_db
 from schemas import JugadorData, JugadorOnCreateResponse
 from websockets_manager.ws_home_manager import ws_home_manager
-from websockets_manager.ws_partida_manager import ws_partida_manager
+from websockets_manager.ws_partidas_manager import ws_partidas_manager
 
 Base.metadata.create_all(bind=engine)
 
@@ -33,5 +33,5 @@ async def get_jugadores(partida_id: int, db: Session = Depends(get_db)):
              tags=["Jugadores"])
 async def join_to_partida(partida_id: int, jugador: JugadorData, db: Session = Depends(get_db)):
     await ws_home_manager.send_actualizar_partidas()
-    await ws_partida_manager.send_actualizar_sala_espera(partida_id)
+    await ws_partidas_manager.send_actualizar_sala_espera(partida_id)
     return crud.create_jugador(db, Jugador(nombre=jugador.nombre, partida_id=partida_id))

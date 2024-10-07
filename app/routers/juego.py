@@ -13,7 +13,7 @@ from database import engine, get_db
 
 from pydantic import Json
 
-from websockets_manager.ws_partida_manager import ws_partida_manager
+from websockets_manager.ws_partidas_manager import ws_partidas_manager
 
 Base.metadata.create_all(bind=engine)
 
@@ -54,7 +54,7 @@ async def get_turno_details(id_partida: int,  db: Session = Depends(get_db)):
             tags=["Juego"])
 async def terminar_turno(id_partida: int, id_jugador, db: Session = Depends(get_db)):
     crud.juego.terminar_turno(db, id_partida, id_jugador)
-    await ws_partida_manager.send_actualizar_turno(id_partida)
+    await ws_partidas_manager.send_actualizar_turno(id_partida)
 
 
 @router.get('/{id_partida:int}/tablero',

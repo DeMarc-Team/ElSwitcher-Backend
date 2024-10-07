@@ -12,7 +12,7 @@ from models import Base
 from database import engine, get_db
 from schemas import PartidaData, PartidaDetails, PartidaDetails2, JuegoDetails, CartaFiguraData
 from websockets_manager.ws_home_manager import ws_home_manager
-from websockets_manager.ws_partida_manager import ws_partida_manager
+from websockets_manager.ws_partidas_manager import ws_partidas_manager
 
 Base.metadata.create_all(bind=engine)
 
@@ -63,7 +63,7 @@ async def create_partida(partida: PartidaData, db: Session = Depends(get_db)):
 async def iniciar_partida(partida_id: int, db: Session = Depends(get_db)):
     crud.iniciar_partida(db=db, id=partida_id)
     await ws_home_manager.send_actualizar_partidas()
-    await ws_partida_manager.send_actualizar_sala_espera(partida_id)
+    await ws_partidas_manager.send_actualizar_sala_espera(partida_id)
     return {"details": "Partida iniciada correctamemte", "partida_id": partida_id}
 
 @router.delete('/{partida_id:int}/jugadores/{jugador_id:int}',
@@ -74,7 +74,7 @@ async def iniciar_partida(partida_id: int, db: Session = Depends(get_db)):
 async def abandonar_partida(partida_id: int, jugador_id : int, db: Session = Depends(get_db)):
     crud.abandonar_partida(db=db, partida_id=partida_id, jugador_id=jugador_id)
     await ws_home_manager.send_actualizar_partidas()
-    await ws_partida_manager.send_actualizar_sala_espera(partida_id)
+    await ws_partidas_manager.send_actualizar_sala_espera(partida_id)
     return {"detail": "El jugador abandonó la partida exitosamente"}
 
 @router.websocket('/')
@@ -92,11 +92,11 @@ async def start_home_socket(websocket: WebSocket):
 @router.websocket('/{partida_id:int}/jugador/{jugador_id:int}')
 async def start_partida_socket(partida_id: int, jugador_id: int, websocket: WebSocket):
     try:
-        await ws_partida_manager.connect(partida_id, jugador_id, websocket)
+        await ws_partidas_manager.connect(partida_id, jugador_id, websocket)
         
         while True:
             data = await websocket.receive_json()
             print(f"Websocket received: {data}")
         
     except WebSocketDisconnect:
-        ws_partida_manager.disconnect(partida_id, jugador_id)
+        ws_partidas_manager.disconnect(partida_id, jugador_id)
