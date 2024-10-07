@@ -3,16 +3,6 @@ from models import Partida, Jugador, CartaFigura
 import mock
 import pytest
 
-@pytest.fixture(scope="function")
-def test_db():
-    db = TestingSessionLocal()
-    yield db
-    db.close()
-
-
-
-
-
 # Tests
 """
 Se crea una partida

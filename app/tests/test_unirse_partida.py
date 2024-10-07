@@ -1,124 +1,93 @@
-from tests_setup import client, TestingSessionLocal
+from tests_setup import client
 from models import Jugador
 from models import Partida
+from factory import crear_partida, unir_jugadores, iniciar_partida
 
-import pytest
-
-
-@pytest.fixture(scope="function")
-def test_data():
-    db = TestingSessionLocal()
-
-    partida1 = Partida(nombre_partida="partida_para_unirse",
-                       nombre_creador="Creador1")
-    creador1 = Jugador(nombre="Creador1", partida_id=1, es_creador=True)
-    jugador12 = Jugador(nombre="Jugador2", partida_id=1)
-    jugador13 = Jugador(nombre="Jugador3", partida_id=1)
-    
-    db.add(partida1)
-    db.add(creador1)
-    db.add(jugador12)
-    db.add(jugador13)
-
-    partida2 = Partida(nombre_partida="partida_llena",
-                       nombre_creador="Creador2")
-    creador2 = Jugador(nombre="Creador2", partida_id=2, es_creador=True)
-    jugador22 = Jugador(nombre="Jugador2", partida_id=2)
-    jugador23 = Jugador(nombre="Jugador3", partida_id=2)
-    jugador24 = Jugador(nombre="Jugador4", partida_id=2)
-
-    db.add(partida2)
-    db.add(creador2)
-    db.add(jugador22)
-    db.add(jugador23)
-    db.add(jugador24)
-
-    partida3 = Partida(nombre_partida="partida_iniciada",
-                       nombre_creador="Creador1", iniciada=True)
-    creador3 = Jugador(nombre="Creador3", partida_id=3, es_creador=True)
-    jugador32 = Jugador(nombre="Jugador2", partida_id=3)
-
-    db.add(partida3)
-    db.add(creador3)
-    db.add(jugador32)
-
-    db.commit()
-
-    yield db
-
-    db.close()
-
-
-def test_unirse_partida_200(test_data):
+def test_unirse_partida_200(test_db):
     '''Test al unirse a una partida existente no llena'''
+    # Creamos una partida con 2 jugadores
+    partida, _ = crear_partida(db=test_db, nombre_partida="partida_para_unirse", nombre_creador="Creador1")
+    unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=2)
+
+    # Enviamos la solicitud al servidor
     body = {"nombre": "Jugador4"}
     response = client.post("partidas/1/jugadores", json=body)
     print(f"Response: {response.json()}")
     
     # Verificamos la respuesta del servidor
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    respuesta_esperada = {'nombre': 'Jugador4', 'id_jugador': 10}
+    respuesta_esperada = {'nombre': 'Jugador4', 'id_jugador': 4}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
 
     # Verificamos que se haya actualizado la db
-    db = test_data
-    jugadores = db.query(Jugador).filter(Jugador.partida_id == 1).all()
+    jugadores = test_db.query(Jugador).filter(Jugador.partida_id == 1).all()
     assert len(jugadores) == 4, f"Fallo: Se esperaban 4 jugadores, pero se obtuvieron {len(jugadores)}"
-    db.close()
+    test_db.close()
 
 # ----------------------------------------------------------------
 
-def test_unirse_partida_llena_403(test_data):
+def test_unirse_partida_llena_403(test_db):
     '''Test al unirse a una partida llena'''
+    # Creamos una partida con 4 jugadores
+    partida, _ = crear_partida(db=test_db, nombre_partida="partida_llena", nombre_creador="Creador2")
+    unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=3)
+
+    # Enviamos la solicitud al servidor
     body = {"nombre": "Jugador5"}
-    response = client.post("partidas/2/jugadores", json=body)
+    response = client.post("partidas/1/jugadores", json=body)
     print(f"Response: {response.json()}")
 
     # Verificamos la respuesta del servidor
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
-    respuesta_esperada ={'detail': 'Partida con ID 2 está llena. Máximo de jugadores: 4.'}
+    respuesta_esperada ={'detail': 'Partida con ID 1 está llena. Máximo de jugadores: 4.'}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
 
     # Verificamos que no se haya actualizado la db
-    db = test_data
-    jugadores = db.query(Jugador).filter(Jugador.partida_id == 2).all()
+    jugadores = test_db.query(Jugador).filter(Jugador.partida_id == 1).all()
     assert len(jugadores) == 4, f"Fallo: Se esperaban 4 jugadores, pero se obtuvieron {len(jugadores)}"
-    db.close()
+    test_db.close()
 
 # ----------------------------------------------------------------
 
-def test_unirse_partida_iniciada_403(test_data):
+def test_unirse_partida_iniciada_403(test_db):
     '''Test al unirse a una partida ya iniciada'''
+    # Creamos una partida con 2 jugadores y la iniciamos
+    partida, _ = crear_partida(db=test_db, nombre_partida="partida_iniciada", nombre_creador="Creador3")
+    unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=1)
+    iniciar_partida(db=test_db, partida=partida)
+
+    # Enviamos la solicitud al servidor
     body = {"nombre": "Jugador5"}
-    response = client.post("partidas/3/jugadores", json=body)
+    response = client.post("partidas/1/jugadores", json=body)
     print(f"Response: {response.json()}")
     
     # Verificamos la respuesta del servidor
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
-    respuesta_esperada = {'detail': 'La partida con ID 3 ya está iniciada.'}
+    respuesta_esperada = {'detail': 'La partida con ID 1 ya está iniciada.'}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
     
     # Verificamos que no se haya actualizado la db
-    db = test_data
-    jugadores = db.query(Jugador).filter(Jugador.partida_id == 3).all()
+    jugadores = test_db.query(Jugador).filter(Jugador.partida_id == 1).all()
     assert len(jugadores) == 2, f"Fallo: Se esperaban 2 jugadores, pero se obtuvieron {len(jugadores)}"
-    db.close()
+    test_db.close()
 
 # ----------------------------------------------------------------
 
-def test_unirse_partida_404(test_data):
+def test_unirse_partida_404(test_db):
     '''Test al unirse a una partida inexistente'''
     body = {"nombre": "Jugador5"}
-    response = client.post("partidas/4/jugadores", json=body)
+    response = client.post("partidas/1/jugadores", json=body)
     print(f"Response: {response.json()}")
     
     # Verificamos la respuesta del servidor
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
-    respuesta_esperada = {'detail': 'Partida con ID 4 no encontrada.'}
+    respuesta_esperada = {'detail': 'Partida con ID 1 no encontrada.'}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
 
     # Verificamos que no se haya actualizado la db
-    db = test_data
-    partida = db.query(Partida).filter(Partida.id == 4).first()
+    partida = test_db.query(Partida).filter(Partida.id == 1).first()
     assert partida is None, f"Fallo: Se esperaba None, pero se obtuvo {partida}"
-    db.close()
+
+    jugador = test_db.query(Jugador).filter(Jugador.nombre == "Jugador5" ).first()
+    assert jugador is None, f"Fallo: Se esperaba None, pero se obtuvo {jugador}"
+    test_db.close()
