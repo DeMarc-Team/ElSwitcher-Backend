@@ -34,13 +34,13 @@ def test_start_partidas_socket():
 
     # Revisamos que la conexion se haya eliminado.
     num_of_connections = len(partidas_connections)
-    assert num_of_connections == 0, f"Fallo: Se esperaba que no hubieran conexiones por websockets en el home, pero hay {num_of_connections} conexiones."
+    assert num_of_connections == 0, f"Fallo: Se esperaba que el diccionario de conexiones de partidas estuviera vacío, pero hay {num_of_connections} entradas."
 
     # Vaciamos el diccionario de conexiones para no interferir con otros tests
     ws_partidas_manager.active_connections = {}
 
 
-# Este fixture evita que anyio intente usar trio, y use unicamente la libreria asyncio.
+# Este fixture evita que anyio intente usar la libreria trio, y use unicamente asyncio.
 @pytest.fixture
 def anyio_backend():
     return 'asyncio'
