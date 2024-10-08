@@ -1,5 +1,4 @@
 from sqlalchemy.orm import Session
-import mock
 from models import (Partida,
                     Jugador,
                     CartaFigura,
@@ -80,13 +79,13 @@ def iniciar_partida(db: Session, partida: Partida) -> Partida:
 
     partida.iniciada = True
 
-    repartir_cartas_figura(db, partida, 3, 3)
-    repartir_cartas_movimiento(db, partida, 3)
+    __repartir_cartas_figura(db, partida, 3, 3)
+    __repartir_cartas_movimiento(db, partida, 3)
 
     db.commit()
     return partida
 
-def repartir_cartas_figura(db: Session, partida: Partida, n_cartas_reveladas, n_cartas_por_jugador=3):
+def __repartir_cartas_figura(db: Session, partida: Partida, n_cartas_reveladas, n_cartas_por_jugador=3):
     '''
     Función para repartir las cartas de figura a los jugadores de una partida.
 
@@ -107,7 +106,7 @@ def repartir_cartas_figura(db: Session, partida: Partida, n_cartas_reveladas, n_
     return partida
 
 
-def repartir_cartas_movimiento(db: Session, partida: Partida, n_cartas_por_jugador=3):
+def __repartir_cartas_movimiento(db: Session, partida: Partida, n_cartas_por_jugador=3):
     '''
     Función para repartir las cartas de figura a los jugadores de una partida.
 
