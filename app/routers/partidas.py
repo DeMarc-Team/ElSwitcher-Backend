@@ -77,6 +77,7 @@ async def abandonar_partida(partida_id: int, jugador_id : int, db: Session = Dep
     crud.abandonar_partida(db=db, partida_id=partida_id, jugador_id=jugador_id)
     await ws_home_manager.send_actualizar_partidas()
     await ws_partidas_manager.send_actualizar_sala_espera(partida_id)
+    await ws_partidas_manager.send_actualizar_turno(partida_id)
     return {"detail": "El jugador abandonó la partida exitosamente"}
 
 @router.websocket('/')
