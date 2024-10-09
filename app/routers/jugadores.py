@@ -34,6 +34,7 @@ async def get_jugadores(partida_id: int, db: Session = Depends(get_db)):
              description="Crea un nuevo jugador, para el usuario, en la partida especificada por partida_id.",
              tags=["Jugadores"])
 async def join_to_partida(partida_id: int, jugador: JugadorData, db: Session = Depends(get_db)):
+    jugador_on_create_response = crud.create_jugador(db, Jugador(nombre=jugador.nombre, partida_id=partida_id))
     await ws_home_manager.send_actualizar_partidas()
     await ws_partidas_manager.send_actualizar_sala_espera(partida_id)
-    return crud.create_jugador(db, Jugador(nombre=jugador.nombre, partida_id=partida_id))
+    return jugador_on_create_response

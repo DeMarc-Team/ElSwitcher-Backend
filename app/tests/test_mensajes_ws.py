@@ -1,19 +1,20 @@
 import mock
 from tests_setup import client
-from websockets_manager.ws_home_manager import MessageType as mt_home
-from websockets_manager.ws_partidas_manager import MessageType as mt_partidas
-from schemas import PartidaData, PartidaDetails
+from websockets_manager.ws_home_manager import MessageType as MtHome, WsMessage as HomeMessage
+from websockets_manager.ws_partidas_manager import MessageType as MtPartidas, WsMessage as PartidasMessage
+from schemas import PartidaData, PartidaDetails, JugadorData
+from models import Jugador
 
-ACTUALIZAR_PARTIDAS = mt_home.ACTUALIZAR_PARTIDAS.value
+ACTUALIZAR_PARTIDAS = HomeMessage(action=MtHome.ACTUALIZAR_PARTIDAS)
 # ----------------------------------------------------------
-ACTUALIZAR_SALA_ESPERA = mt_partidas.ACTUALIZAR_SALA_ESPERA
-ACTUALIZAR_TURNO = mt_partidas.ACTUALIZAR_TURNO
+ACTUALIZAR_SALA_ESPERA = PartidasMessage(action=MtPartidas.ACTUALIZAR_SALA_ESPERA)
+ACTUALIZAR_TURNO = PartidasMessage(action=MtPartidas.ACTUALIZAR_TURNO)
 
-def test_mensaje_actualizar_partidas(actions_ws):
-    with mock.patch('routers.partidas.crud', new=mock.MagicMock()) as mock_crud:
+def test_mensaje_actualizar_partidas(expected_msgs_home_ws):
+    with mock.patch('routers.partidas.crud.create_partida', new=mock.MagicMock()) as mock_create_partida:
         partida_data = PartidaData(nombre_partida='Partida', nombre_creador='Creador')
 
-        mock_crud.create_partida.return_value = PartidaDetails(
+        mock_create_partida.return_value = PartidaDetails(
             nombre_partida=partida_data.nombre_partida,
             nombre_creador=partida_data.nombre_creador,
             id=1,
@@ -25,4 +26,21 @@ def test_mensaje_actualizar_partidas(actions_ws):
 
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
         
-    actions_ws.append(ACTUALIZAR_PARTIDAS)
+    expected_msgs_home_ws.append(ACTUALIZAR_PARTIDAS)
+
+
+# ----------------------------------------------------------
+def test_unirse_partida_ws(expected_msgs_home_ws, expected_msgs_partidas_ws):
+    with mock.patch('routers.jugadores.crud.create_jugador', new=mock.MagicMock()) as mock_create_jugador:
+        jugador_data = JugadorData(
+            nombre='Jugador'
+        )
+        
+        mock_create_jugador.return_value = Jugador(id_jugador=1, nombre='Jugador', partida_id=1)
+        
+        response = client.post('/partidas/1/jugadores', json=jugador_data.model_dump())
+
+        assert response.status_code == 200, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
+        
+    expected_msgs_home_ws.append(ACTUALIZAR_PARTIDAS)
+    expected_msgs_partidas_ws.append(ACTUALIZAR_SALA_ESPERA)
