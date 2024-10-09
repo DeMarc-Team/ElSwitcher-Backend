@@ -46,7 +46,7 @@ class PartidasConnectionManager:
             "id": jugador_id,
             "nombre": nombre
         }
-        mensaje = WsMessage(action=MessageType.HAY_GANADOR, data=data)
+        mensaje = WsMessage(action=MessageType.HAY_GANADOR, data=str(data))
 
         await self.broadcast(partida_id, mensaje)
 
