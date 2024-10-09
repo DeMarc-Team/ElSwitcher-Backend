@@ -84,4 +84,4 @@ def expected_msgs_partidas_ws():
             )
 
     # Vaciamos el diccionario de conexiones para no interferir con otros tests
-    ws_home_manager.active_connections = {}
+    ws_partidas_manager.active_connections = {}
