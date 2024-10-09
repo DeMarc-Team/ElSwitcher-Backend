@@ -59,7 +59,7 @@ async def terminar_turno(id_partida: int, id_jugador, db: Session = Depends(get_
 
 @router.get('/{id_partida:int}/tablero',
             summary='Obetener el tablero del juego',
-            response_model=Json,
+            response_model=dict,
             tags=["Juego"])
 async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
     """Obtiene el tablero de una partida
@@ -74,5 +74,13 @@ async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
         Response 200 en caso de que el tablero se haya obtenido correctamente.
         Response 404 en caso de que la partida no exista o no haya sido iniciada.
     """
+    from figuras import hallar_todas_las_figuras_en_tablero  
+    import json  
     tablero = crud.juego.get_tablero(db, id_partida)
-    return tablero
+
+    response = {
+        'tablero': tablero,
+        'figuras_a_resaltar': hallar_todas_las_figuras_en_tablero(tablero, [1,2,3,4])
+    }
+    return response
+
