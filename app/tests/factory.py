@@ -25,8 +25,8 @@ def crear_partida(db: Session, nombre_partida: str = "Partida", nombre_creador: 
     
     db.add(creador)
     db.add(partida)
+    
     db.commit()
-
     return partida, creador
 
 
@@ -54,6 +54,7 @@ def unir_jugadores(db: Session, partida: Partida = "Partida", numero_de_jugadore
         nuevos_jugadores.append(nuevo_jugador)
         db.commit()
 
+    db.commit()
     return nuevos_jugadores
 
 def iniciar_partida(db: Session, partida: Partida) -> Partida:
@@ -67,6 +68,26 @@ def iniciar_partida(db: Session, partida: Partida) -> Partida:
     assert len(partida.jugadores) <= 4, "La partida no puede tener más de 4 jugadores"
 
     partida.iniciada = True
+    
     db.commit()
+    return partida
 
+def abandonar_partida(db: Session, partida: Partida, jugador: Jugador) -> Partida:
+    '''
+    Función para abandonar una partida.
+
+    Devuelve la partida actualizada.
+    '''
+    assert not (not partida.iniciada and jugador.es_creador), "El creador no puede abandonar la partida antes de iniciarla"
+
+    partida = db.query(Partida).filter(Partida.id == partida.id).first()
+    
+    partida.jugadores.remove(jugador)
+    db.delete(jugador)
+    db.flush()
+
+    if (len(partida.jugadores) == 1):
+        db.delete(partida)    
+
+    db.commit()
     return partida
