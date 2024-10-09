@@ -162,24 +162,3 @@ def hallar_todas_las_figuras_en_tablero(tablero):
 
 
     return result
-
-# TODO: Hola yo soy solo de debug
-def test_hallar_todas_las_figuras_en_tablero():
-    tablero = [
-        [1, 1, 1, 2, 2, 2],
-        [3, 1, 3, 2, 4, 2],
-        [3, 1, 3, 2, 2, 2],
-        [3, 3, 3, 4, 4, 4],
-        [3, 3, 3, 3, 4, 3],
-        [3, 3, 3, 3, 4, 3]
-    ]
-    colores = {1, 2, 3, 4}
-    result = hallar_todas_las_figuras_en_tablero(tablero)
-    print(result)
-    
-    for i in tablero:
-        print(''.join(map(str,i)))
-
-#TODO: Yo tambien soy solo de debug
-if __name__ == '__main__':
-    test_hallar_todas_las_figuras_en_tablero()
