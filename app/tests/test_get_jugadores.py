@@ -20,7 +20,7 @@ def test_get_jugadores_200(test_db):
 
 # ----------------------------------------------------------------
 
-def test_get_jugadores_404():
+def test_get_jugadores_404(test_db):
     '''Test para obtener los jugadores de una partida que no existe.'''
     id_partida = 1
     response = client.get(f"partidas/{id_partida}/jugadores")
