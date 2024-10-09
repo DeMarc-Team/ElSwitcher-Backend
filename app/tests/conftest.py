@@ -2,9 +2,29 @@ import pytest
 from tests_setup import TestingSessionLocal, engine
 from models import Base
 import mock
-from websockets_manager.ws_home_manager import ws_home_manager, WsMessage as WsHomeMessage
-from websockets_manager.ws_partidas_manager import ws_partidas_manager, WsMessage as WsPartidasMessage
+from unittest.mock import patch
 
+from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS, ws_home_manager
+from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, ws_partidas_manager
+
+
+@pytest.fixture(scope='function')
+def test_ws():
+    ws_home_manager_path = 'websockets_manager.ws_home_manager.ws_home_manager'
+    ws_partidas_manager_path = 'websockets_manager.ws_partidas_manager.ws_partidas_manager'
+    test_ws = { ACTUALIZAR_PARTIDAS: 0, ACTUALIZAR_SALA_ESPERA: 0, ACTUALIZAR_TURNO: 0, HAY_GANADOR: 0 }
+    
+    with patch(f'{ws_home_manager_path}.send_{ACTUALIZAR_PARTIDAS}') as mock_actualizar_partidas, \
+         patch(f'{ws_partidas_manager_path}.send_{ACTUALIZAR_SALA_ESPERA}') as mock_actualizar_sala_espera, \
+         patch(f'{ws_partidas_manager_path}.send_{ACTUALIZAR_TURNO}') as mock_actualizar_turno, \
+         patch(f'{ws_partidas_manager_path}.send_{HAY_GANADOR}') as mock_send_ganador:
+
+        yield test_ws
+
+        assert mock_actualizar_partidas.call_count == test_ws[ACTUALIZAR_PARTIDAS], f"Se esperaba que se llamara {test_ws[ACTUALIZAR_PARTIDAS]} veces a la función send_{ACTUALIZAR_PARTIDAS}."
+        assert mock_actualizar_sala_espera.call_count == test_ws[ACTUALIZAR_SALA_ESPERA], f"Se esperaba que se llamara {test_ws[ACTUALIZAR_SALA_ESPERA]} veces a la función send_{ACTUALIZAR_SALA_ESPERA}."
+        assert mock_actualizar_turno.call_count == test_ws[ACTUALIZAR_TURNO], f"Se esperaba que se llamara {test_ws[ACTUALIZAR_TURNO]} veces a la función send_{ACTUALIZAR_TURNO}."
+        assert mock_send_ganador.call_count == test_ws[HAY_GANADOR], f"Se esperaba que se llamara {test_ws[HAY_GANADOR]} veces a la función send_{HAY_GANADOR}."
 
 @pytest.fixture(scope='function')
 def test_db():

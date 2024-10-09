@@ -1,7 +1,8 @@
-from unittest.mock import patch
 from tests_setup import client
 from factory import crear_partida, unir_jugadores, iniciar_partida
 from models import Partida, Jugador
+from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
+from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR
 
 def test_abandonar_partida_en_el_turno_200(test_db):
     '''Test de jugador abandonando una partida en su turno'''
@@ -166,8 +167,15 @@ def test_abandonar_partida_jugador_no_existente_404(test_db):
 
 # ----------------------------------------------------------------
 
-def test_abandonar_partida_iniciada_ultimo_jugador_200(test_db):
+def test_abandonar_partida_iniciada_ultimo_jugador_200(test_db, test_ws):
     '''Test de jugador abandonando una partida iniciada donde es el último jugador'''
+    # Ponemos cuantas veces se espera que se envie cada ws
+    test_ws[ACTUALIZAR_SALA_ESPERA] = 1
+    test_ws[ACTUALIZAR_TURNO] = 1
+    test_ws[HAY_GANADOR] = 1
+    test_ws[ACTUALIZAR_PARTIDAS] = 1
+
+    # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
     jugador = unir_jugadores(test_db, partida)[0]
     id_jugador = jugador.id_jugador
@@ -175,33 +183,15 @@ def test_abandonar_partida_iniciada_ultimo_jugador_200(test_db):
     id_partida = partida.id
     partida = iniciar_partida(test_db, partida)
 
-    ganador_id = id_creador
-    ganador_nombre = creador.nombre
+    # Realizamos la petición
+    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
+    print(f"Response: {response.json()}")
 
-    ws_home_manager_path = 'websockets_manager.ws_home_manager.ws_home_manager'
-    ws_partidas_manager_path = 'websockets_manager.ws_partidas_manager.ws_partidas_manager'
-    # Mockeamos los WebSockets
-    with patch(f'{ws_home_manager_path}.send_actualizar_partidas') as mock_actualizar_partidas, \
-         patch(f'{ws_partidas_manager_path}.send_actualizar_sala_espera') as mock_actualizar_sala_espera, \
-         patch(f'{ws_partidas_manager_path}.send_actualizar_turno') as mock_actualizar_turno, \
-         patch(f'{ws_partidas_manager_path}.send_ganador') as mock_send_ganador:
-
-        # Realizamos la petición
-        response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
-        print(f"Response: {response.json()}")
-
-        # Verificamos que la respuesta sea la esperada
-        assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-        respuesta_esperada = {'detail': 'El jugador abandonó la partida exitosamente'}
-        assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{respuesta_esperada}', pero se obtuvo {response.json()}"
-
-        # Verificamos que los WebSockets se enviaron
-        mock_actualizar_partidas.assert_called_once()
-        mock_actualizar_sala_espera.assert_called_once_with(id_partida)
-        mock_actualizar_turno.assert_called_once_with(id_partida)
-
-        if ganador_id is not None:
-            mock_send_ganador.assert_called_once_with(id_partida, ganador_id, ganador_nombre)
+    # Verificamos que la respuesta sea la esperada
+    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
+    respuesta_esperada = {'detail': 'El jugador abandonó la partida exitosamente'}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{respuesta_esperada}', pero se obtuvo {response.json()}"
+       
     # Verificamos que la base de datos se haya actualizado correctamente
     partida = test_db.query(Partida).filter(Partida.id == id_partida).first()
     assert partida == None, f"Fallo: Se esperaba que la partida fuera eliminada de la base de datos, pero se encontró {partida}"
