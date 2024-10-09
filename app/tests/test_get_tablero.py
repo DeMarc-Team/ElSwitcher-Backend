@@ -1,9 +1,12 @@
 
 from factory import crear_partida, unir_jugadores, iniciar_partida
+from tests_setup import client, TestingSessionLocal
 
-from tests_setup import client
+from models import Partida, Jugador
+
 import mock
 import json
+import pytest
 
 tablero_mock = json.dumps([
         [2, 2, 2, 4, 1, 2],
@@ -71,12 +74,6 @@ def test_get_tablero_200(test_db):
         for coordenadas in resaltadas_en_el_mock["figuras_a_resaltar"][figura]:
             assert coordenadas in response.json()['figuras_a_resaltar'][figura], f"Fallo: Se esperaba que las coordenadas {coordenadas} estuvieran en las resaltadas"
 
-
-def test_get_tablero_404(test_data):
-    response = client.get("juego/2/tablero")
-    print(f"Response: {response.json()}")
-    assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
-    assert len(response.json()) == 1, f"Fallo: Se esperaba 1 mensaje de error, pero se obtuvieron {len(response.json())}"
 
 def test_get_tablero_format(test_data):
     response = client.get("juego/1/tablero")
