@@ -33,6 +33,7 @@ def teardown_db():
 
 @pytest.fixture(scope='function')
 def expected_msgs_home_ws():
+    # Se crean conexiones falsas
     fake_active_connections = {i: mock.AsyncMock() for i in range(0,10)}
     ws_home_manager.active_connections = fake_active_connections
     
@@ -42,7 +43,7 @@ def expected_msgs_home_ws():
     
     assert expected_msgs_home_ws != [], "FATAL ERROR: expected_msgs_home_ws esta vacio. (error de programacion)"
     
-    for action in expected_msgs_home_ws:
+    for message in expected_msgs_home_ws:
         # Revisamos si se llamaron todos los falsos websockets con el mensaje adecuado, una unica vez.
         for fake_connection in ws_home_manager.active_connections.items():
             connection_id, fake_ws = fake_connection
@@ -51,7 +52,7 @@ def expected_msgs_home_ws():
             
             # Revisamos que el mensaje sea el que se corresponde con la especificacion de la api.
             fake_ws.send_text.assert_called_with(
-                action.json()
+                message.json()
             )
         
     # Vaciamos el diccionario de conexiones para no interferir con otros tests
@@ -59,6 +60,7 @@ def expected_msgs_home_ws():
 
 @pytest.fixture(scope='function')
 def expected_msgs_partidas_ws():
+    # Se crean conexiones falsas para una supuesta partida de id 1
     fake_active_connections = {i: mock.AsyncMock() for i in range(0,10)}
     fake_partida_id = 1
     ws_partidas_manager.active_connections[fake_partida_id] = fake_active_connections
@@ -69,7 +71,7 @@ def expected_msgs_partidas_ws():
     
     assert expected_msgs_partidas_ws != [], "FATAL ERROR: expected_msgs_partidas_ws esta vacio. (error de programacion)"
 
-    for action in expected_msgs_partidas_ws:
+    for message in expected_msgs_partidas_ws:
         # Revisamos si se llamaron todos los falsos websockets con el mensaje adecuado, una unica vez.
         for fake_connection in ws_partidas_manager.active_connections[fake_partida_id].items():
             connection_id, fake_ws = fake_connection
@@ -78,7 +80,7 @@ def expected_msgs_partidas_ws():
             
             # Revisamos que el mensaje sea el que se corresponde con la especificacion de la api.
             fake_ws.send_text.assert_called_with(
-                action.json()
+                message.json()
             )
 
     # Vaciamos el diccionario de conexiones para no interferir con otros tests
