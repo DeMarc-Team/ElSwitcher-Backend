@@ -8,6 +8,9 @@ class MessageType(Enum):
     ACTUALIZAR_TURNO = "actualizar_turno"
     HAY_GANADOR = "hay_ganador"
 
+ACTUALIZAR_SALA_ESPERA = MessageType.ACTUALIZAR_SALA_ESPERA.value
+ACTUALIZAR_TURNO = MessageType.ACTUALIZAR_TURNO.value
+HAY_GANADOR = MessageType.HAY_GANADOR.value
 
 class WsMessage(BaseModel):
     action: MessageType
@@ -41,7 +44,7 @@ class PartidasConnectionManager:
     async def send_actualizar_sala_espera(self, partida_id: int):
         await self.broadcast(partida_id, WsMessage(action=MessageType.ACTUALIZAR_SALA_ESPERA))
     
-    async def send_ganador(self, partida_id: int, jugador_id: int, nombre: str):
+    async def send_hay_ganador(self, partida_id: int, jugador_id: int, nombre: str):
         data = {
             "id": jugador_id,
             "nombre": nombre

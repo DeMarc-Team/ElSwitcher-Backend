@@ -6,6 +6,7 @@ from uuid import uuid4
 class MessageType(Enum):
     ACTUALIZAR_PARTIDAS = "actualizar_partidas"
 
+ACTUALIZAR_PARTIDAS = MessageType.ACTUALIZAR_PARTIDAS.value
 
 class WsMessage(BaseModel):
     action: MessageType
@@ -13,7 +14,6 @@ class WsMessage(BaseModel):
 
     def json(self):
         return self.model_dump_json()
-
 
 class HomeConnectionManager:
     """

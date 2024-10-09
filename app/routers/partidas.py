@@ -79,7 +79,7 @@ async def abandonar_partida(partida_id: int, jugador_id : int, db: Session = Dep
     await ws_partidas_manager.send_actualizar_sala_espera(partida_id)
     await ws_partidas_manager.send_actualizar_turno(partida_id)
     if (ganador_id is not None):
-        await ws_partidas_manager.send_ganador(partida_id, ganador_id, ganador_nombre)
+        await ws_partidas_manager.send_hay_ganador(partida_id, ganador_id, ganador_nombre)
     return {"detail": "El jugador abandonó la partida exitosamente"}
 
 @router.websocket('/')
