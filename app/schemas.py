@@ -15,7 +15,7 @@ class PartidaDetails2(PartidaData):
     id: int
     nombre_partida: str
     nombre_creador: str
-    id_creador: int
+    id_creador: int | None
     iniciada: bool
     espacios_disponibles: int
     #jugadores: list[jugador] = []
