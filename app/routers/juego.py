@@ -77,10 +77,10 @@ async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
     from figuras import hallar_todas_las_figuras_en_tablero  
     import json  
     tablero = crud.juego.get_tablero(db, id_partida)
-
+    tablero_desearilizado = json.loads(tablero)
     response = {
-        'tablero': json.loads(tablero),
-        'figuras_a_resaltar': hallar_todas_las_figuras_en_tablero(tablero)
+        'tablero': tablero_desearilizado,
+        'figuras_a_resaltar': hallar_todas_las_figuras_en_tablero(tablero_desearilizado)
     }
     return response
 
