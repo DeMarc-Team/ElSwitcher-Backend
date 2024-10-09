@@ -143,8 +143,8 @@ def __hay_ganador(db: Session, partida_id: int, jugador_id: int):
     # Aca pueden ir mas verificaciones para determinar si hay un ganador
 
     if (id_ganador is not None):
+        nombre_ganador = db.query(Jugador).filter(Jugador.id_jugador == id_ganador).first().nombre
         db.delete(partida)  
         db.commit()
-        nombre_ganador = db.query(Jugador).filter(Jugador.id_jugador == id_ganador).first().nombre
 
     return id_ganador, nombre_ganador
