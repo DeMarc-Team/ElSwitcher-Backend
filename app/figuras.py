@@ -143,6 +143,154 @@ class Figura04(Figura):
     def __init__(self):
         self.recorrido = Recorrido([DOWN,RIGHT,DOWN,RIGHT])
         self.id = 'f4'
+
+class Figura05(Figura):
+    """ 
+    linea: 00000
+                 
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,RIGHT,RIGHT,RIGHT])
+        self.id = 'f5'
+
+class Figura06(Figura):
+    """ 
+    L : 0
+        0
+        000
+                 
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([DOWN,DOWN,RIGHT,RIGHT])
+        self.id = 'f6' 
+
+class Figura07(Figura):
+    """ 
+    L invertida larga: 0000
+                          0
+                 
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,RIGHT,RIGHT,DOWN])
+        self.id = 'f7' 
+
+class Figura08(Figura):
+    """ 
+                0
+    L larga: 0000
+                 
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,RIGHT,RIGHT,UP])
+        self.id = 'f8' 
+
+class Figura09(Figura):
+    """ 
+                 0
+    Silla   : 0000
+               0
+                 
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,DOWN,UP,RIGHT,UP])
+        self.id = 'f9'
+
+class Figura10(Figura):
+    """ 
+                0
+    OLEEE   : 000
+              0
+                 
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([UP,RIGHT,RIGHT,UP])
+        self.id = 'f10'
+
+class Figura11(Figura):
+    """ 
+                     0
+    silla_invertida: 000
+                      0
+                 
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([LEFT,DOWN,UP,LEFT,UP])
+        self.id = 'f11'
+
+class Figura12(Figura):
+    """ 
+              0
+    OZOOO   : 000
+                0
+                 
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([DOWN,RIGHT,RIGHT,DOWN])
+        self.id = 'f12'
+
+class Figura13(Figura):
+    """ 
+             
+    Porra: 0000
+             0
+                 
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,RIGHT,DOWN,UP,RIGHT])
+        self.id = 'f13'
+
+class Figura14(Figura):
+    """ 
+              0
+    Porra2: 0000
+             
+                 
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,RIGHT,UP,DOWN,RIGHT])
+        self.id = 'f14'
+
+class Figura15(Figura):
+    """ 
+              00
+    caracol: 000
+                 
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,RIGHT,UP,LEFT])
+        self.id = 'f15'
+
+class Figura16(Figura):
+    """ 
+            0 0
+    cuenco: 000
+                 
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,RIGHT,UP,LEFT])
+        self.id = 'f16'
+
+class Figura17(Figura):
+    """ 
+          0
+    cruz 000
+          0      
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,UP,DOWN,DOWN,UP,RIGHT])
+        self.id = 'f17'
+
+class Figura18(Figura):
+    """ 
+
+    cracol en acido: 000
+                      00     
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,RIGHT,DOWN,LEFT])
+        self.id = 'f18'
+
+
     
 
 def hallar_todas_las_figuras_en_tablero(tablero):
