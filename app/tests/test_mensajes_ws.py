@@ -44,3 +44,17 @@ def test_unirse_partida_ws(expected_msgs_home_ws, expected_msgs_partidas_ws):
         
     expected_msgs_home_ws.append(ACTUALIZAR_PARTIDAS)
     expected_msgs_partidas_ws.append(ACTUALIZAR_SALA_ESPERA)
+
+# ----------------------------------------------------------
+
+def test_abandonar_partida_ws(expected_msgs_home_ws, expected_msgs_partidas_ws):
+    with mock.patch('routers.partidas.crud.abandonar_partida', new=mock.MagicMock()) as mock_delete_jugador:
+        mock_delete_jugador.return_value = None
+        
+        response = client.delete('/partidas/1/jugadores/1')
+
+        assert response.status_code == 200, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
+        
+    expected_msgs_home_ws.append(ACTUALIZAR_PARTIDAS)
+    expected_msgs_partidas_ws.append(ACTUALIZAR_SALA_ESPERA)
+    expected_msgs_partidas_ws.append(ACTUALIZAR_TURNO)
