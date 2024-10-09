@@ -2,7 +2,8 @@ import pytest
 from tests_setup import TestingSessionLocal, engine
 from models import Base
 import mock
-from websockets_manager.ws_home_manager import ws_home_manager, WsMessage
+from websockets_manager.ws_home_manager import ws_home_manager, WsMessage as WsHomeMessage
+from websockets_manager.ws_partidas_manager import ws_partidas_manager, WsMessage as WsPartidasMessage
 
 @pytest.fixture(scope='function')
 def test_db():
@@ -31,17 +32,17 @@ def teardown_db():
         print(f"Error al eliminar el archivo de base de datos: {e}")
 
 @pytest.fixture(scope='function')
-def actions_ws():
+def expected_msgs_home_ws():
     fake_active_connections = {i: mock.AsyncMock() for i in range(0,10)}
     ws_home_manager.active_connections = fake_active_connections
     
-    actions_ws = []
+    expected_msgs_home_ws: WsHomeMessage = []
     
-    yield actions_ws
+    yield expected_msgs_home_ws
     
-    assert actions_ws != [], "FATAL ERROR: actions_ws esta vacio. (error de programacion)"
+    assert expected_msgs_home_ws != [], "FATAL ERROR: expected_msgs_home_ws esta vacio. (error de programacion)"
     
-    for action in actions_ws:
+    for action in expected_msgs_home_ws:
         # Revisamos si se llamaron todos los falsos websockets con el mensaje adecuado, una unica vez.
         for fake_connection in ws_home_manager.active_connections.items():
             connection_id, fake_ws = fake_connection
@@ -50,8 +51,35 @@ def actions_ws():
             
             # Revisamos que el mensaje sea el que se corresponde con la especificacion de la api.
             fake_ws.send_text.assert_called_with(
-                WsMessage(action=action).json()
+                action.json()
             )
         
+    # Vaciamos el diccionario de conexiones para no interferir con otros tests
+    ws_home_manager.active_connections = {}
+
+@pytest.fixture(scope='function')
+def expected_msgs_partidas_ws():
+    fake_active_connections = {i: mock.AsyncMock() for i in range(0,10)}
+    fake_partida_id = 1
+    ws_partidas_manager.active_connections[fake_partida_id] = fake_active_connections
+    
+    expected_msgs_partidas_ws: WsPartidasMessage = []
+    
+    yield expected_msgs_partidas_ws
+    
+    assert expected_msgs_partidas_ws != [], "FATAL ERROR: expected_msgs_partidas_ws esta vacio. (error de programacion)"
+
+    for action in expected_msgs_partidas_ws:
+        # Revisamos si se llamaron todos los falsos websockets con el mensaje adecuado, una unica vez.
+        for fake_connection in ws_partidas_manager.active_connections[fake_partida_id].items():
+            connection_id, fake_ws = fake_connection
+
+            assert fake_ws.send_text.call_count == 1, f"Fallo: Se esperaba que el websocket de id {connection_id} recibiera un único mensaje."
+            
+            # Revisamos que el mensaje sea el que se corresponde con la especificacion de la api.
+            fake_ws.send_text.assert_called_with(
+                action.json()
+            )
+
     # Vaciamos el diccionario de conexiones para no interferir con otros tests
     ws_home_manager.active_connections = {}
