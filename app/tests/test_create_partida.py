@@ -19,6 +19,13 @@ def test_create_partida(test_db):
                             'iniciada': False}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
 
+    respuesta_esperada = {  'nombre_partida': 'Partida_nueva',
+                            'nombre_creador': 'Jugador_nuevo',
+                            'id': 1,
+                            'id_creador': 1,
+                            'iniciada': False}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
+
     # Verificamos que la partida se haya creado correctamente en la db
     partida = test_db.query(Partida).filter(Partida.id == 1).first()
     print(partida)
@@ -30,6 +37,7 @@ def test_create_partida(test_db):
     
     creador = test_db.query(Jugador).filter(Jugador.id_jugador == 1).first()
     print(creador)
+
     assert creador.nombre == "Jugador_nuevo", f"Fallo: Se esperaba Jugador_nuevo como nombre del creador, pero se obtuvo {creador.nombre}"
     assert creador.es_creador == True, f"Fallo: Se esperaba True como es_creador del creador, pero se obtuvo {creador.es_creador}"
     assert creador.partidas == partida, f"Fallo: Se esperaba la partida creada como partida del creador, pero se obtuvo {creador.partidas}"

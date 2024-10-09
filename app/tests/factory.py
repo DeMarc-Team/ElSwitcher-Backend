@@ -1,5 +1,10 @@
 from sqlalchemy.orm import Session
-from models import Partida, Jugador
+from models import (Partida,
+                    Jugador,
+                    CartaFigura,
+                    CartaMovimiento
+                    )
+
 
 def crear_partida(db: Session, nombre_partida: str = "Partida", nombre_creador: str = "Creador") -> Partida:
     '''
@@ -25,12 +30,12 @@ def crear_partida(db: Session, nombre_partida: str = "Partida", nombre_creador: 
     
     db.add(creador)
     db.add(partida)
-    
+
     db.commit()
     return partida, creador
 
 
-def unir_jugadores(db: Session, partida: Partida = "Partida", numero_de_jugadores: int = 1) -> Jugador:
+def unir_jugadores(db: Session, partida: Partida , numero_de_jugadores: int = 1) -> Jugador:
     '''
     Función para unir jugadores a una partida.
 
@@ -59,18 +64,64 @@ def unir_jugadores(db: Session, partida: Partida = "Partida", numero_de_jugadore
 
 def iniciar_partida(db: Session, partida: Partida) -> Partida:
     '''
-    Función para iniciar una partida.
+    Función para iniciar una partida. (y reparte cartas de figura y movimiento)
 
-    Devuelve la partida iniciada.
+    Devuelve la partida.
+
+    Valores por defecto:
+    - iniciada = True
+    - repartir_cartas_figura = 3 cartas por jugador, 3 cartas reveladas
+    - repartir_cartas_movimiento = 3 cartas por jugador
     '''
     assert partida.iniciada == False, "La partida ya ha sido iniciada"
     assert len(partida.jugadores) > 1, "La partida debe tener al menos 2 jugadores para poder iniciarla"
     assert len(partida.jugadores) <= 4, "La partida no puede tener más de 4 jugadores"
 
     partida.iniciada = True
-    
+
+    __repartir_cartas_figura(db, partida, 3, 3)
+    __repartir_cartas_movimiento(db, partida, 3)
+
     db.commit()
     return partida
+
+def __repartir_cartas_figura(db: Session, partida: Partida, n_cartas_reveladas, n_cartas_por_jugador=3):
+    '''
+    Función para repartir las cartas de figura a los jugadores de una partida.
+
+    Valores por defecto:
+    - n_cartas_por_jugador = 3
+    '''
+    assert partida.iniciada == True, "La partida no ha sido iniciada"
+    assert len(partida.jugadores) > 1, "La partida debe tener al menos 2 jugadores para poder repartir las cartas de figura"
+    assert len(partida.jugadores) <= 4, "La partida no puede tener más de 4 jugadores"
+
+    # Crear las cartas de figura
+    for jugador in partida.jugadores:
+        for i in range(n_cartas_por_jugador - len(jugador.mazo_cartas_de_figura)):
+            carta = CartaFigura(poseida_por=jugador, revelada=(i < n_cartas_reveladas))
+            db.add(carta)
+
+    db.commit()
+    return partida
+
+
+def __repartir_cartas_movimiento(db: Session, partida: Partida, n_cartas_por_jugador=3):
+    '''
+    Función para repartir las cartas de figura a los jugadores de una partida.
+
+    Valores por defecto:
+    - n_cartas_por_jugador = 3
+    '''
+    assert partida.iniciada == True, "La partida no ha sido iniciada"
+    assert len(partida.jugadores) > 1, "La partida debe tener al menos 2 jugadores para poder repartir las cartas de figura"
+    assert len(partida.jugadores) <= 4, "La partida no puede tener más de 4 jugadores"
+
+    # Crear las cartas de figura
+    for jugador in partida.jugadores:
+        for i in range(n_cartas_por_jugador - len(jugador.mano_movimientos)):
+            carta = CartaMovimiento(movimientos_de=jugador)
+            db.add(carta)
 
 def abandonar_partida(db: Session, partida: Partida, jugador: Jugador) -> Partida:
     '''
