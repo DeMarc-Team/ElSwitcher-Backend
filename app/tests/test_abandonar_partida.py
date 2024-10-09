@@ -4,8 +4,15 @@ from models import Partida, Jugador
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR
 
-def test_abandonar_partida_en_el_turno_200(test_db):
+def test_abandonar_partida_en_el_turno_200(test_db, test_ws):
     '''Test de jugador abandonando una partida en su turno'''
+    # Ponemos cuantas veces se espera que se envie cada ws
+    test_ws[ACTUALIZAR_SALA_ESPERA] = 1
+    test_ws[ACTUALIZAR_TURNO] = 1
+    test_ws[HAY_GANADOR] = 0
+    test_ws[ACTUALIZAR_PARTIDAS] = 1
+
+    # Inicializamos la precondicion
     partida, _ = crear_partida(db=test_db)
     unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=2)
     jugador_del_turno = partida.jugador_del_turno
@@ -34,7 +41,7 @@ def test_abandonar_partida_en_el_turno_200(test_db):
 
 # ----------------------------------------------------------------
 
-def test_abandonar_partida_no_iniciada_creador_403(test_db):
+def test_abandonar_partida_no_iniciada_creador_403(test_db, test_ws):
     '''Test de creador abandonando su partida no iniciada (no deberia poder)'''
     partida, creador = crear_partida(test_db)
     id_creador = creador.id_jugador
@@ -51,8 +58,15 @@ def test_abandonar_partida_no_iniciada_creador_403(test_db):
 
 # ----------------------------------------------------------------
 
-def test_abandonar_partida_no_iniciada_no_creador_200(test_db):
+def test_abandonar_partida_no_iniciada_no_creador_200(test_db, test_ws):
     '''Test de jugador no creador abandonando una partida no iniciada'''
+    # Ponemos cuantas veces se espera que se envie cada ws
+    test_ws[ACTUALIZAR_SALA_ESPERA] = 1
+    test_ws[ACTUALIZAR_TURNO] = 1
+    test_ws[HAY_GANADOR] = 0
+    test_ws[ACTUALIZAR_PARTIDAS] = 1
+
+    # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
     nuevo_jugador = unir_jugadores(test_db, partida, 2)[0]
     id_jugador = nuevo_jugador.id_jugador
@@ -77,8 +91,15 @@ def test_abandonar_partida_no_iniciada_no_creador_200(test_db):
 
 # ----------------------------------------------------------------
 
-def test_abandonar_partida_iniciada_creador_200(test_db):
+def test_abandonar_partida_iniciada_creador_200(test_db, test_ws):
     '''Test de creador abandonando su partida iniciada'''
+    # Ponemos cuantas veces se espera que se envie cada ws
+    test_ws[ACTUALIZAR_SALA_ESPERA] = 1
+    test_ws[ACTUALIZAR_TURNO] = 1
+    test_ws[HAY_GANADOR] = 0
+    test_ws[ACTUALIZAR_PARTIDAS] = 1
+
+    # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
     nuevo_jugador = unir_jugadores(test_db, partida,2)[0]
     id_creador = creador.id_jugador
@@ -134,7 +155,7 @@ def test_abandonar_partida_iniciada_no_creador_200(test_db):
 
 # ----------------------------------------------------------------
 
-def test_abandonar_partida_no_existente_404(test_db):
+def test_abandonar_partida_no_existente_404(test_db, test_ws):
     '''Test de jugador abandonando una partida que no existe'''
     id_partida = 1
     id_jugador = 1
@@ -150,7 +171,7 @@ def test_abandonar_partida_no_existente_404(test_db):
 
 # ----------------------------------------------------------------
 
-def test_abandonar_partida_jugador_no_existente_404(test_db):
+def test_abandonar_partida_jugador_no_existente_404(test_db, test_ws):
     '''Test de jugador no existente abandonando una partida'''
     partida, creador = crear_partida(test_db)
     id_partida = partida.id
