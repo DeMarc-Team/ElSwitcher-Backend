@@ -4,8 +4,8 @@ from models import Base
 import mock
 from unittest.mock import patch
 
-from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS, ws_home_manager
-from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, ws_partidas_manager
+from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS, ws_home_manager, WsMessage as WsHomeMessage
+from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, ws_partidas_manager, WsMessage as WsPartidasMessage
 
 
 @pytest.fixture(scope='function')
