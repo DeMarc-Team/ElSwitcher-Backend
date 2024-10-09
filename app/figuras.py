@@ -290,6 +290,7 @@ class Figura18(Figura):
         self.recorrido = Recorrido([RIGHT,RIGHT,DOWN,LEFT])
         self.id = 'f18'
 
+SET_DE_CARTAS = [Figura01(),Figura02(),Figura03(),Figura04(),Figura05(),Figura06(),Figura07(),Figura08(),Figura09(),Figura10(),Figura11(),Figura12(),Figura13(),Figura14(),Figura15(),Figura16(),Figura17(),Figura18()]
 
     
 
@@ -303,10 +304,32 @@ def hallar_todas_las_figuras_en_tablero(tablero):
     Returns:
         List[Set{tuplas}]: Lista de sets de tuplas. Cada set representa una figura, y las tuplas de cada set las coordenadas de una figura
     """
-    figuras = [Figura01(),Figura02(),Figura03(),Figura04()]
+    figuras = SET_DE_CARTAS
     result = {}
     for figura in figuras:
         result[figura.id] = figura.matchear_en_tablero(tablero)
 
 
     return result
+
+class MazoDeCartasFigura():
+    def __init__(self):
+        """Como dice el reglamento
+           hay cuatro juegos del mismo mazo
+           de figuras y se reparte un mazo para cada jugador
+        """
+        self.cartas = 4*SET_DE_CARTAS
+
+
+    def repartir_para_n(self, n_jugadores: int):
+        """Reparte el mazo de cartas de figura para n jugadores
+
+        Args:
+            n_jugadores (int): cantidad de jugadores
+
+        Returns:
+            List[List[Figura]]: Lista de listas de figuras
+        """
+        from random import shuffle
+        shuffle(self.cartas)
+        return [self.cartas[i::n_jugadores] for i in range(n_jugadores)]

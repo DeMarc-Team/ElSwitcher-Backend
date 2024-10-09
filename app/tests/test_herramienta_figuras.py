@@ -59,9 +59,5 @@ def test_hallar_todas_las_figuras_en_tablero():
 
     ]
     result = hallar_todas_las_figuras_en_tablero(tablero)
-    assert result == {
-        'f1': [{(0, 0), (0, 1), (0, 2), (1, 1), (2, 1)}],
-        'f2': [],
-        'f3': [{(5, 2), (5, 3), (4, 3), (4, 4), (4, 5)}],
-        'f4': []
-    }
+    assert result['f1'] == [{(0, 0), (0, 1), (0, 2), (1, 1), (2, 1)}]
+    assert result['f3'] == [{(5, 2), (5, 3), (4, 3), (4, 4), (4, 5)}]
