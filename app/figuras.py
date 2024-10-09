@@ -117,6 +117,7 @@ class Figura01(Figura):
     def __init__(self):
         self.recorrido = Recorrido([UP,UP,DOWN,RIGHT,RIGHT])
         self.id = 'f1'
+        self.es_dificil = True
 
 class Figura02(Figura):
     """               OO 
@@ -125,6 +126,7 @@ class Figura02(Figura):
     def __init__(self):
         self.recorrido = Recorrido([RIGHT,DOWN,RIGHT,RIGHT])
         self.id = 'f2'
+        self.es_dificil = True
 
 class Figura03(Figura):
     """              OO
@@ -133,6 +135,7 @@ class Figura03(Figura):
     def __init__(self):
         self.recorrido = Recorrido([RIGHT,RIGHT,UP,RIGHT])
         self.id = 'f3'
+        self.es_dificil = True
 
 class Figura04(Figura):
     """         O
@@ -143,6 +146,7 @@ class Figura04(Figura):
     def __init__(self):
         self.recorrido = Recorrido([DOWN,RIGHT,DOWN,RIGHT])
         self.id = 'f4'
+        self.es_dificil = True
 
 class Figura05(Figura):
     """ 
@@ -152,6 +156,7 @@ class Figura05(Figura):
     def __init__(self):
         self.recorrido = Recorrido([RIGHT,RIGHT,RIGHT,RIGHT])
         self.id = 'f5'
+        self.es_dificil = True
 
 class Figura06(Figura):
     """ 
@@ -163,6 +168,7 @@ class Figura06(Figura):
     def __init__(self):
         self.recorrido = Recorrido([DOWN,DOWN,RIGHT,RIGHT])
         self.id = 'f6' 
+        self.es_dificil = True
 
 class Figura07(Figura):
     """ 
@@ -173,6 +179,7 @@ class Figura07(Figura):
     def __init__(self):
         self.recorrido = Recorrido([RIGHT,RIGHT,RIGHT,DOWN])
         self.id = 'f7' 
+        self.es_dificil = True
 
 class Figura08(Figura):
     """ 
@@ -183,6 +190,7 @@ class Figura08(Figura):
     def __init__(self):
         self.recorrido = Recorrido([RIGHT,RIGHT,RIGHT,UP])
         self.id = 'f8' 
+        self.es_dificil = True
 
 class Figura09(Figura):
     """ 
@@ -194,6 +202,7 @@ class Figura09(Figura):
     def __init__(self):
         self.recorrido = Recorrido([RIGHT,DOWN,UP,RIGHT,UP])
         self.id = 'f9'
+        self.es_dificil = True
 
 class Figura10(Figura):
     """ 
@@ -205,6 +214,7 @@ class Figura10(Figura):
     def __init__(self):
         self.recorrido = Recorrido([UP,RIGHT,RIGHT,UP])
         self.id = 'f10'
+        self.es_dificil = True
 
 class Figura11(Figura):
     """ 
@@ -216,6 +226,7 @@ class Figura11(Figura):
     def __init__(self):
         self.recorrido = Recorrido([LEFT,DOWN,UP,LEFT,UP])
         self.id = 'f11'
+        self.es_dificil = True
 
 class Figura12(Figura):
     """ 
@@ -227,6 +238,7 @@ class Figura12(Figura):
     def __init__(self):
         self.recorrido = Recorrido([DOWN,RIGHT,RIGHT,DOWN])
         self.id = 'f12'
+        self.es_dificil = True
 
 class Figura13(Figura):
     """ 
@@ -238,6 +250,7 @@ class Figura13(Figura):
     def __init__(self):
         self.recorrido = Recorrido([RIGHT,RIGHT,DOWN,UP,RIGHT])
         self.id = 'f13'
+        self.es_dificil = True
 
 class Figura14(Figura):
     """ 
@@ -249,6 +262,7 @@ class Figura14(Figura):
     def __init__(self):
         self.recorrido = Recorrido([RIGHT,RIGHT,UP,DOWN,RIGHT])
         self.id = 'f14'
+        self.es_dificil = True
 
 class Figura15(Figura):
     """ 
@@ -259,6 +273,7 @@ class Figura15(Figura):
     def __init__(self):
         self.recorrido = Recorrido([RIGHT,RIGHT,UP,LEFT])
         self.id = 'f15'
+        self.es_dificil = True
 
 class Figura16(Figura):
     """ 
@@ -269,6 +284,7 @@ class Figura16(Figura):
     def __init__(self):
         self.recorrido = Recorrido([RIGHT,RIGHT,UP,LEFT])
         self.id = 'f16'
+        self.es_dificil = True
 
 class Figura17(Figura):
     """ 
@@ -279,6 +295,7 @@ class Figura17(Figura):
     def __init__(self):
         self.recorrido = Recorrido([RIGHT,UP,DOWN,DOWN,UP,RIGHT])
         self.id = 'f17'
+        self.es_dificil = True
 
 class Figura18(Figura):
     """ 
@@ -289,8 +306,91 @@ class Figura18(Figura):
     def __init__(self):
         self.recorrido = Recorrido([RIGHT,RIGHT,DOWN,LEFT])
         self.id = 'f18'
+        self.es_dificil = True
+    
+class Figura19(Figura):
+    """ 
+               00
+    escalon : 00
+                           
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,UP,RIGHT])
+        self.id = 'f19'
+        self.es_dificil = False
 
-SET_DE_CARTAS = [Figura01(),Figura02(),Figura03(),Figura04(),Figura05(),Figura06(),Figura07(),Figura08(),Figura09(),Figura10(),Figura11(),Figura12(),Figura13(),Figura14(),Figura15(),Figura16(),Figura17(),Figura18()]
+class Figura20(Figura):
+    """ 
+               00
+    cuadrao  : 00
+                           
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,UP,LEFT])
+        self.id = 'f20'
+        self.es_dificil = False
+
+class Figura21(Figura):
+    """ 
+                     00
+    escalon patras  : 00
+                           
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,DOWN,RIGHT])
+        self.id = 'f21'
+        self.es_dificil = False
+
+class Figura22(Figura):
+    """ 
+                       0
+    arrow keys      : 000
+                           
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,UP,DOWN,RIGHT])
+        self.id = 'f22'
+        self.es_dificil = False
+
+class Figura23(Figura):
+    """ 
+     
+    L invertida: 000
+                   0
+                           
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,RIGHT,DOWN])
+        self.id = 'f23'
+        self.es_dificil = False
+
+class Figura24(Figura):
+    """ 
+     
+    Palo: 0000
+                           
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,RIGHT,RIGHT])
+        self.id = 'f24'
+        self.es_dificil = False
+
+class Figura25(Figura):
+    """ 
+          0
+    L : 000
+                           
+    """
+    def __init__(self):
+        self.recorrido = Recorrido([RIGHT,RIGHT,UP])
+        self.id = 'f25'
+        self.es_dificil = False
+
+
+# Dios me perdone por esto (Copilot autocompletó este mensaje jasklda)
+SET_DE_CARTAS = [Figura01(),Figura02(),Figura03(),Figura04(),Figura05(),Figura06(),Figura07(),Figura08(),Figura09(),Figura10(),Figura11(),Figura12(),Figura13(),Figura14(),Figura15(),Figura16(),Figura17(),Figura18(),Figura19(),Figura20(),Figura21(),Figura22(),Figura23(),Figura24(),Figura25()]
+SET_DE_CARTAS_FACILES = [i for i in SET_DE_CARTAS if i.es_dificil == False]
+SET_DE_CARTAS_DIFICILES = [i for i in SET_DE_CARTAS if i.es_dificil == True]
 
     
 
@@ -315,21 +415,20 @@ def hallar_todas_las_figuras_en_tablero(tablero):
 class MazoDeCartasFigura():
     def __init__(self):
         """Como dice el reglamento
-           hay cuatro juegos del mismo mazo
+           hay cuatro sets del mismo mazo
            de figuras y se reparte un mazo para cada jugador
         """
-        self.cartas = 4*SET_DE_CARTAS
+        self.cartas = 4*SET_DE_CARTAS # Cuatro juegos.
 
 
     def repartir_para_n(self, n_jugadores: int):
-        """Reparte el mazo de cartas de figura para n jugadores
-
+        """
+        Reparte el mazo de cartas de figura para n jugadores
         Args:
             n_jugadores (int): cantidad de jugadores
 
         Returns:
             List[List[Figura]]: Lista de listas de figuras
-        """
-        from random import shuffle
-        shuffle(self.cartas)
-        return [self.cartas[i::n_jugadores] for i in range(n_jugadores)]
+        """        
+        # TODO: Abrir el ticket para hacer esto
+        pass
