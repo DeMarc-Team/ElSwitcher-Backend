@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 import crud.juego
 import crud.partidas
 from models import Base
-from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails
+from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails, TableroData
 from database import engine, get_db
 
 from pydantic import Json
@@ -59,7 +59,7 @@ async def terminar_turno(id_partida: int, id_jugador, db: Session = Depends(get_
 
 @router.get('/{id_partida:int}/tablero',
             summary='Obetener el tablero del juego',
-            response_model=dict,
+            response_model=TableroData,
             tags=["Juego"])
 async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
     """Obtiene el tablero de una partida
@@ -79,8 +79,8 @@ async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
     tablero = crud.juego.get_tablero(db, id_partida)
 
     response = {
-        'tablero': tablero,
-        'figuras_a_resaltar': hallar_todas_las_figuras_en_tablero(tablero, [1,2,3,4])
+        'tablero': json.loads(tablero),
+        'figuras_a_resaltar': hallar_todas_las_figuras_en_tablero(tablero)
     }
     return response
 

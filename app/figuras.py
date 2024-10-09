@@ -36,6 +36,7 @@ class Figura():
     """
     def __init__(self):
         self.recorrido = Recorrido()
+        self.id = 'Si estas viendo esto, el back esta en problemas'
 
     def check_perimeter(self,tablero,fig_coords_set,matching_color):
         
@@ -96,10 +97,11 @@ class Figura():
         # Else: no halle match con ninguna rotacion
         return []
 
-    def matchear_en_tablero(self,tablero,matching_color):
+    def matchear_en_tablero(self,tablero):
         result = []
         for i in range(len(tablero)):
             for j in range(len(tablero[i])):
+                matching_color = tablero[i][j]
                 result += self.check_match_at(tablero,(i,j),matching_color)
             
         return result
@@ -114,6 +116,7 @@ class Figura01(Figura):
     """
     def __init__(self):
         self.recorrido = Recorrido([UP,UP,DOWN,RIGHT,RIGHT])
+        self.id = 'f1'
 
 class Figura02(Figura):
     """               OO 
@@ -121,6 +124,7 @@ class Figura02(Figura):
     """
     def __init__(self):
         self.recorrido = Recorrido([RIGHT,DOWN,RIGHT,RIGHT])
+        self.id = 'f2'
 
 class Figura03(Figura):
     """              OO
@@ -128,6 +132,7 @@ class Figura03(Figura):
     """
     def __init__(self):
         self.recorrido = Recorrido([RIGHT,RIGHT,UP,RIGHT])
+        self.id = 'f3'
 
 class Figura04(Figura):
     """         O
@@ -137,9 +142,10 @@ class Figura04(Figura):
     """
     def __init__(self):
         self.recorrido = Recorrido([DOWN,RIGHT,DOWN,RIGHT])
+        self.id = 'f4'
     
 
-def hallar_todas_las_figuras_en_tablero(tablero,colores):
+def hallar_todas_las_figuras_en_tablero(tablero):
     """Ecuentra todas las las figuras en el tablero dado un set de colores
 
     Args:
@@ -150,9 +156,30 @@ def hallar_todas_las_figuras_en_tablero(tablero,colores):
         List[Set{tuplas}]: Lista de sets de tuplas. Cada set representa una figura, y las tuplas de cada set las coordenadas de una figura
     """
     figuras = [Figura01(),Figura02(),Figura03(),Figura04()]
-    result = []
-    for color in colores: #TODO: Para bajarle la complejidad, se podria tratar de matchear el color basandome en la coordenada origen que estoy chequeando
-        for figura in figuras:
-            result += figura.matchear_en_tablero(tablero,color)
-    
+    result = {}
+    for figura in figuras:
+        result[figura.id] = figura.matchear_en_tablero(tablero)
+
+
     return result
+
+# TODO: Hola yo soy solo de debug
+def test_hallar_todas_las_figuras_en_tablero():
+    tablero = [
+        [1, 1, 1, 2, 2, 2],
+        [3, 1, 3, 2, 4, 2],
+        [3, 1, 3, 2, 2, 2],
+        [3, 3, 3, 4, 4, 4],
+        [3, 3, 3, 3, 4, 3],
+        [3, 3, 3, 3, 4, 3]
+    ]
+    colores = {1, 2, 3, 4}
+    result = hallar_todas_las_figuras_en_tablero(tablero)
+    print(result)
+    
+    for i in tablero:
+        print(''.join(map(str,i)))
+
+#TODO: Yo tambien soy solo de debug
+if __name__ == '__main__':
+    test_hallar_todas_las_figuras_en_tablero()

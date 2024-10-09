@@ -27,6 +27,9 @@ class JugadorOnCreateResponse(JugadorData):
     id_jugador: int
 
     
+class TableroData(BaseModel):
+    tablero: list[list[int]]
+    figuras_a_resaltar: dict[str,list[list[tuple[int,int]]]]
 
 class JuegoData(BaseModel):
     pass
