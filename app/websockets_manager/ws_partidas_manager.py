@@ -6,6 +6,7 @@ from enum import Enum
 class MessageType(Enum):
     ACTUALIZAR_SALA_ESPERA = "actualizar_sala_espera"
     ACTUALIZAR_TURNO = "actualizar_turno"
+    HAY_GANADOR = "hay_ganador"
 
 
 class WsMessage(BaseModel):
@@ -39,7 +40,16 @@ class PartidasConnectionManager:
 
     async def send_actualizar_sala_espera(self, partida_id: int):
         await self.broadcast(partida_id, WsMessage(action=MessageType.ACTUALIZAR_SALA_ESPERA))
-        
+    
+    async def send_ganador(self, partida_id: int, jugador_id: int, nombre: str):
+        data = {
+            "id": jugador_id,
+            "nombre": nombre
+        }
+        mensaje = WsMessage(action=MessageType.HAY_GANADOR, data=data)
+
+        await self.broadcast(partida_id, mensaje)
+
     async def send_actualizar_turno(self, partida_id: int):
         await self.broadcast(partida_id, WsMessage(action=MessageType.ACTUALIZAR_TURNO))
 
