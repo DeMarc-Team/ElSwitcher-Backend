@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class PartidaData(BaseModel):
     nombre_partida: str
@@ -15,7 +16,7 @@ class PartidaDetails2(PartidaData):
     id: int
     nombre_partida: str
     nombre_creador: str
-    id_creador: int
+    id_creador: Optional[int]  # Esto permite que sea None, devuelve null en ese caso
     iniciada: bool
     espacios_disponibles: int
     #jugadores: list[jugador] = []

@@ -8,10 +8,10 @@ from models import Jugador, CartaFigura, CartaMovimiento, Partida
 from crud.juego import terminar_turno
 
 def get_id_creador(db: Session, partida_id):
-    jugador = db.query(Jugador).filter((Jugador.es_creador == True) & (Jugador.partida_id == partida_id)).first()
-    if (not jugador):
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+    if (not partida):
         raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
-    return jugador.id_jugador
+    return partida.id_creador
 
 def get_partidas(db: Session):
     subquery = (
