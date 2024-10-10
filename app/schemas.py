@@ -26,11 +26,12 @@ class JugadorData(BaseModel):
 class JugadorOnCreateResponse(JugadorData):
     id_jugador: int
 
-    
+CoordenadasFiguraResaltada = list[tuple[int,int]]
+
 class TableroData(BaseModel):
     tablero: list[list[int]]
-    figuras_a_resaltar: dict[str,list[list[tuple[int,int]]]]
-
+    figuras_a_resaltar: dict[str,list[CoordenadasFiguraResaltada]]
+    
 class JuegoData(BaseModel):
     pass
 
