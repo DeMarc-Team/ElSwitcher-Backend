@@ -83,3 +83,10 @@ def test_get_tablero_format(test_data):
     assert isinstance(tablero, list), f"Fallo: Se esperaba una lista, pero se obtuvo {type(tablero)}"
     assert all(isinstance(row, list) for row in tablero), "Fallo: Se esperaba que cada fila del tablero fuera una lista"
     assert all(isinstance(cell, int) for row in tablero for cell in row), "Fallo: Se esperaba que cada celda del tablero fuera un entero"
+
+def test_get_tablero_404(test_db):
+    response = client.get("juego/1/tablero")
+    print(f"Response: {response.json()}")
+    assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
+    respuesta_esperada = {'detail': 'Partida no encontrada'}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
