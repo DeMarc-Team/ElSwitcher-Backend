@@ -92,7 +92,6 @@ def swapear_en_tablero(movimiento: Movimiento,tablero: list[list[int]],origen:tu
     for i in range(4):
         x,y = movimiento.vector_movimiento.rotacion(i)
         if is_valid_move(origen, destino, x, y):
-            print(destino)
             apply_swap(tablero, origen, destino)
 
             return True

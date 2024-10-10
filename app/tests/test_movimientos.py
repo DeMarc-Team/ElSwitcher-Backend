@@ -57,20 +57,12 @@ def test_movimiento4():
         [0, 0, 1]
     ]
 
-    print()
-    for r in tablero:
-        print(''.join(map(str, r)))
-    print("---")
     origen = (1, 1)
     destino = (0, 2)
     movimiento = Movimiento4()
 
     assert swapear_en_tablero(movimiento, tablero, origen, destino) == True
 
-    print()
-    for r in tablero:
-        print(''.join(map(str, r)))
-    print("---")
 
     assert tablero == [
         [1, 0, 3],
