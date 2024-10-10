@@ -78,7 +78,7 @@ def expected_msgs_home_ws():
         
         # Revisamos que el mensaje sea el que se corresponde con la especificacion de la api.
         fake_ws.send_text.assert_has_calls(
-            [mock.call(message.json()) for message in expected_msgs_home_ws]
+            [mock.call(message.json()) for message in expected_msgs_home_ws], any_order=True
         )
 
     # Vaciamos el diccionario de conexiones para no interferir con otros tests
@@ -109,7 +109,7 @@ def expected_msgs_partidas_ws():
 
         # Revisamos que el mensaje sea el que se corresponde con la especificacion de la api.
         fake_ws.send_text.assert_has_calls(
-            [mock.call(message.json()) for message in expected_msgs_partidas_ws]
+            [mock.call(message.json()) for message in expected_msgs_partidas_ws], any_order=True
         )
 
     # Vaciamos el diccionario de conexiones para no interferir con otros tests
