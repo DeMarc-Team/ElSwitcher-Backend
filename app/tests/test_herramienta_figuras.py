@@ -1,4 +1,4 @@
-from figuras import UP, DOWN, LEFT, RIGHT, Recorrido, Figura, Figura01, Figura02, Figura03, Figura04, hallar_todas_las_figuras_en_tablero
+from figuras import UP, DOWN, LEFT, RIGHT, Recorrido, Figura, Figura01, hallar_todas_las_figuras_en_tablero
 
 def test_recorrido_build_coord_set():
     recorrido = Recorrido([UP, RIGHT, DOWN, LEFT])
