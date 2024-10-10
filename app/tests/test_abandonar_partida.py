@@ -9,7 +9,6 @@ def test_abandonar_partida_en_el_turno_200(test_db, test_ws):
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws[ACTUALIZAR_SALA_ESPERA] = 1
     test_ws[ACTUALIZAR_TURNO] = 1
-    test_ws[HAY_GANADOR] = 0
     test_ws[ACTUALIZAR_PARTIDAS] = 1
 
     # Inicializamos la precondicion
@@ -63,7 +62,6 @@ def test_abandonar_partida_no_iniciada_no_creador_200(test_db, test_ws):
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws[ACTUALIZAR_SALA_ESPERA] = 1
     test_ws[ACTUALIZAR_TURNO] = 1
-    test_ws[HAY_GANADOR] = 0
     test_ws[ACTUALIZAR_PARTIDAS] = 1
 
     # Inicializamos la precondicion
@@ -96,7 +94,6 @@ def test_abandonar_partida_iniciada_creador_200(test_db, test_ws):
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws[ACTUALIZAR_SALA_ESPERA] = 1
     test_ws[ACTUALIZAR_TURNO] = 1
-    test_ws[HAY_GANADOR] = 0
     test_ws[ACTUALIZAR_PARTIDAS] = 1
 
     # Inicializamos la precondicion
@@ -126,8 +123,14 @@ def test_abandonar_partida_iniciada_creador_200(test_db, test_ws):
 
 # ----------------------------------------------------------------
 
-def test_abandonar_partida_iniciada_no_creador_200(test_db):
+def test_abandonar_partida_iniciada_no_creador_200(test_db, test_ws):
     '''Test de jugador no creador abandonando una partida iniciada'''
+    # Ponemos cuantas veces se espera que se envie cada ws
+    test_ws[ACTUALIZAR_SALA_ESPERA] = 1
+    test_ws[ACTUALIZAR_TURNO] = 1
+    test_ws[ACTUALIZAR_PARTIDAS] = 1
+
+    # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
     nuevo_jugador = unir_jugadores(test_db, partida, 2)[0]
     
@@ -191,10 +194,7 @@ def test_abandonar_partida_jugador_no_existente_404(test_db, test_ws):
 def test_abandonar_partida_iniciada_ultimo_jugador_200(test_db, test_ws):
     '''Test de jugador abandonando una partida iniciada donde es el último jugador'''
     # Ponemos cuantas veces se espera que se envie cada ws
-    test_ws[ACTUALIZAR_SALA_ESPERA] = 1
-    test_ws[ACTUALIZAR_TURNO] = 1
     test_ws[HAY_GANADOR] = 1
-    test_ws[ACTUALIZAR_PARTIDAS] = 1
 
     # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)

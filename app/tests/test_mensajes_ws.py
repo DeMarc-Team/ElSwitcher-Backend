@@ -56,10 +56,10 @@ def test_abandonar_partida_sin_ganador_ws(expected_msgs_home_ws, expected_msgs_p
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
         
     expected_msgs_home_ws.append(ACTUALIZAR_PARTIDAS)
-    expected_msgs_partidas_ws.append(ACTUALIZAR_SALA_ESPERA)
     expected_msgs_partidas_ws.append(ACTUALIZAR_TURNO)
+    expected_msgs_partidas_ws.append(ACTUALIZAR_SALA_ESPERA)
 
-def test_abandonar_partida_con_ganador_ws(expected_msgs_home_ws, expected_msgs_partidas_ws):
+def test_abandonar_partida_con_ganador_ws(expected_msgs_partidas_ws):
     with mock.patch('routers.partidas.crud.abandonar_partida', new=mock.MagicMock()) as mock_delete_jugador:
         mock_delete_jugador.return_value = 2, "Juanito"
         
@@ -67,9 +67,5 @@ def test_abandonar_partida_con_ganador_ws(expected_msgs_home_ws, expected_msgs_p
 
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
         
-    expected_msgs_home_ws.append(ACTUALIZAR_PARTIDAS)
-    expected_msgs_partidas_ws.append(ACTUALIZAR_SALA_ESPERA)
-    expected_msgs_partidas_ws.append(ACTUALIZAR_TURNO)
-    
     ganador_msg = PartidasMessage(action=MtPartidas.HAY_GANADOR, data=str({"id":2, "nombre":"Juanito"}))
     expected_msgs_partidas_ws.append(ganador_msg)
