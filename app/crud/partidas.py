@@ -92,6 +92,11 @@ def _repartir_cartas_movimiento(db: Session, partida, n_cartas_por_jugador=3):
             db.add(new_carta)
 
 def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
+    '''
+    Pasa el turno y elimina al jugador de la partida.
+    Si hay un ganador, elimina la partida y devuelve el (id,nombre) del jugador ganador.
+    Si no gano, devuelve (None,None).
+    '''
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
     if (not partida):
         raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
@@ -105,12 +110,41 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
     
     if (partida.iniciada and jugador == partida.jugador_del_turno):
         terminar_turno(db, partida_id, jugador_id)
+    
     partida.jugadores.remove(jugador)
     db.delete(jugador)
-    db.flush()
-
-    if (len(partida.jugadores) <= 0):
-        # TODO: Declarar ganador al jugador que queda
-        db.delete(partida)    
-    
     db.commit()
+
+    return __hay_ganador(db, partida_id, jugador_id)
+
+
+# FIXME: Esta funcion se podria poner en otro archivo
+def __hay_ganador(db: Session, partida_id: int, jugador_id: int):
+    '''
+    Devuelve el (id,nombre) del jugador ganador si lo hay, sino (None, None).
+    
+    IMPORTANTE: 
+    - Funcion de uso interno.
+    - No verifica nada, asume que los datos son correctos.
+
+    PRE:
+    - La partida existe y esta iniciada.
+    - El jugador existe y esta en la partida.
+
+    PD: Como es de uso interno, no realiza verificaciones.
+    '''
+    id_ganador = None
+    nombre_ganador = None
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+    
+    if (partida.iniciada and len(partida.jugadores) == 1):
+        id_ganador = partida.jugadores[0].id_jugador
+    
+    # Aca pueden ir mas verificaciones para determinar si hay un ganador
+
+    if (id_ganador is not None):
+        nombre_ganador = db.query(Jugador).filter(Jugador.id_jugador == id_ganador).first().nombre
+        db.delete(partida)  
+        db.commit()
+
+    return id_ganador, nombre_ganador
