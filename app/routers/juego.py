@@ -8,10 +8,8 @@ from sqlalchemy.orm import Session
 import crud.juego
 import crud.partidas
 from models import Base
-from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails
+from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails, TableroData
 from database import engine, get_db
-
-from pydantic import Json
 
 from websockets_manager.ws_partidas_manager import ws_partidas_manager
 
@@ -59,7 +57,7 @@ async def terminar_turno(id_partida: int, id_jugador, db: Session = Depends(get_
 
 @router.get('/{id_partida:int}/tablero',
             summary='Obetener el tablero del juego',
-            response_model=Json,
+            response_model=TableroData,
             tags=["Juego"])
 async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
     """Obtiene el tablero de una partida
@@ -74,5 +72,13 @@ async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
         Response 200 en caso de que el tablero se haya obtenido correctamente.
         Response 404 en caso de que la partida no exista o no haya sido iniciada.
     """
+    from figuras import hallar_todas_las_figuras_en_tablero  
+    import json  
     tablero = crud.juego.get_tablero(db, id_partida)
-    return tablero
+    tablero_desearilizado = json.loads(tablero)
+    response = {
+        'tablero': tablero_desearilizado,
+        'figuras_a_resaltar': hallar_todas_las_figuras_en_tablero(tablero_desearilizado)
+    }
+    return response
+
