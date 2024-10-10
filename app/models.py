@@ -124,7 +124,8 @@ class CartaMovimiento(Base):
 
     def random_movimiento():
         import random
-        return random.choice(['m1', 'm2', 'm3'])
+        from movimientos import SET_DE_MOVIMIENTOS
+        return random.choice([carta_mov.movimiento for carta_mov in SET_DE_MOVIMIENTOS])
 
     movimiento: Mapped[str] = mapped_column(
         String, nullable=False, default=lambda: CartaMovimiento.random_movimiento())
