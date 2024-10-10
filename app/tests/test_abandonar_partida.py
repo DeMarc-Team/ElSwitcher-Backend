@@ -81,7 +81,7 @@ def test_abandonar_partida_no_iniciada_no_creador_200(test_db, test_ws):
 
     # Verificamos que la base de datos se haya actualizado correctamente
     partida = test_db.query(Partida).filter(Partida.id == id_partida).first()
-    assert len(partida.jugadores) == 1, f"Fallo: Se esperaba 1 jugadores en la partida, pero se obtuvo {len(partida.jugadores)}"
+    assert len(partida.jugadores) == 1, f"Fallo: Se esperaba 1 jugador en la partida, pero se obtuvo {len(partida.jugadores)}"
     assert nuevo_jugador not in partida.jugadores, f"Fallo: Se esperaba que el jugador abandonara la partida, pero no se encontró en la lista de jugadores"
 
     jugador = test_db.query(Jugador).filter(Jugador.id_jugador == id_jugador).first()
