@@ -11,8 +11,6 @@ from models import Base
 from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails, TableroData
 from database import engine, get_db
 
-from pydantic import Json
-
 from websockets_manager.ws_partidas_manager import ws_partidas_manager
 
 Base.metadata.create_all(bind=engine)
