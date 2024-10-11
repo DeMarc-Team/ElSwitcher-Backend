@@ -71,6 +71,9 @@ def terminar_turno(db: Session, partida_id, jugador_id):
     if (actual_jugador.id_jugador != jugador_id):
         raise ForbiddenError(
             f"El ID del jugador que posee el turno no es {jugador_id}.")
+    
+    from crud.partidas import reponer_cartas_movimiento
+    reponer_cartas_movimiento(db, actual_jugador)
 
     siguiente_turno(db, partida_id)
 
