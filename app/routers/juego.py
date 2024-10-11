@@ -56,11 +56,10 @@ async def terminar_turno(id_partida: int, id_jugador, db: Session = Depends(get_
     await ws_partidas_manager.send_actualizar_turno(id_partida)
 
 
-#TODO: Borrenme antes de la pr, esto es un workaround para ver si el front anda bien con el cambio porque la rama esta atrasada en el otro repo
 from pydantic import Json
 @router.get('/{id_partida:int}/tablero',
             summary='Obetener el tablero del juego',
-            response_model=Json,
+            response_model=TableroData,
             tags=["Juego"])
 async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
     """Obtiene el tablero de una partida
@@ -78,14 +77,12 @@ async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
     from figuras import hallar_todas_las_figuras_en_tablero  
     import json  
     tablero = crud.juego.get_tablero(db, id_partida)
-    return tablero
-    #TODO: Borrenme antes de la pr, esto es un workaround para ver si el front anda bien con el cambio porque la rama esta atrasada en el otro repo
-    # tablero_desearilizado = json.loads(tablero)
-    # response = {
-    #     'tablero': tablero_desearilizado,
-    #     'figuras_a_resaltar': hallar_todas_las_figuras_en_tablero(tablero_desearilizado)
-    # }
-    # return response
+    tablero_desearilizado = json.loads(tablero)
+    response = {
+        'tablero': tablero_desearilizado,
+        'figuras_a_resaltar': hallar_todas_las_figuras_en_tablero(tablero_desearilizado)
+    }
+    return response
 
 
 
