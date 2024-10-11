@@ -1,7 +1,6 @@
 from tests_setup import client
 from factory import crear_partida, unir_jugadores, iniciar_partida
-from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
-from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO
+from websockets_manager.ws_partidas_manager import ACTUALIZAR_TURNO
 
 def test_terminar_turno(test_db, test_ws):
     '''Test que chequea el funcionamiento en el escenario exitoso del endpoint para terminar_turno.'''
