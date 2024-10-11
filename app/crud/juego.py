@@ -53,7 +53,6 @@ def siguiente_turno(db: Session, partida_id):
         jugador.orden = partida.jugadores.index(jugador)
 
     db.commit()
-    # return actual_jugador.id_jugador # Aca va el ID del jugador que tiene o tenía el turno??
 
 
 def terminar_turno(db: Session, partida_id, jugador_id):
