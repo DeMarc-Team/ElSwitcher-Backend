@@ -135,7 +135,6 @@ def desempaquetar_coords(coordenadas_y_carta):
     return origen,destino,mov
 
 def matchear_obtener_carta(codigo_movimiento):
-    print(codigo_movimiento)
     from movimientos import SET_DE_MOVIMIENTOS
     mov = next((carta for carta in SET_DE_MOVIMIENTOS if carta.movimiento == codigo_movimiento), None)
     if not mov:
