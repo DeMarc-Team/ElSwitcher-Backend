@@ -45,6 +45,24 @@ def test_unirse_partida_ws(expected_msgs_home_ws, expected_msgs_partidas_ws):
     expected_msgs_home_ws.append(ACTUALIZAR_PARTIDAS)
     expected_msgs_partidas_ws.append(ACTUALIZAR_SALA_ESPERA)
 
+def test_iniciar_partida_ws(expected_msgs_home_ws, expected_msgs_partidas_ws):
+    with mock.patch('routers.partidas.crud.iniciar_partida', new=mock.MagicMock()) as mock_create_jugador:
+        response = client.put('/partidas/1/')
+
+        assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
+        
+    expected_msgs_home_ws.append(ACTUALIZAR_PARTIDAS)
+    expected_msgs_partidas_ws.append(ACTUALIZAR_SALA_ESPERA)
+
+
+def test_terminar_turno_ws(expected_msgs_partidas_ws):
+    with mock.patch('routers.juego.crud.juego.terminar_turno', new=mock.MagicMock()) as mock_create_jugador:
+        response = client.put('/juego/1/jugadores/1/turno')
+
+        assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
+    
+    expected_msgs_partidas_ws.append(ACTUALIZAR_TURNO)
+
 # ----------------------------------------------------------
 
 def test_abandonar_partida_sin_ganador_ws(expected_msgs_home_ws, expected_msgs_partidas_ws):
