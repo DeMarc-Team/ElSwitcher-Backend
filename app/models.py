@@ -5,8 +5,11 @@ from sqlalchemy import Integer, Boolean, String, ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.ext.orderinglist import ordering_list
-
+from schemas import Casilla
+import json
 # JUGADOR ------------------------------------------------------
+
+
 class Jugador(Base):
     __tablename__ = 'jugadores'
     id_jugador: Mapped[int] = mapped_column(
@@ -50,7 +53,6 @@ def random_tablero():
     return tablero_as_json
 
 class Partida(Base):
-    # PARTIDA -----------------------
     __tablename__ = 'partidas'
     id: Mapped[int] = mapped_column(
         Integer, primary_key=True, index=True, autoincrement=True)
@@ -79,8 +81,24 @@ class Partida(Base):
         # Retorna el jugador en la primera posición
         return self.jugadores[0].id_jugador
 
-
     tablero = mapped_column(String, nullable=False, default=random_tablero())
+
+    def modificar_fichas(self, casilla1: Casilla, casilla2:  Casilla): #TODO: Quiza pertenece a otro lugar
+        # Deserializa el tablero
+        tablero = json.loads(self.tablero)
+
+        x1, y1 = casilla1.row, casilla1.col
+        x2, y2 = casilla2.row, casilla2.col
+
+        # Verifica que las coordenadas estén dentro del rango del tablero
+        if 0 <= x1 < 6 and 0 <= y1 < 6 and 0 <= x2 < 6 and 0 <= y2 < 6:
+            # Realiza la modificación, intercambiando los colores
+            tablero[x1][y1], tablero[x2][y2] = tablero[x2][y2], tablero[x1][y1]
+        else:
+            raise ValueError("Una o ambas coordenadas están fuera de rango.")
+
+        # Vuelve a serializar el tablero
+        self.tablero = json.dumps(tablero)
 
     def __repr__(self):  # pragma: no cover
         return (f"<Partida(id={self.id}, nombre_partida='{self.nombre_partida}', "

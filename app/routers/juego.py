@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 import crud.juego
 import crud.partidas
 from models import Base
-from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails, TableroData
+from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails, TableroData, CasillasMov
 from database import engine, get_db
 
 from websockets_manager.ws_partidas_manager import ws_partidas_manager
@@ -18,6 +18,7 @@ Base.metadata.create_all(bind=engine)
 router = APIRouter(
     prefix="/juego"
 )
+
 
 @router.get('/{partida_id:int}/jugadores/{jugador_id:int}/cartas_figura',
             response_model=list[CartaFiguraData],
@@ -55,9 +56,11 @@ async def terminar_turno(id_partida: int, id_jugador, db: Session = Depends(get_
     await ws_partidas_manager.send_actualizar_turno(id_partida)
 
 
+#TODO: Borrenme antes de la pr, esto es un workaround para ver si el front anda bien con el cambio porque la rama esta atrasada en el otro repo
+from pydantic import Json
 @router.get('/{id_partida:int}/tablero',
             summary='Obetener el tablero del juego',
-            response_model=TableroData,
+            response_model=Json,
             tags=["Juego"])
 async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
     """Obtiene el tablero de una partida
@@ -75,10 +78,22 @@ async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
     from figuras import hallar_todas_las_figuras_en_tablero  
     import json  
     tablero = crud.juego.get_tablero(db, id_partida)
-    tablero_desearilizado = json.loads(tablero)
-    response = {
-        'tablero': tablero_desearilizado,
-        'figuras_a_resaltar': hallar_todas_las_figuras_en_tablero(tablero_desearilizado)
-    }
-    return response
+    return tablero
+    #TODO: Borrenme antes de la pr, esto es un workaround para ver si el front anda bien con el cambio porque la rama esta atrasada en el otro repo
+    # tablero_desearilizado = json.loads(tablero)
+    # response = {
+    #     'tablero': tablero_desearilizado,
+    #     'figuras_a_resaltar': hallar_todas_las_figuras_en_tablero(tablero_desearilizado)
+    # }
+    # return response
 
+
+
+@router.put('/{id_partida}/jugadores/{id_jugador}/tablero/casilla',
+            summary="Jugar carta movimiento.",
+            description="Modificar el tablero segun las coordenadas de las fichas que envia el jugador del tueno actual.",
+            tags=["Juego"])
+async def modificar_casillas(id_partida: int, id_jugador: int, coordenadas: CasillasMov, db: Session = Depends(get_db)): # TODO: Agregar comprobacion a este metodo
+    crud.juego.modificar_casillas(
+        id_partida, id_jugador, coordenadas, db)
+    await ws_partidas_manager.send_actualizar_tablero(id_partida)
