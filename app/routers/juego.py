@@ -90,7 +90,7 @@ async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
             summary="Jugar carta movimiento.",
             description="Modificar el tablero segun las coordenadas de las fichas que envia el jugador del tueno actual.",
             tags=["Juego"])
-async def modificar_casillas(id_partida: int, id_jugador: int, coordenadas: CasillasMov, db: Session = Depends(get_db)): # TODO: Agregar comprobacion a este metodo
+async def modificar_casillas(id_partida: int, id_jugador: int, coordenadas: CasillasMov, db: Session = Depends(get_db)):
     crud.juego.modificar_casillas(
         id_partida, id_jugador, coordenadas, db)
     await ws_partidas_manager.send_actualizar_tablero(id_partida)
