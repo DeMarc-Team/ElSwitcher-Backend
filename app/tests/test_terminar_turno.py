@@ -43,6 +43,7 @@ def test_terminar_turno(test_db, test_ws):
 
     # Comprobamos que el turno sea del jugaddor correspondiente
     assert partida.jugador_del_turno.id_jugador == segundo_jugador.id_jugador
+    assert len(partida.jugadores) == 4, f"Fallo: Se esperaba que la cantidad de jugadores fuera la misma, pero no es así."
 
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws[ACTUALIZAR_TURNO] = 1
@@ -76,7 +77,8 @@ def test_vuelta_completa(test_db, test_ws):
         
     # Verificamos que los turnos "hayan dado la vuelta completa"
     assert id_jugador_inicial == id_jugador_final, f"Fallo: Se esperaba que el último jugador fuera el mismo que el inicial, pero eso no ocurrió."
-    
+    assert len(partida.jugadores) == 4, f"Fallo: Se esperaba que la cantidad de jugadores fuera la misma, pero no es así."
+
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws[ACTUALIZAR_TURNO] = len(partida.jugadores)
 
@@ -121,7 +123,9 @@ def test_varias_rondas(test_db, test_ws):
         # Terminamos el turno del jugador actual
         response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
         test_db.commit()
-        
+
+    assert len(partida.jugadores) == 4, f"Fallo: Se esperaba que la cantidad de jugadores fuera la misma, pero no es así."
+
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws[ACTUALIZAR_TURNO] = 5 * len(partida.jugadores)
 
