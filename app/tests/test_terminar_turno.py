@@ -39,7 +39,7 @@ def test_terminar_turno(test_db, test_ws):
     # Comprobamos que se mantengan los datos invariantes
     assert (
         partida_datos_invariantes == partida_datos_posteriores
-    ), f"Fallo: Se esperaba que no el único dato que se modificara de la partida fuera el orden, pero no es así."
+    ), f"Fallo: Se esperaba que el único dato que se modificara de la partida fuera el orden, pero no es así."
 
     # Comprobamos que el turno sea del jugaddor correspondiente
     assert partida.jugador_del_turno.id_jugador == segundo_jugador.id_jugador
