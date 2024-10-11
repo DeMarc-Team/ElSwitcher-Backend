@@ -83,23 +83,6 @@ class Partida(Base):
 
     tablero = mapped_column(String, nullable=False, default=random_tablero())
 
-    def modificar_fichas(self, casilla1: Casilla, casilla2:  Casilla): #TODO: Quiza pertenece a otro lugar
-        # Deserializa el tablero
-        tablero = json.loads(self.tablero)
-
-        x1, y1 = casilla1.row, casilla1.col
-        x2, y2 = casilla2.row, casilla2.col
-
-        # Verifica que las coordenadas estén dentro del rango del tablero
-        if 0 <= x1 < 6 and 0 <= y1 < 6 and 0 <= x2 < 6 and 0 <= y2 < 6:
-            # Realiza la modificación, intercambiando los colores
-            tablero[x1][y1], tablero[x2][y2] = tablero[x2][y2], tablero[x1][y1]
-        else:
-            raise ValueError("Una o ambas coordenadas están fuera de rango.")
-
-        # Vuelve a serializar el tablero
-        self.tablero = json.dumps(tablero)
-
     def __repr__(self):  # pragma: no cover
         return (f"<Partida(id={self.id}, nombre_partida='{self.nombre_partida}', "
             f"nombre_creador='{self.nombre_creador}', iniciada={self.iniciada}, "
