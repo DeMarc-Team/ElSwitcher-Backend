@@ -54,6 +54,19 @@ def siguiente_turno(db: Session, partida_id):
 
     db.commit()
 
+def reponer_cartas(db: Session, partida: Partida, jugador: Jugador, n_cartas_por_jugador=3):
+    '''
+    Procedimiento no atómico (i.e. no ejecuta commit) para reponer las cartas de un jugador.
+    
+    Repone hasta que el jugador tenga n_cartas_por_jugador en la mano.
+    '''
+    
+    cantidad_movimientos = len(jugador.mano_movimientos)
+
+    # Reponemos las cartas de movimiento del jugador
+    for i in range(0, n_cartas_por_jugador - cantidad_movimientos):
+        new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
+        db.add(new_carta)
 
 def terminar_turno(db: Session, partida_id, jugador_id):
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
@@ -68,14 +81,12 @@ def terminar_turno(db: Session, partida_id, jugador_id):
     actual_jugador = partida.jugador_del_turno
 
     if (actual_jugador.id_jugador != jugador_id):
-        raise ForbiddenError(
-            f"El ID del jugador que posee el turno no es {jugador_id}.")
+        raise ForbiddenError(f"El ID del jugador que posee el turno no es {jugador_id}.")
     
     limpiar_stack_movimientos_parciales(db, partida_id)
     
-    from crud.partidas import reponer_cartas_movimiento
-    reponer_cartas_movimiento(db, actual_jugador)
-
+    reponer_cartas(db, partida, partida.jugador_del_turno)
+    db.flush()
     siguiente_turno(db, partida_id)
 
     db.commit()
