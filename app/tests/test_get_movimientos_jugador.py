@@ -2,10 +2,6 @@ from tests_setup import client, TestingSessionLocal
 from factory import crear_partida, unir_jugadores, iniciar_partida
 import mock
 
-
-# TODO: Cuando se termine la funcionalidad de pasar turno
-#  y usar cartas de movimiento, hay que hacer tests para
-#  ver que se reponen las cartas
 def test_get_cartas_de_movimiento_happy_path(test_db):
 
     # Creamos 3 partidas: una no iniciada, una iniciada y una llena

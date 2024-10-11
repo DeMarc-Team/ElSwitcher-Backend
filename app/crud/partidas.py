@@ -91,6 +91,16 @@ def _repartir_cartas_movimiento(db: Session, partida, n_cartas_por_jugador=3):
             new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
             db.add(new_carta)
 
+def reponer_cartas_movimiento(db: Session, jugador: Jugador):
+    cant_movimientos_acutales =len(jugador.mano_movimientos)
+    
+    while cant_movimientos_acutales < 3:
+        new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
+        db.add(new_carta)
+        cant_movimientos_acutales += 1
+
+    db.commit()
+
 def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
     '''
     Pasa el turno y elimina al jugador de la partida.

@@ -50,3 +50,14 @@ class CartaFiguraData(BaseModel):
 
 class CartaMovimientoData(BaseModel):
     movimiento: str
+
+
+class Casilla(BaseModel):
+    row: int
+    col: int
+
+
+class CasillasMov(BaseModel):
+    casilla1: Casilla
+    casilla2: Casilla
+    codeMove: str
