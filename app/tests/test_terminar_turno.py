@@ -130,7 +130,7 @@ def test_partida_no_iniciada_403(test_db):
     response = client.put(f'juego/{partida.id}/jugadores/{1}/turno')
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
 
-def test_partida_no_iniciada_403(test_db):
+def test_jugador_sin_turno_403(test_db):
     '''Test sobre los mensajes de error ante el envío de terminar turno de un jugador que no posee el turno.'''
 
     partida, _ = crear_partida(test_db)
