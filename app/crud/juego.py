@@ -86,32 +86,37 @@ def get_tablero(db: Session, partida_id: int):
     return juego.tablero
 
 
-def modificar_casillas(id_partida: int, id_jugador: int, coordenadas: CasillasMov, db: Session):
+def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: CasillasMov, db: Session):
     juego = db.query(Partida).filter(Partida.id == id_partida).first()
 
     if (juego == None):
         raise ResourceNotFoundError(f"Partida no encontrada")
     
+    from movimientos import swapear_en_tablero
     import json
     tablero_deserealizado = json.loads(juego.tablero)
 
-    from movimientos import swapear_en_tablero, SET_DE_MOVIMIENTOS
+    origen, destino, mov = desempaquetar_request(coordenadas_y_carta)
     
-    origen = casilla_to_tuple(coordenadas.casilla1)
-    destino = casilla_to_tuple(coordenadas.casilla2)
-
-    print(origen)
-
-    mov = next((carta for carta in SET_DE_MOVIMIENTOS if carta.movimiento == coordenadas.codeMove), None)
-    if not mov:
-        raise ResourceNotFoundError(f"Movimiento con codeMove {coordenadas.codeMove} no encontrado")
     if not swapear_en_tablero(mov,tablero_deserealizado,origen,destino):
-        db.rollback
-        raise ForbiddenError("Movimiento no permitido")
+        raise ForbiddenError("Movimiento no permitido") # TODO: Quiza enviar una señal por WS para avisarle al front que es re boludo
     
     juego.tablero = json.dumps(tablero_deserealizado)
     db.commit()
 
+def desempaquetar_request(coordenadas_y_carta):
+    origen = casilla_to_tuple(coordenadas_y_carta.casilla1)
+    destino = casilla_to_tuple(coordenadas_y_carta.casilla2)
+    mov = matchear_obtener_carta(coordenadas_y_carta.codeMove)
+    return origen,destino,mov
+
+def matchear_obtener_carta(codigo_movimiento):
+    print(codigo_movimiento)
+    from movimientos import SET_DE_MOVIMIENTOS
+    mov = next((carta for carta in SET_DE_MOVIMIENTOS if carta.movimiento == codigo_movimiento), None)
+    if not mov:
+        raise ResourceNotFoundError(f"Movimiento con codeMove {codigo_movimiento} no encontrado")
+    return mov
 
 def casilla_to_tuple(casilla):
     return (int(casilla.row) ,int(casilla.col))
