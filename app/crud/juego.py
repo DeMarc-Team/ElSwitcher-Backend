@@ -96,21 +96,21 @@ def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: Ca
     if (juego == None): # Esto no habria que comporbarlo si crud tuviera un buen metodo get_juego
         raise ResourceNotFoundError(f"Partida no encontrada")
     
-    # if (juego.jugador_del_turno.id_jugador == id_jugador):
-    #     raise ForbiddenError("No es el turno del jugador")
+    if (juego.jugador_del_turno.id_jugador != id_jugador):
+        raise ForbiddenError("No es el turno del jugador")
     
 
     tablero_deserealizado = json.loads(juego.tablero)
 
     origen, destino, mov = desempaquetar_coords(coordenadas_y_carta)
+    moveCode = mov.movimiento
     
-    # if not player_holds_mov_card(juego.jugador_del_turno,mov): # El jugador posee la carta?
-    #     raise ForbiddenError("El player no posee esa carta")
+    if not player_holds_mov_card(juego.jugador_del_turno,moveCode): # El jugador posee la carta?
+        raise ForbiddenError("El player no posee esa carta")
 
     if not is_valid_move(mov,tablero_deserealizado,origen,destino): # El movimiento es uno valido?
         raise ForbiddenError("Movimiento no permitido")
     
-    moveCode = mov.movimiento
 
     remove_movement_card(db ,juego.jugador_del_turno,moveCode)
     swapear_en_tablero(tablero_deserealizado,origen,destino)
@@ -119,8 +119,9 @@ def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: Ca
     db.commit()
 
 def player_holds_mov_card(jugador: Jugador, movimiento):
-    if movimiento in jugador.mano_movimientos:
-        return True
+    for carta in jugador.mano_movimientos:
+        if carta.movimiento == movimiento:
+            return True
     
     return False
 
