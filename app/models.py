@@ -24,7 +24,7 @@ class Jugador(Base):
     mano_movimientos: Mapped[list['CartaMovimiento']] = relationship(
         'CartaMovimiento', back_populates='movimientos_de', cascade="all, delete-orphan")
 
-    def __repr__(self):  # pragma: no cover
+    def __str__(self):  # pragma: no cover
         return (f"<Jugador(id_jugador={self.id_jugador}, nombre={self.nombre}, "
                 f"es_creador={self.es_creador}, partida_id={self.partida_id}, orden={self.orden}, "
                 f"numero_de_cartas_figura={len(self.mazo_cartas_de_figura)}, "
@@ -82,7 +82,7 @@ class Partida(Base):
 
     tablero = mapped_column(String, nullable=False, default=random_tablero())
 
-    def __repr__(self):  # pragma: no cover
+    def __str__(self):  # pragma: no cover
         return (f"<Partida(id={self.id}, nombre_partida='{self.nombre_partida}', "
             f"nombre_creador='{self.nombre_creador}', iniciada={self.iniciada}, "
             f"numero_de_jugadores={len(self.jugadores)}, tablero='{self.tablero}')>")
@@ -109,7 +109,7 @@ class CartaFigura(Base):
         'Jugador', back_populates='mazo_cartas_de_figura')
     jugador_id = mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
 
-    def __repr__(self):  # pragma: no cover
+    def __str__(self):  # pragma: no cover
         return (f"<CartaFigura(id={self.id}, figura='{self.figura}', "
                 f"revelada={self.revelada}, jugador_id={self.jugador_id})>")
 
@@ -134,6 +134,6 @@ class CartaMovimiento(Base):
     movimientos_de = relationship('Jugador', back_populates='mano_movimientos')
     jugador_id = mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
 
-    def __repr__(self):  # pragma: no cover
+    def __str__(self):  # pragma: no cover
         return (f"<CartaMovimiento(id={self.id}, movimiento='{self.movimiento}', "
                 f"jugador_id={self.jugador_id})>")
