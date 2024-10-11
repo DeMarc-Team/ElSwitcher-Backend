@@ -91,6 +91,27 @@ def modificar_casillas(id_partida: int, id_jugador: int, coordenadas: CasillasMo
 
     if (juego == None):
         raise ResourceNotFoundError(f"Partida no encontrada")
+    
+    import json
+    tablero_deserealizado = json.loads(juego.tablero)
 
-    juego.modificar_fichas(coordenadas.casilla1, coordenadas.casilla2)
+    from movimientos import swapear_en_tablero, SET_DE_MOVIMIENTOS
+    
+    origen = casilla_to_tuple(coordenadas.casilla1)
+    destino = casilla_to_tuple(coordenadas.casilla2)
+
+    print(origen)
+
+    mov = next((carta for carta in SET_DE_MOVIMIENTOS if carta.movimiento == coordenadas.codeMove), None)
+    if not mov:
+        raise ResourceNotFoundError(f"Movimiento con codeMove {coordenadas.codeMove} no encontrado")
+    if not swapear_en_tablero(mov,tablero_deserealizado,origen,destino):
+        db.rollback
+        raise ForbiddenError("Movimiento no permitido")
+    
+    juego.tablero = json.dumps(tablero_deserealizado)
     db.commit()
+
+
+def casilla_to_tuple(casilla):
+    return (int(casilla.row) ,int(casilla.col))
