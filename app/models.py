@@ -5,11 +5,8 @@ from sqlalchemy import Integer, Boolean, String, ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.ext.orderinglist import ordering_list
-from schemas import Casilla
-import json
+
 # JUGADOR ------------------------------------------------------
-
-
 class Jugador(Base):
     __tablename__ = 'jugadores'
     id_jugador: Mapped[int] = mapped_column(
@@ -53,6 +50,7 @@ def random_tablero():
     return tablero_as_json
 
 class Partida(Base):
+    # PARTIDA -----------------------
     __tablename__ = 'partidas'
     id: Mapped[int] = mapped_column(
         Integer, primary_key=True, index=True, autoincrement=True)
@@ -80,6 +78,7 @@ class Partida(Base):
     def jugador_id(self) -> int: # FIXME: Sacar y usar partida.jugador_del_turno.id_jugador
         # Retorna el jugador en la primera posición
         return self.jugadores[0].id_jugador
+
 
     tablero = mapped_column(String, nullable=False, default=random_tablero())
 
