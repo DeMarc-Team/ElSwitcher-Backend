@@ -142,3 +142,17 @@ def abandonar_partida(db: Session, partida: Partida, jugador: Jugador) -> Partid
 
     db.commit()
     return partida
+
+def siguiente_turno(db: Session, partida: Partida):
+    '''
+    Procedimiento para asignar el turno al siguiente jugador (en orden) de la partida.
+    '''
+    
+    assert partida.iniciada == True, "La partida no ha sido iniciada"
+    
+    partida.jugadores.append(partida.jugadores.pop(0))
+    db.flush()
+    for jugador in partida.jugadores:
+        jugador.orden = partida.jugadores.index(jugador)
+
+    db.commit()
