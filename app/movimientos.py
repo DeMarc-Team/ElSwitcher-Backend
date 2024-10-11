@@ -62,7 +62,7 @@ class Movimiento5(Movimiento):
     def __init__(self) -> None:
         super().__init__()
         self.movimiento = 'm5'
-        self.vector_movimiento = VectorMovimiento((1,-2))
+        self.vector_movimiento = VectorMovimiento((-2,1))
 
 class Movimiento6(Movimiento):
     def __init__(self) -> None:
@@ -81,7 +81,7 @@ class Movimiento7(Movimiento):
 SET_DE_MOVIMIENTOS = [Movimiento1(),Movimiento2(),Movimiento3(),Movimiento4(),Movimiento5(),Movimiento6(),Movimiento7()]
 
 
-def swapear_en_tablero(movimiento: Movimiento,tablero: list[list[int]],origen:tuple[int,int],destino:tuple[int,int]):
+def is_valid_move(movimiento: Movimiento,tablero: list[list[int]],origen:tuple[int,int],destino:tuple[int,int]):
     """
         Realiza el movimiento indicado en el tablero SOLO si el movimiento
         es valido.
@@ -91,21 +91,19 @@ def swapear_en_tablero(movimiento: Movimiento,tablero: list[list[int]],origen:tu
 
     for i in range(4):
         x,y = movimiento.vector_movimiento.rotacion(i)
-        if is_valid_move(origen, destino, x, y):
-            apply_swap(tablero, origen, destino)
-
+        if rotation_matches_and_valid(origen, destino, x, y):
             return True
     
     return False
 
-def is_valid_move(origen, destino, x, y):
+def rotation_matches_and_valid(origen, destino, x, y):
     matches = origen[0]+x == destino[0] and origen[1]+y == destino[1]
     dest_in_bounds = 0 <= destino[0] < 6 and 0 <= destino[1] < 6
     origin_in_bounds = 0 <= origen[0] < 6 and 0 <= origen[1] < 6
 
     return matches and dest_in_bounds and origin_in_bounds
 
-def apply_swap(tablero, origen, destino):
+def swapear_en_tablero(tablero, origen, destino):
     origin_val = tablero[origen[0]][origen[1]]
     dest_val = tablero[destino[0]][destino[1]]
 

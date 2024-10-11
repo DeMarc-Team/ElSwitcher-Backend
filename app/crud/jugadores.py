@@ -34,3 +34,13 @@ def get_jugadores(db: Session, partida_id: int):
         raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
 
     return db.query(Jugador).filter(Jugador.partida_id == partida_id).all()
+
+
+def remove_movement_card(db: Session, jugador:Jugador, mov_id):
+    for movimiento in jugador.mano_movimientos:
+        if (movimiento.movimiento == mov_id):
+            jugador.mano_movimientos.remove(movimiento)
+            db.commit()
+            return
+        
+    raise ResourceNotFoundError(f"Carta de movimiento con ID {mov_id} no encontrada en la mano del jugador con ID {jugador.id_jugador}.")

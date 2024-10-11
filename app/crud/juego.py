@@ -87,24 +87,44 @@ def get_tablero(db: Session, partida_id: int):
 
 
 def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: CasillasMov, db: Session):
+    from movimientos import swapear_en_tablero, is_valid_move
+    from crud.jugadores import remove_movement_card
+    import json
+
     juego = db.query(Partida).filter(Partida.id == id_partida).first()
 
-    if (juego == None):
+    if (juego == None): # Esto no habria que comporbarlo si crud tuviera un buen metodo get_juego
         raise ResourceNotFoundError(f"Partida no encontrada")
     
-    from movimientos import swapear_en_tablero
-    import json
+    # if (juego.jugador_del_turno.id_jugador == id_jugador):
+    #     raise ForbiddenError("No es el turno del jugador")
+    
+
     tablero_deserealizado = json.loads(juego.tablero)
 
-    origen, destino, mov = desempaquetar_request(coordenadas_y_carta)
+    origen, destino, mov = desempaquetar_coords(coordenadas_y_carta)
     
-    if not swapear_en_tablero(mov,tablero_deserealizado,origen,destino):
-        raise ForbiddenError("Movimiento no permitido") # TODO: Quiza enviar una señal por WS para avisarle al front que es re boludo
+    # if not player_holds_mov_card(juego.jugador_del_turno,mov): # El jugador posee la carta?
+    #     raise ForbiddenError("El player no posee esa carta")
+
+    if not is_valid_move(mov,tablero_deserealizado,origen,destino): # El movimiento es uno valido?
+        raise ForbiddenError("Movimiento no permitido")
+    
+    moveCode = mov.movimiento
+
+    remove_movement_card(db ,juego.jugador_del_turno,moveCode)
+    swapear_en_tablero(tablero_deserealizado,origen,destino)
     
     juego.tablero = json.dumps(tablero_deserealizado)
     db.commit()
 
-def desempaquetar_request(coordenadas_y_carta):
+def player_holds_mov_card(jugador: Jugador, movimiento):
+    if movimiento in jugador.mano_movimientos:
+        return True
+    
+    return False
+
+def desempaquetar_coords(coordenadas_y_carta):
     origen = casilla_to_tuple(coordenadas_y_carta.casilla1)
     destino = casilla_to_tuple(coordenadas_y_carta.casilla2)
     mov = matchear_obtener_carta(coordenadas_y_carta.codeMove)
