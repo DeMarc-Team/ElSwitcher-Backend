@@ -10,7 +10,7 @@ ACTUALIZAR_PARTIDAS = HomeMessage(action=MtHome.ACTUALIZAR_PARTIDAS)
 ACTUALIZAR_SALA_ESPERA = PartidasMessage(action=MtPartidas.ACTUALIZAR_SALA_ESPERA)
 ACTUALIZAR_TURNO = PartidasMessage(action=MtPartidas.ACTUALIZAR_TURNO)
 
-def test_mensaje_actualizar_partidas(expected_msgs_home_ws):
+def test_create_partida_ws(expected_msgs_home_ws):
     with mock.patch('routers.partidas.crud.create_partida', new=mock.MagicMock()) as mock_create_partida:
         partida_data = PartidaData(nombre_partida='Partida', nombre_creador='Creador')
 
