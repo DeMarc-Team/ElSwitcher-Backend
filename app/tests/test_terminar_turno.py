@@ -1,8 +1,11 @@
 from tests_setup import client
 from factory import crear_partida, unir_jugadores, iniciar_partida
+from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
+from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO
 
-def test_terminar_turno(test_db):
+def test_terminar_turno(test_db, test_ws):
     '''Test que chequea el funcionamiento en el escenario exitoso del endpoint para terminar_turno.'''
+    
     partida, _ = crear_partida(test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores=3)
     iniciar_partida(test_db, partida)
@@ -42,7 +45,10 @@ def test_terminar_turno(test_db):
     # Comprobamos que el turno sea del jugaddor correspondiente
     assert partida.jugador_del_turno.id_jugador == segundo_jugador.id_jugador
 
-def test_vuelta_completa(test_db):
+    # Ponemos cuantas veces se espera que se envie cada mensaje de ws
+    test_ws[ACTUALIZAR_TURNO] = 1
+
+def test_vuelta_completa(test_db, test_ws):
     '''Test que chequea el funcionamiento de una vuelta completa de turnos.'''
 
     partida, _ = crear_partida(test_db)
@@ -71,8 +77,11 @@ def test_vuelta_completa(test_db):
         
     # Verificamos que los turnos "hayan dado la vuelta completa"
     assert id_jugador_inicial == id_jugador_final, f"Fallo: Se esperaba que el último jugador fuera el mismo que el inicial, pero eso no ocurrió."
+    
+    # Ponemos cuantas veces se espera que se envie cada mensaje de ws
+    test_ws[ACTUALIZAR_TURNO] = len(partida.jugadores)
 
-def test_varias_rondas(test_db):
+def test_varias_rondas(test_db, test_ws):
     '''Test sobre la confiabilidad de los turnos a lo largo de varias rondas.'''
     partida, _ = crear_partida(test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores=3)
@@ -113,15 +122,18 @@ def test_varias_rondas(test_db):
         # Terminamos el turno del jugador actual
         response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
         test_db.commit()
+        
+    # Ponemos cuantas veces se espera que se envie cada mensaje de ws
+    test_ws[ACTUALIZAR_TURNO] = 5 * len(partida.jugadores)
 
-def test_partida_inexistente_404(test_db):
+def test_partida_inexistente_404(test_db, test_ws):
     '''Test sobre los mensajes de error ante el envío de terminar turno a una partida inexistente.'''
 
     # Intentamos terminar el turno de una partida inexistente.
     response = client.put(f'juego/{999999}/jugadores/{999999}/turno')
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
 
-def test_partida_no_iniciada_403(test_db):
+def test_partida_no_iniciada_403(test_db, test_ws):
     '''Test sobre los mensajes de error ante el envío de terminar turno a una partida no iniciada.'''
 
     partida, _ = crear_partida(test_db)
@@ -130,7 +142,7 @@ def test_partida_no_iniciada_403(test_db):
     response = client.put(f'juego/{partida.id}/jugadores/{1}/turno')
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
 
-def test_jugador_sin_turno_403(test_db):
+def test_jugador_sin_turno_403(test_db, test_ws):
     '''Test sobre los mensajes de error ante el envío de terminar turno de un jugador que no posee el turno.'''
 
     partida, _ = crear_partida(test_db)
