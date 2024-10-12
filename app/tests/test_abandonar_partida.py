@@ -2,7 +2,7 @@ from tests_setup import client
 from factory import crear_partida, unir_jugadores, iniciar_partida
 from models import Partida, Jugador
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
-from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR
+from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, PARTIDA_CANCELADA
 
 def test_abandonar_partida_en_el_turno_200(test_db, test_ws):
     '''Test de jugador abandonando una partida en su turno'''
@@ -40,20 +40,30 @@ def test_abandonar_partida_en_el_turno_200(test_db, test_ws):
 
 # ----------------------------------------------------------------
 
-def test_abandonar_partida_no_iniciada_creador_403(test_db, test_ws):
-    '''Test de creador abandonando su partida no iniciada (no deberia poder)'''
+def test_abandonar_partida_no_iniciada_creador_200(test_db, test_ws):
+    '''Test de creador abandonando su partida no iniciada'''
+    # Ponemos cuantas veces se espera que se envie cada ws
+    test_ws[ACTUALIZAR_PARTIDAS] = 1
+    test_ws[PARTIDA_CANCELADA] = 1
+
+    # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
     id_creador = creador.id_jugador
     id_partida = partida.id
+    unir_jugadores(test_db, partida, 2)
 
     # Realizamos la petición
     response = client.delete(f"/partidas/{id_partida}/jugadores/{id_creador}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
-    assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
-    respuesta_esperada = {"detail": f"El creador con ID {id_creador} no puede abandonar la partida con ID {id_partida} antes de iniciarla."}
+    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
+    respuesta_esperada = {'detail': 'El jugador abandonó la partida exitosamente'}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{respuesta_esperada}', pero se obtuvo {response.json()}"
+
+    # Verificamos que la base de datos se haya actualizado correctamente
+    partida = test_db.query(Partida).filter(Partida.id == id_partida).first()
+    assert partida == None, f"Fallo: Se esperaba que la partida fuera eliminada de la base de datos, pero se encontró {partida}"
 
 # ----------------------------------------------------------------
 
