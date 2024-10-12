@@ -125,8 +125,16 @@ def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: Ca
     if not is_valid_move(mov,tablero_deserealizado,origen,destino): # El movimiento es uno valido?
         raise ForbiddenError("Movimiento no permitido")
     
+    carta = None
+    for c in juego.jugador_del_turno.mano_movimientos:
+        if c.movimiento == moveCode and not c.usada_en_movimiento_parcial:
+            carta = c
+            break
 
-    carta_id = db.query(CartaMovimiento).filter((CartaMovimiento.jugador_id == id_jugador) & (CartaMovimiento.movimiento == moveCode)).first().id
+    if not carta:
+        raise ResourceNotFoundError(f"Carta de movimiento no encontrada o ya usada por el jugador con ID {id_jugador}.")
+
+    carta_id = carta.id
 
     push_movimiento_parcial(db, id_partida, carta_id, origen, destino)
 
@@ -203,7 +211,7 @@ def deshacer_movimiento(db: Session, id_partida):
     ultimo_movimiento = movimientos_parciales.pop()
 
     import ast
-    origen = ast.literal_eval(ultimo_movimiento.origen)
+    origen = ast.literal_eval(ultimo_movimiento.origen) # Estas tuplas se guardan como strings en la base de datos
     destino = ast.literal_eval(ultimo_movimiento.destino)
 
     from movimientos import swapear_en_tablero
