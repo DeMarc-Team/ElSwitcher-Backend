@@ -72,11 +72,23 @@ def terminar_turno(db: Session, partida_id, jugador_id):
         raise ForbiddenError(
             f"El ID del jugador que posee el turno no es {jugador_id}.")
     
+    limpiar_stack_movimientos_parciales(db, partida_id)
+    
     from crud.partidas import reponer_cartas_movimiento
     reponer_cartas_movimiento(db, actual_jugador)
 
     siguiente_turno(db, partida_id)
 
+    db.commit()
+
+def limpiar_stack_movimientos_parciales(db, partida_id):
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+    if (not partida):
+        raise ResourceNotFoundError(
+            f"Partida con ID {partida_id} no encontrada.")
+    
+    while partida.movimientos_parciales:
+        deshacer_movimiento(db, partida_id).
     db.commit()
 
 
@@ -173,7 +185,7 @@ def push_movimiento_parcial(db: Session, partida_id, carta_id, origen, destino):
 
     db.commit()
 
-def deshacer_movimiento(db: Session, id_partida, id_jugador):
+def deshacer_movimiento(db: Session, id_partida):
     partida = db.query(Partida).filter(Partida.id == id_partida).first()
     if (not partida):
         raise ResourceNotFoundError(
@@ -182,10 +194,6 @@ def deshacer_movimiento(db: Session, id_partida, id_jugador):
     if (not partida.iniciada):
         raise ForbiddenError(
             f"La partida con ID {id_partida} todavía no comenzó.")
-
-    if (partida.jugador_del_turno.id_jugador != id_jugador):
-        raise ForbiddenError(
-            f"El ID del jugador que posee el turno no es {id_jugador}.")
 
     movimientos_parciales = partida.movimientos_parciales
     if (len(movimientos_parciales) == 0):
@@ -197,8 +205,6 @@ def deshacer_movimiento(db: Session, id_partida, id_jugador):
     import ast
     origen = ast.literal_eval(ultimo_movimiento.origen)
     destino = ast.literal_eval(ultimo_movimiento.destino)
-
-
 
     from movimientos import swapear_en_tablero
     import json
