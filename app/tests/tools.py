@@ -1,5 +1,34 @@
 import re
+from sqlalchemy import inspect
 from database import Base
+
+# TODO: No apta para la comparacion actual
+def capturar_metadata(objetos: list) -> dict:
+    '''
+    Devuelve un diccionario donde una clave es una tupla (__tablename__, id)
+    y su valor es un diccionario con la metadata de la tabla, donde las claves
+    son los nombres de las columnas y los valores son sus valores en el objeto.
+    '''
+    assert len(objetos) > 0, 'La lista no puede estar vacía'
+    assert all([isinstance(obj, Base) for obj in objetos]), 'Todos los objetos deben ser instancias de models'
+    assert all([hasattr(obj, '__tablename__') for obj in objetos]), 'Todos los objetos deben tener __tablename__'
+    assert all([hasattr(obj, 'id') for obj in objetos]), 'Todos los objetos deben tener id'
+
+    metadata = {}
+    for obj in objetos:
+        # Inicializa un diccionario vacío para la metadata de la tabla
+        metadata[obj.__tablename__, obj.id] = {}
+
+        # Itera sobre las columnas de la tabla
+        for column in inspect(obj).mapper.columns:
+            # Obtiene el nombre de la columna y su valor en el objeto
+            column_name = column.key
+            column_value = getattr(obj, column_name)
+
+            # Agrega la columna y su valor al diccionario de metadata
+            metadata[obj.__tablename__, obj.id][column_name] = column_value
+
+    return metadata
 
 def capturar(objetos: list) -> dict:
     '''

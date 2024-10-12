@@ -74,10 +74,19 @@ async def iniciar_partida(partida_id: int, db: Session = Depends(get_db)):
             tags=["Partidas"],
             status_code=200)
 async def abandonar_partida(partida_id: int, jugador_id : int, db: Session = Depends(get_db)):
-    ganador_id, ganador_nombre = crud.abandonar_partida(db=db, partida_id=partida_id, jugador_id=jugador_id)
+    eventos = crud.abandonar_partida(db=db, partida_id=partida_id, jugador_id=jugador_id)
+
+    hay_ganador = eventos.get("hay_ganador")
+    partida_cancelada = eventos.get("partida_cancelada")
     await ws_partidas_manager.send_actualizar_tablero(partida_id) # Se deshacen movimientos parciales si abandona
-    if (ganador_id is not None):
+    if (hay_ganador):
+        ganador_id = hay_ganador.get("id_ganador")
+        ganador_nombre = hay_ganador.get("nombre_ganador")
         await ws_partidas_manager.send_hay_ganador(partida_id, ganador_id, ganador_nombre)
+    elif (partida_cancelada):
+        partida_id = partida_cancelada.get("id")
+        await ws_partidas_manager.send_partida_cancelada(partida_id)
+        await ws_home_manager.send_actualizar_partidas()
     else:
         await ws_home_manager.send_actualizar_partidas()
         await ws_partidas_manager.send_actualizar_turno(partida_id)

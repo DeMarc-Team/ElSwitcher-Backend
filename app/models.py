@@ -23,7 +23,11 @@ class Jugador(Base):
         'CartaFigura', back_populates='poseida_por', cascade="all, delete-orphan")
     mano_movimientos: Mapped[list['CartaMovimiento']] = relationship(
         'CartaMovimiento', back_populates='movimientos_de', cascade="all, delete-orphan")
-
+    
+    @hybrid_property
+    def id(self) -> int:
+        return self.id_jugador
+        
     def __str__(self):  # pragma: no cover
         return (f"<Jugador(id_jugador={self.id_jugador}, nombre={self.nombre}, "
                 f"es_creador={self.es_creador}, partida_id={self.partida_id}, orden={self.orden}, "

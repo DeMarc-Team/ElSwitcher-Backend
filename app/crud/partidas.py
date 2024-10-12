@@ -105,19 +105,26 @@ def reponer_cartas_movimiento(db: Session, jugador: Jugador):
 def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
     '''
     Pasa el turno y elimina al jugador de la partida.
-    Si hay un ganador, elimina la partida y devuelve el (id,nombre) del jugador ganador.
-    Si no gano, devuelve (None,None).
+    
+    Si hay un ganador,
+    - Elimina la partida.
+    - Devuelve {"hay_ganador" : {"id_ganador" : id_ganador, "nombre_ganador" : nombre_ganador}, "partida_cancelada" : None}
+    
+    Si el creador abandona la partida antes de iniciarla,
+    - Elimina la partida.
+    - Devuelve {"partida_cancelada" : { "id" : id_partida }, "hay_ganador" : None}
+    
+    Si no,
+    - Devuelve {"hay_ganador" : None, "partida_cancelada" : None}
     '''
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
     if (not partida):
         raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
-
+    id_creador = partida.id_creador
+    
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
     if (not jugador):
         raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
-    
-    if (not partida.iniciada and jugador.id_jugador == partida.id_creador):
-        raise ForbiddenError(f"El creador con ID {jugador_id} no puede abandonar la partida con ID {partida_id} antes de iniciarla.")
     
     if (partida.iniciada and jugador == partida.jugador_del_turno):
         terminar_turno(db, partida_id, jugador_id)
@@ -126,36 +133,28 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
     db.delete(jugador)
     db.commit()
 
-    return __hay_ganador(db, partida_id, jugador_id)
+    return {**__hay_ganador(db, partida), **__partida_cancelada(db, partida, jugador, id_creador)}
 
+def __partida_cancelada(db: Session, partida: Partida, jugador: Jugador, id_creador: int):
+    if (not partida.iniciada and jugador.id_jugador == id_creador):
+        db.delete(partida)
+        db.commit()
+        return {"partida_cancelada" : {"id" : partida.id}}
+    return {"partida_cancelada" : None}
 
-# FIXME: Esta funcion se podria poner en otro archivo
-def __hay_ganador(db: Session, partida_id: int, jugador_id: int):
-    '''
-    Devuelve el (id,nombre) del jugador ganador si lo hay, sino (None, None).
-    
-    IMPORTANTE: 
-    - Funcion de uso interno.
-    - No verifica nada, asume que los datos son correctos.
-
-    PRE:
-    - La partida existe y esta iniciada.
-    - El jugador existe y esta en la partida.
-
-    PD: Como es de uso interno, no realiza verificaciones.
-    '''
+def __hay_ganador(db: Session, partida: Partida):
     id_ganador = None
     nombre_ganador = None
-    partida = db.query(Partida).filter(Partida.id == partida_id).first()
     
     if (partida.iniciada and len(partida.jugadores) == 1):
         id_ganador = partida.jugadores[0].id_jugador
+        nombre_ganador = partida.jugadores[0].nombre
     
     # Aca pueden ir mas verificaciones para determinar si hay un ganador
 
     if (id_ganador is not None):
-        nombre_ganador = db.query(Jugador).filter(Jugador.id_jugador == id_ganador).first().nombre
         db.delete(partida)  
         db.commit()
+        return {"hay_ganador" : {"id_ganador" : id_ganador, "nombre_ganador" : nombre_ganador}}
 
-    return id_ganador, nombre_ganador    
+    return {"hay_ganador" : None}
