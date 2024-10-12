@@ -57,7 +57,7 @@ def test_db_creation(): #test_db):
     verificar_permisos(inspector, engine)
 
     # Verificamos que las tablas existen
-    tablas_esperadas = ['cartas_de_figura', 'cartas_de_movimiento', 'jugadores', 'partidas']
+    tablas_esperadas = ['cartas_de_figura', 'cartas_de_movimiento', 'jugadores', 'movimientos_parciales' ,'partidas']
     tablas_creadas = inspector.get_table_names()
     print("\nTablas creadas:\n",tablas_creadas)
 
