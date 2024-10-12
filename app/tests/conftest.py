@@ -3,28 +3,38 @@ from tests_setup import TestingSessionLocal, engine
 from models import Base
 import mock
 from unittest.mock import patch
+from contextlib import ExitStack
 
-from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS, ws_home_manager, WsMessage as WsHomeMessage
-from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, ws_partidas_manager, WsMessage as WsPartidasMessage
+from websockets_manager.ws_home_manager import MessageType as MThome, ws_home_manager, WsMessage as WsHomeMessage
+from websockets_manager.ws_partidas_manager import MessageType as MTpartidas, ws_partidas_manager, WsMessage as WsPartidasMessage
 
 
 @pytest.fixture(scope='function')
 def test_ws():
     ws_home_manager_path = 'websockets_manager.ws_home_manager.ws_home_manager'
     ws_partidas_manager_path = 'websockets_manager.ws_partidas_manager.ws_partidas_manager'
-    test_ws = { ACTUALIZAR_PARTIDAS: 0, ACTUALIZAR_SALA_ESPERA: 0, ACTUALIZAR_TURNO: 0, HAY_GANADOR: 0 }
     
-    with patch(f'{ws_home_manager_path}.send_{ACTUALIZAR_PARTIDAS}') as mock_actualizar_partidas, \
-         patch(f'{ws_partidas_manager_path}.send_{ACTUALIZAR_SALA_ESPERA}') as mock_actualizar_sala_espera, \
-         patch(f'{ws_partidas_manager_path}.send_{ACTUALIZAR_TURNO}') as mock_actualizar_turno, \
-         patch(f'{ws_partidas_manager_path}.send_{HAY_GANADOR}') as mock_send_ganador:
+    # Generar diccionario automáticamente
+    home_ws = {message_type.value: 0 for message_type in MThome}
+    partidas_ws = {message_type.value: 0 for message_type in MTpartidas}
+    test_ws = {**home_ws, **partidas_ws}
+    
+    with ExitStack() as stack:
+        mocks = {}
+        for message_type in MThome:
+            mocks[message_type.value] = stack.enter_context(patch(f'{ws_home_manager_path}.send_{message_type.value}'))
+        for message_type in MTpartidas:
+            mocks[message_type.value] = stack.enter_context(patch(f'{ws_partidas_manager_path}.send_{message_type.value}'))
 
         yield test_ws
+        print(test_ws)
 
-        assert mock_actualizar_partidas.call_count == test_ws[ACTUALIZAR_PARTIDAS], f"Se esperaba que se llamara {test_ws[ACTUALIZAR_PARTIDAS]} veces a la función send_{ACTUALIZAR_PARTIDAS}."
-        assert mock_actualizar_sala_espera.call_count == test_ws[ACTUALIZAR_SALA_ESPERA], f"Se esperaba que se llamara {test_ws[ACTUALIZAR_SALA_ESPERA]} veces a la función send_{ACTUALIZAR_SALA_ESPERA}."
-        assert mock_actualizar_turno.call_count == test_ws[ACTUALIZAR_TURNO], f"Se esperaba que se llamara {test_ws[ACTUALIZAR_TURNO]} veces a la función send_{ACTUALIZAR_TURNO}."
-        assert mock_send_ganador.call_count == test_ws[HAY_GANADOR], f"Se esperaba que se llamara {test_ws[HAY_GANADOR]} veces a la función send_{HAY_GANADOR}."
+        # Realizar asserts dinámicos
+        for message_type, mock in mocks.items():
+            print(message_type)
+            assert mock.call_count == test_ws[message_type], \
+                f"Se esperaba que se llame función send_{message_type} {test_ws[message_type]} veces y se la llamo {mock.call_count}."
+
 
 @pytest.fixture(scope='function')
 def test_db():
