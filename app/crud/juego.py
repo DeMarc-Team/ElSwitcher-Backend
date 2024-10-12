@@ -54,7 +54,7 @@ def siguiente_turno(db: Session, partida_id):
 
     db.commit()
 
-def reponer_cartas(db: Session, partida: Partida, jugador: Jugador, n_cartas_por_jugador=3):
+def reponer_cartas_movimiento(db: Session, partida: Partida, jugador: Jugador, n_cartas_por_jugador=3):
     '''
     Procedimiento no atómico (i.e. no ejecuta commit) para reponer las cartas de un jugador.
     
@@ -85,7 +85,7 @@ def terminar_turno(db: Session, partida_id, jugador_id):
     
     limpiar_stack_movimientos_parciales(db, partida_id)
     
-    reponer_cartas(db, partida, partida.jugador_del_turno)
+    reponer_cartas_movimiento(db, partida, partida.jugador_del_turno)
     db.flush()
     siguiente_turno(db, partida_id)
 
