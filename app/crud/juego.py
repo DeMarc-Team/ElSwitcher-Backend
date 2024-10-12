@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from exceptions import ResourceNotFoundError, ForbiddenError
-from models import Partida, Jugador
+from models import Partida, Jugador, CartaMovimiento
 from schemas import TurnoDetails, CasillasMov
 
 
@@ -91,7 +91,7 @@ def get_tablero(db: Session, partida_id: int):
 
 def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: CasillasMov, db: Session):
     from movimientos import swapear_en_tablero, is_valid_move
-    from crud.jugadores import remove_movement_card
+    from crud.jugadores import set_movement_card_used
     import json
 
     juego = db.query(Partida).filter(Partida.id == id_partida).first()
@@ -108,22 +108,26 @@ def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: Ca
     origen, destino, mov = desempaquetar_coords(coordenadas_y_carta)
     moveCode = mov.movimiento
     
-    if not player_holds_mov_card(juego.jugador_del_turno,moveCode): # El jugador posee la carta?
+    if not card_is_available(juego.jugador_del_turno,moveCode): # El jugador posee la carta?
         raise ForbiddenError("El player no posee esa carta")
 
     if not is_valid_move(mov,tablero_deserealizado,origen,destino): # El movimiento es uno valido?
         raise ForbiddenError("Movimiento no permitido")
     
 
-    remove_movement_card(db ,juego.jugador_del_turno,moveCode)
+    carta_id = db.query(CartaMovimiento).filter((CartaMovimiento.jugador_id == id_jugador) & (CartaMovimiento.movimiento == moveCode)).first().id
+
+    set_movement_card_used(db ,juego.jugador_del_turno,moveCode)
+    push_movimiento_parcial(db, id_partida, carta_id)
+
     swapear_en_tablero(tablero_deserealizado,origen,destino)
     
     juego.tablero = json.dumps(tablero_deserealizado)
     db.commit()
 
-def player_holds_mov_card(jugador: Jugador, movimiento):
+def card_is_available(jugador: Jugador, movimiento):
     for carta in jugador.mano_movimientos:
-        if carta.movimiento == movimiento:
+        if carta.movimiento == movimiento and not carta.usada_en_movimiento_parcial:
             return True
     
     return False
@@ -143,3 +147,19 @@ def matchear_obtener_carta(codigo_movimiento):
 
 def casilla_to_tuple(casilla):
     return (int(casilla.row) ,int(casilla.col))
+
+def push_movimiento_parcial(db: Session, partida_id, carta_id):
+    '''
+    Agrega un movimiento a la lista de movimientos parciales del jugador.
+    '''
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+    if (not partida):
+        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
+    
+    carta = db.query(CartaMovimiento).filter(CartaMovimiento.id == carta_id).first()
+    if (not carta):
+        raise ResourceNotFoundError(f"Carta de movimiento con ID {carta_id} no encontrada.")
+    
+    partida.movimientos_parciales.append(carta)
+
+    db.commit()

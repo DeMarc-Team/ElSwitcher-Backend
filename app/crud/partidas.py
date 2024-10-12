@@ -157,4 +157,4 @@ def __hay_ganador(db: Session, partida_id: int, jugador_id: int):
         db.delete(partida)  
         db.commit()
 
-    return id_ganador, nombre_ganador
+    return id_ganador, nombre_ganador    

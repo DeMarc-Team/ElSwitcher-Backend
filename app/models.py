@@ -82,6 +82,8 @@ class Partida(Base):
 
     tablero = mapped_column(String, nullable=False, default=random_tablero())
 
+    movimientos_parciales: Mapped[list['CartaMovimiento']] = relationship('CartaMovimiento')
+
     def __str__(self):  # pragma: no cover
         return (f"<Partida(id={self.id}, nombre_partida='{self.nombre_partida}', "
             f"nombre_creador='{self.nombre_creador}', iniciada={self.iniciada}, "
@@ -133,6 +135,9 @@ class CartaMovimiento(Base):
     # Las relaciones necesitan que exista además una foreign key
     movimientos_de = relationship('Jugador', back_populates='mano_movimientos')
     jugador_id = mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
+
+    usada_en_movimiento_parcial: Mapped[Boolean] = mapped_column(Boolean, default=False)
+    movimiento_parcial_en = mapped_column(Integer, ForeignKey('partidas.id'))
 
     def __str__(self):  # pragma: no cover
         return (f"<CartaMovimiento(id={self.id}, movimiento='{self.movimiento}', "

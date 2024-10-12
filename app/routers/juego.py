@@ -56,7 +56,6 @@ async def terminar_turno(id_partida: int, id_jugador, db: Session = Depends(get_
     await ws_partidas_manager.send_actualizar_turno(id_partida)
 
 
-from pydantic import Json
 @router.get('/{id_partida:int}/tablero',
             summary='Obetener el tablero del juego',
             response_model=TableroData,
