@@ -88,7 +88,7 @@ def limpiar_stack_movimientos_parciales(db, partida_id):
             f"Partida con ID {partida_id} no encontrada.")
     
     while partida.movimientos_parciales:
-        deshacer_movimiento(db, partida_id).
+        deshacer_movimiento(db, partida_id)
     db.commit()
 
 
