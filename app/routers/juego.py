@@ -55,10 +55,9 @@ async def terminar_turno(id_partida: int, id_jugador, db: Session = Depends(get_
     crud.juego.terminar_turno(db, id_partida, id_jugador)
     await ws_partidas_manager.send_actualizar_turno(id_partida)
 
-from pydantic import Json
 @router.get('/{id_partida:int}/tablero',
             summary='Obetener el tablero del juego',
-            response_model=Json,
+            response_model=TableroData,
             tags=["Juego"])
 async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
     """Obtiene el tablero de una partida
@@ -77,13 +76,11 @@ async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
     import json  
     tablero = crud.juego.get_tablero(db, id_partida)
     tablero_desearilizado = json.loads(tablero)
-    # response = {
-    #     'tablero': tablero_desearilizado,
-    #     'figuras_a_resaltar': hallar_todas_las_figuras_en_tablero(tablero_desearilizado)
-    # }
-    # return response
-    return tablero
-
+    response = {
+        'tablero': tablero_desearilizado,
+        'figuras_a_resaltar': hallar_todas_las_figuras_en_tablero(tablero_desearilizado)
+    }
+    return response
 
 
 @router.put('/{id_partida}/jugadores/{id_jugador}/tablero/casilla',
@@ -94,7 +91,7 @@ async def modificar_casillas(id_partida: int, id_jugador: int, coordenadas: Casi
     crud.juego.modificar_casillas(
         id_partida, id_jugador, coordenadas, db)
     await ws_partidas_manager.send_actualizar_tablero(id_partida)
-    # await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida) # Comentado porque el front no implementa el handle para esto
+    await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida) # Comentado porque el front no implementa el handle para esto
 
 
 @router.delete('/{id_partida}/jugadores/{id_jugador}/mov-parciales',
@@ -103,7 +100,7 @@ async def modificar_casillas(id_partida: int, id_jugador: int, coordenadas: Casi
 async def deshacer_movimiento(id_partida: int, id_jugador: int, db: Session = Depends(get_db)):
     crud.juego.deshacer_movimiento(db, id_partida, id_jugador)
     await ws_partidas_manager.send_actualizar_tablero(id_partida)
-    # await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida) # Comentado porque el front no implementa el handle para esto
+    await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida) # Comentado porque el front no implementa el handle para esto
 
 @router.get('/{id_partida}/jugadores/{id_jugador}/mov-parciales',
                summary="Obtiene el stack de los movimientos parciales",

@@ -193,7 +193,19 @@ def deshacer_movimiento(db: Session, id_partida, id_jugador):
             f"No hay movimientos parciales para deshacer en la partida con ID {id_partida}.")
 
     ultimo_movimiento = movimientos_parciales.pop()
-    
+
+    import ast
+    origen = ast.literal_eval(ultimo_movimiento.origen)
+    destino = ast.literal_eval(ultimo_movimiento.destino)
+
+
+
+    from movimientos import swapear_en_tablero
+    import json
+
+    tablero = json.loads(partida.tablero)
+    swapear_en_tablero(tablero, origen, destino)
+    partida.tablero = json.dumps(tablero)
 
     db.delete(ultimo_movimiento)
 
