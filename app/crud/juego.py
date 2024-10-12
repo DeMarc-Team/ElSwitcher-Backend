@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from exceptions import ResourceNotFoundError, ForbiddenError
-from models import Partida, Jugador, CartaMovimiento
+from models import Partida, Jugador, CartaMovimiento, MovimientoParcial
 from schemas import TurnoDetails, CasillasMov
 
 
@@ -118,7 +118,7 @@ def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: Ca
     carta_id = db.query(CartaMovimiento).filter((CartaMovimiento.jugador_id == id_jugador) & (CartaMovimiento.movimiento == moveCode)).first().id
 
     set_movement_card_used(db ,juego.jugador_del_turno,moveCode)
-    push_movimiento_parcial(db, id_partida, carta_id)
+    push_movimiento_parcial(db, id_partida, carta_id, origen, destino)
 
     swapear_en_tablero(tablero_deserealizado,origen,destino)
     
@@ -148,7 +148,7 @@ def matchear_obtener_carta(codigo_movimiento):
 def casilla_to_tuple(casilla):
     return (int(casilla.row) ,int(casilla.col))
 
-def push_movimiento_parcial(db: Session, partida_id, carta_id):
+def push_movimiento_parcial(db: Session, partida_id, carta_id, origen, destino):
     '''
     Agrega un movimiento a la lista de movimientos parciales del jugador.
     '''
@@ -160,6 +160,17 @@ def push_movimiento_parcial(db: Session, partida_id, carta_id):
     if (not carta):
         raise ResourceNotFoundError(f"Carta de movimiento con ID {carta_id} no encontrada.")
     
-    partida.movimientos_parciales.append(carta)
+    orden = len(partida.movimientos_parciales)
+
+    movimiento_parcial = MovimientoParcial(
+        carta_id=carta_id,
+        origen=str(origen),
+        destino=str(destino),
+        carta=carta,
+        partida_id=partida_id,
+        orden=orden
+    )
+    
+    partida.movimientos_parciales.append(movimiento_parcial)
 
     db.commit()

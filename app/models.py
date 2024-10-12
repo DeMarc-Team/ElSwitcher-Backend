@@ -82,7 +82,7 @@ class Partida(Base):
 
     tablero = mapped_column(String, nullable=False, default=random_tablero())
 
-    movimientos_parciales: Mapped[list['CartaMovimiento']] = relationship('CartaMovimiento')
+    movimientos_parciales = relationship('MovimientoParcial', order_by='MovimientoParcial.orden')
 
     def __str__(self):  # pragma: no cover
         return (f"<Partida(id={self.id}, nombre_partida='{self.nombre_partida}', "
@@ -142,3 +142,21 @@ class CartaMovimiento(Base):
     def __str__(self):  # pragma: no cover
         return (f"<CartaMovimiento(id={self.id}, movimiento='{self.movimiento}', "
                 f"jugador_id={self.jugador_id})>")
+
+class MovimientoParcial(Base):
+    __tablename__ = 'movimientos_parciales'
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, index=True, autoincrement=True)
+    carta_id = mapped_column(Integer, ForeignKey('cartas_de_movimiento.id'))
+    carta = relationship('CartaMovimiento')
+    
+    partida_id = mapped_column(Integer, ForeignKey('partidas.id'))
+
+    origen: Mapped[tuple[int, int]] = mapped_column(String, nullable=False)
+    destino: Mapped[tuple[int, int]] = mapped_column(String, nullable=False)
+    
+    orden = mapped_column(Integer, nullable=False)
+
+    def __str__(self):  # pragma: no cover
+        return (f"<JugadaParcial(id={self.id}, carta_id={self.carta_id}, "
+                f"origen={self.origen}, destino={self.destino}, partida_id={self.partida_id})>")
