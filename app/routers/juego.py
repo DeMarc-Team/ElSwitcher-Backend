@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 import crud.juego
 import crud.partidas
 from models import Base
-from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails, TableroData, CasillasMov
+from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails, TableroData, CasillasMov, MovimientoParcialData
 from database import engine, get_db
 
 from websockets_manager.ws_partidas_manager import ws_partidas_manager
@@ -104,3 +104,10 @@ async def deshacer_movimiento(id_partida: int, id_jugador: int, db: Session = De
     crud.juego.deshacer_movimiento(db, id_partida, id_jugador)
     await ws_partidas_manager.send_actualizar_tablero(id_partida)
     # await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida) # Comentado porque el front no implementa el handle para esto
+
+@router.get('/{id_partida}/jugadores/{id_jugador}/mov-parciales',
+               summary="Obtiene el stack de los movimientos parciales",
+               response_model=list[MovimientoParcialData],
+               tags=["Juego"])
+async def get_movimientos_parciales(id_partida: int, id_jugador: int, db: Session = Depends(get_db)):
+    return crud.juego.get_movimientos_parciales(db, id_partida)

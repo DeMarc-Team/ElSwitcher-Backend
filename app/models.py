@@ -160,6 +160,10 @@ class MovimientoParcial(Base):
     
     orden = mapped_column(Integer, nullable=False)
 
+    @hybrid_property
+    def movimiento(self):
+        return self.carta.movimiento
+
     def __str__(self):  # pragma: no cover
         return (f"<JugadaParcial(id={self.id}, carta_id={self.carta_id}, "
                 f"origen={self.origen}, destino={self.destino}, partida_id={self.partida_id})>")

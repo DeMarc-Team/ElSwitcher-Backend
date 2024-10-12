@@ -199,3 +199,16 @@ def deshacer_movimiento(db: Session, id_partida, id_jugador):
 
     db.commit()
     return ultimo_movimiento
+
+def get_movimientos_parciales(db: Session, id_partida):
+    partida = db.query(Partida).filter(Partida.id == id_partida).first()
+    if (not partida):
+        raise ResourceNotFoundError(
+            f"Partida con ID {id_partida} no encontrada.")
+
+    if (not partida.iniciada):
+        raise ForbiddenError(
+            f"La partida con ID {id_partida} todavía no comenzó.")
+
+    movimientos_parciales = partida.movimientos_parciales
+    return movimientos_parciales
