@@ -78,7 +78,6 @@ async def abandonar_partida(partida_id: int, jugador_id : int, db: Session = Dep
 
     hay_ganador = eventos.get("hay_ganador")
     partida_cancelada = eventos.get("partida_cancelada")
-    await ws_partidas_manager.send_actualizar_tablero(partida_id) # Se deshacen movimientos parciales si abandona
     if (hay_ganador):
         ganador_id = hay_ganador.get("id_ganador")
         ganador_nombre = hay_ganador.get("nombre_ganador")
@@ -91,6 +90,7 @@ async def abandonar_partida(partida_id: int, jugador_id : int, db: Session = Dep
         await ws_home_manager.send_actualizar_partidas()
         await ws_partidas_manager.send_actualizar_turno(partida_id)
         await ws_partidas_manager.send_actualizar_sala_espera(partida_id)
+        await ws_partidas_manager.send_actualizar_tablero(partida_id) # Se deshacen movimientos parciales si abandona
     return {"detail": "El jugador abandonó la partida exitosamente"}
 
 @router.websocket('/')

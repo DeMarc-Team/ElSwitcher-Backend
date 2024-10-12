@@ -10,6 +10,7 @@ ACTUALIZAR_PARTIDAS = HomeMessage(action=MtHome.ACTUALIZAR_PARTIDAS)
 ACTUALIZAR_SALA_ESPERA = PartidasMessage(action=MtPartidas.ACTUALIZAR_SALA_ESPERA)
 ACTUALIZAR_TURNO = PartidasMessage(action=MtPartidas.ACTUALIZAR_TURNO)
 PARTIDA_CANCELADA = PartidasMessage(action=MtPartidas.PARTIDA_CANCELADA)
+ACTUALIZAR_TABLERO = PartidasMessage(action=MtPartidas.ACTUALIZAR_TABLERO)
 
 def test_create_partida_ws(expected_msgs_home_ws):
     with mock.patch('routers.partidas.crud.create_partida', new=mock.MagicMock()) as mock_create_partida:
@@ -63,6 +64,7 @@ def test_terminar_turno_ws(expected_msgs_partidas_ws):
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     
     expected_msgs_partidas_ws.append(ACTUALIZAR_TURNO)
+    expected_msgs_partidas_ws.append(ACTUALIZAR_TABLERO)
 
 # ----------------------------------------------------------
 
@@ -77,6 +79,7 @@ def test_abandonar_partida_sin_ganador_ws(expected_msgs_home_ws, expected_msgs_p
     expected_msgs_home_ws.append(ACTUALIZAR_PARTIDAS)
     expected_msgs_partidas_ws.append(ACTUALIZAR_TURNO)
     expected_msgs_partidas_ws.append(ACTUALIZAR_SALA_ESPERA)
+    expected_msgs_partidas_ws.append(ACTUALIZAR_TABLERO)
 
 def test_abandonar_partida_con_ganador_ws(expected_msgs_partidas_ws):
     with mock.patch('routers.partidas.crud.abandonar_partida', new=mock.MagicMock()) as mock_delete_jugador:
