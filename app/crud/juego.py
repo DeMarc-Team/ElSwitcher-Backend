@@ -91,7 +91,6 @@ def get_tablero(db: Session, partida_id: int):
 
 def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: CasillasMov, db: Session):
     from movimientos import swapear_en_tablero, is_valid_move
-    from crud.jugadores import set_movement_card_used
     import json
 
     juego = db.query(Partida).filter(Partida.id == id_partida).first()
@@ -117,7 +116,6 @@ def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: Ca
 
     carta_id = db.query(CartaMovimiento).filter((CartaMovimiento.jugador_id == id_jugador) & (CartaMovimiento.movimiento == moveCode)).first().id
 
-    set_movement_card_used(db ,juego.jugador_del_turno,moveCode)
     push_movimiento_parcial(db, id_partida, carta_id, origen, destino)
 
     swapear_en_tablero(tablero_deserealizado,origen,destino)
@@ -170,7 +168,34 @@ def push_movimiento_parcial(db: Session, partida_id, carta_id, origen, destino):
         partida_id=partida_id,
         orden=orden
     )
-    
+
     partida.movimientos_parciales.append(movimiento_parcial)
 
     db.commit()
+
+def deshacer_movimiento(db: Session, id_partida, id_jugador):
+    partida = db.query(Partida).filter(Partida.id == id_partida).first()
+    if (not partida):
+        raise ResourceNotFoundError(
+            f"Partida con ID {id_partida} no encontrada.")
+
+    if (not partida.iniciada):
+        raise ForbiddenError(
+            f"La partida con ID {id_partida} todavía no comenzó.")
+
+    if (partida.jugador_del_turno.id_jugador != id_jugador):
+        raise ForbiddenError(
+            f"El ID del jugador que posee el turno no es {id_jugador}.")
+
+    movimientos_parciales = partida.movimientos_parciales
+    if (len(movimientos_parciales) == 0):
+        raise ForbiddenError(
+            f"No hay movimientos parciales para deshacer en la partida con ID {id_partida}.")
+
+    ultimo_movimiento = movimientos_parciales.pop()
+    
+
+    db.delete(ultimo_movimiento)
+
+    db.commit()
+    return ultimo_movimiento

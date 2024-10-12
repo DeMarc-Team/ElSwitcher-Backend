@@ -101,6 +101,6 @@ async def modificar_casillas(id_partida: int, id_jugador: int, coordenadas: Casi
                summary="Eliminar el ultimo movimiento parcial de un jugador.",
                tags=["Juego"])
 async def deshacer_movimiento(id_partida: int, id_jugador: int, db: Session = Depends(get_db)):
-    crud.juego.deshacer_movimiento(id_partida, id_jugador, db)
+    crud.juego.deshacer_movimiento(db, id_partida, id_jugador)
     await ws_partidas_manager.send_actualizar_tablero(id_partida)
     # await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida) # Comentado porque el front no implementa el handle para esto

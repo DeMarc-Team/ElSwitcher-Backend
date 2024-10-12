@@ -136,8 +136,11 @@ class CartaMovimiento(Base):
     movimientos_de = relationship('Jugador', back_populates='mano_movimientos')
     jugador_id = mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
 
-    usada_en_movimiento_parcial: Mapped[Boolean] = mapped_column(Boolean, default=False)
-    movimiento_parcial_en = mapped_column(Integer, ForeignKey('partidas.id'))
+    movimiento_parcial_en = relationship('MovimientoParcial', uselist=False, back_populates='carta')
+
+    @hybrid_property
+    def usada_en_movimiento_parcial(self):
+        return self.movimiento_parcial_en is not None
 
     def __str__(self):  # pragma: no cover
         return (f"<CartaMovimiento(id={self.id}, movimiento='{self.movimiento}', "
