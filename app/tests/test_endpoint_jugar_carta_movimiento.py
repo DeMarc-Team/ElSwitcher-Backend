@@ -28,7 +28,11 @@ def test_hacer_movimiento_200(test_db):
     response = jugar_carta_m1(partida, id_jugador_del_turno)
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     test_db.refresh(jugador_del_turno) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
-    assert len(jugador_del_turno.mano_movimientos) == 2, "Fallo: El jugador debería haber jugado su carta de movimiento"
+
+    assert len(partida.movimientos_parciales) == 1, "Fallo: Debería haber un movimiento parcial"
+    assert partida.movimientos_parciales[0].origen == str((0,0)), "Fallo: La casilla 1 no es la esperada"
+    assert partida.movimientos_parciales[0].destino == str((2,2)), "Fallo: La casilla 2 no es la esperada"
+
     test_db.refresh(partida) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
     assert partida.tablero != tablero_original, "Fallo: El tablero no debería haber cambiado"
     assert partida.tablero == tablero_esperado, "Fallo: El tablero no es el esperado"
@@ -56,6 +60,7 @@ def test_movimiento_invalido(test_db):
     response = jugar_movimiento_invalido(partida, id_jugador_del_turno)
     
     assert partida.tablero == tablero_original, "Fallo: El tablero no debería haber cambiado"
+    assert partida.movimientos_parciales == [], "Fallo: La casilla 1 no es la esperada"
 
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     test_db.refresh(jugador_del_turno) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo

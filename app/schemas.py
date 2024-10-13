@@ -50,14 +50,19 @@ class CartaFiguraData(BaseModel):
 
 class CartaMovimientoData(BaseModel):
     movimiento: str
-
+    usada_en_movimiento_parcial: bool
 
 class Casilla(BaseModel):
     row: int
     col: int
 
-
 class CasillasMov(BaseModel):
     casilla1: Casilla
     casilla2: Casilla
     codeMove: str
+
+class MovimientoParcialData(BaseModel):
+    origen: str
+    destino: str
+    orden: int
+    movimiento: str

@@ -7,6 +7,7 @@ from schemas import PartidaData
 from models import Jugador, CartaFigura, CartaMovimiento, Partida
 from crud.juego import terminar_turno
 
+
 def get_id_creador(db: Session, partida_id):
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
     if (not partida):

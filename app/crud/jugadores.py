@@ -36,11 +36,18 @@ def get_jugadores(db: Session, partida_id: int):
     return db.query(Jugador).filter(Jugador.partida_id == partida_id).all()
 
 
-def remove_movement_card(db: Session, jugador:Jugador, mov_id):
+def set_movement_card_used(db: Session, jugador:Jugador, mov_id):
     for movimiento in jugador.mano_movimientos:
-        if (movimiento.movimiento == mov_id):
-            jugador.mano_movimientos.remove(movimiento)
+        if (movimiento.movimiento == mov_id and movimiento.usada_en_movimiento_parcial == False):
+            movimiento.usada_en_movimiento_parcial = True
+
             db.commit()
             return
         
-    raise ResourceNotFoundError(f"Carta de movimiento con ID {mov_id} no encontrada en la mano del jugador con ID {jugador.id_jugador}.")
+def set_movement_card_unused(db: Session, jugador:Jugador, mov_id):
+    for movimiento in jugador.mano_movimientos:
+        if (movimiento.movimiento == mov_id and movimiento.usada_en_movimiento_parcial == True):
+            movimiento.usada_en_movimiento_parcial = False
+
+            db.commit()
+            return
