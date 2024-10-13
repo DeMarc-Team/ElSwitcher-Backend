@@ -156,3 +156,25 @@ def siguiente_turno(db: Session, partida: Partida):
         jugador.orden = partida.jugadores.index(jugador)
 
     db.commit()
+
+def consumir_carta_movimiento(db: Session, jugador: Jugador, mov: str, cantidad=1):
+    '''
+    Procedimiento para eliminar los primeros "cantidad" de movimientos de la mano del jugador que son del tipo "mov".
+    
+    En caso de existir menos movimientos de tipo "mov" de la cantidad a consumir especificada, se consumen todas las movimientos del tipo "mov" que hay.
+    '''
+    
+    assert cantidad >= 1, "La cantidad de movimientos a consumir debe ser mayor o igual que 1."
+    assert jugador.mano_movimientos is not None, "El jugador no tiene una mano de movimientos asignada (su mano es None)."
+    assert jugador.mano_movimientos != [], "El jugador no tiene cartas de movimiento en su mano (su mano está vacía)."
+    
+    cartas_del_tipo = [carta for carta in jugador.mano_movimientos if carta.movimiento == mov]
+    
+    assert cartas_del_tipo is not None, f"El jugador no posee ninguna carta revelada del tipo '{mov}'."
+    
+    cartas_a_borrar = cartas_del_tipo[:cantidad]
+    
+    for carta in cartas_a_borrar:
+        db.delete(carta)    
+    
+    db.commit()

@@ -1,10 +1,11 @@
+import mock
 from tests_setup import client
-from factory import crear_partida, unir_jugadores, iniciar_partida
+from factory import crear_partida, unir_jugadores, iniciar_partida, consumir_carta_movimiento
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_TURNO, ACTUALIZAR_TABLERO
 
 def test_terminar_turno(test_db, test_ws):
     '''Test que chequea el funcionamiento en el escenario exitoso del endpoint para terminar_turno.'''
-    
+
     partida, _ = crear_partida(test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores=3)
     iniciar_partida(test_db, partida)
@@ -25,7 +26,7 @@ def test_terminar_turno(test_db, test_ws):
     # Pasamos el turno
     response = client.put(f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
-    test_db.commit()
+    test_db.refresh(partida) # Para actualizar localmente la info de la partida
 
     partida_datos_posteriores = {
         "id": partida.id,
@@ -41,8 +42,11 @@ def test_terminar_turno(test_db, test_ws):
         partida_datos_invariantes == partida_datos_posteriores
     ), f"Fallo: Se esperaba que el único dato que se modificara de la partida fuera el orden, pero no es así."
 
-    # Comprobamos que el turno sea del jugaddor correspondiente
-    assert partida.jugador_del_turno.id_jugador == segundo_jugador.id_jugador
+    # Comprobamos que el turno sea del jugador correspondiente
+    assert (
+        partida.jugador_del_turno.id_jugador == segundo_jugador.id_jugador
+    ), f"Fallo: Se esperaba que el nuevo jugador del turno fuera el de id {segundo_jugador.id_jugador}, pero tiene id {partida.jugador_del_turno.id_jugador}."
+    
     assert len(partida.jugadores) == 4, f"Fallo: Se esperaba que la cantidad de jugadores fuera la misma, pero no es así."
 
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
@@ -56,22 +60,9 @@ def test_vuelta_completa(test_db, test_ws):
     unir_jugadores(test_db, partida, numero_de_jugadores=3)
     iniciar_partida(test_db, partida)
 
-    id_jugador_inicial = partida.jugador_id
-    id_jugador_anterior = None
-
-    for i in range(0, len(partida.jugadores)):
-        # Obtenemos el id del jugador actual
-        id_jugador_actual = partida.jugador_id
-
-        # Verificamos que efectivamente se haya cambiador el turno
-        assert id_jugador_actual != id_jugador_anterior, f"Fallo: Se esperaba un cambio de turno en el jugador {id_jugador_actual}, pero esto no ocurrió."
-        
-        id_jugador_anterior = id_jugador_actual
-        
-        # Terminamos el turno del jugador actual
-        response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
-        assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
-        test_db.commit()
+    # Pasamos una ronda completa de turnos
+    orden_de_turnos = pasar_ronda_completa(test_db, partida)
+    id_jugador_inicial = orden_de_turnos[0]
 
     # Obtenemos el id del nuevo jugador actual
     id_jugador_final = partida.jugador_id
@@ -90,47 +81,48 @@ def test_varias_rondas(test_db, test_ws):
     unir_jugadores(test_db, partida, numero_de_jugadores=3)
     iniciar_partida(test_db, partida)
 
-    orden_de_turnos = []
-    id_jugador_anterior = None
     # Hacemos una primera ronda para identificar el orden por id
-    for i in range(0, len(partida.jugadores)):
-
-        # Obtenemos el id del jugador actual
-        id_jugador_actual = partida.jugador_id
-
-        # Verificamos que efectivamente se haya cambiado el turno
-        assert id_jugador_actual != id_jugador_anterior, f"Fallo: Se esperaba un cambio de turno en el jugador {id_jugador_actual}, pero esto no ocurrió."
-
-        orden_de_turnos.append(id_jugador_actual)
-        id_jugador_anterior = id_jugador_actual
-
-        # Terminamos el turno del jugador actual
-        response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
-        assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
-        test_db.commit()
+    orden_de_turnos = pasar_ronda_completa(test_db, partida)
 
     # Verificamos que se haya pasado por todos los jugadores
-    assert len(set(orden_de_turnos)) == len(partida.jugadores)
-    
+    n_ids_que_jugaron = len(set(orden_de_turnos))
+    assert n_ids_que_jugaron == len(
+        partida.jugadores
+    ), f"Fallo: Se esperaba que se haya pasado por todos los jugadores ({len(partida.jugadores)}, pero solo jugaron {n_ids_que_jugaron}), "
+
     # Hacemos 4 rondas mas para ver si tal orden se mantiene
-    for i in range(0, 4 * len(partida.jugadores)):
-
-        # Obtenemos el id del jugador actual
-        id_jugador_actual = partida.jugador_id
-
-        # Verificamos que se este siguiendo el mismo orden de antes
-        assert orden_de_turnos[i%len(partida.jugadores)] == id_jugador_actual
-        id_jugador_anterior = id_jugador_actual
-
-        # Terminamos el turno del jugador actual
-        response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
-        test_db.commit()
+    for i in range(0, 4):
+        nuevo_orden = pasar_ronda_completa(test_db, partida)
+        assert nuevo_orden == orden_de_turnos, "Fallo: El orden de la primera ronda no coincide con el de la ronda con i={i}."
 
     assert len(partida.jugadores) == 4, f"Fallo: Se esperaba que la cantidad de jugadores fuera la misma, pero no es así."
 
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws[ACTUALIZAR_TURNO] = 5 * len(partida.jugadores)
     test_ws[ACTUALIZAR_TABLERO] = 5 * len(partida.jugadores)
+
+def test_reponer_cartas_movimiento(test_db):
+    '''Test sobre la reposición de las cartas de movimiento al finalizar el turno del jugador.'''
+    
+    partida, _ = crear_partida(test_db)
+    unir_jugadores(test_db, partida, numero_de_jugadores=2)
+    with mock.patch("models.CartaMovimiento.random_movimiento", return_value="m1"):
+        iniciar_partida(db=test_db, partida=partida)
+    jugador_del_turno = partida.jugador_del_turno
+
+    consumir_carta_movimiento(test_db, jugador_del_turno, "m1", cantidad=2)
+    
+    with mock.patch("models.CartaMovimiento.random_movimiento", mock.Mock(side_effect=["m2", "m3"])):
+        response = client.put(f'juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/turno')
+        assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
+    
+    test_db.refresh(partida) # Para actualizar localmente la info de la partida
+    
+    movimientos = [mov.movimiento for mov in jugador_del_turno.mano_movimientos]
+    
+    assert movimientos == [
+        "m1", "m2", "m3"
+    ], "Fallo: Las cartas de movimiento del jugador no se repusieron como se esperaba."
 
 def test_partida_inexistente_404(test_db, test_ws):
     '''Test sobre los mensajes de error ante el envío de terminar turno a una partida inexistente.'''
@@ -158,3 +150,30 @@ def test_jugador_sin_turno_403(test_db, test_ws):
     # Intentamos terminar el turno de un jugador que no posee el turno
     response = client.put(f'juego/{partida.id}/jugadores/{3}/turno')
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
+
+# Auxiliares
+def pasar_ronda_completa(db, partida):
+    '''
+    Pasa una ronda completa de turnos y retorna una lista ordenada por turno de los ids de los jugadores que jugaron la ronda.
+    '''
+    
+    orden_de_turnos = []
+    id_jugador_anterior = None
+    # Hacemos una primera ronda para identificar el orden por id
+    for i in range(0, len(partida.jugadores)):
+
+        # Obtenemos el id del jugador actual
+        id_jugador_actual = partida.jugador_id
+
+        # Verificamos que efectivamente se haya cambiado el turno
+        assert id_jugador_actual != id_jugador_anterior, f"Fallo: Se esperaba un cambio de turno en el jugador {id_jugador_actual}, pero esto no ocurrió."
+
+        orden_de_turnos.append(id_jugador_actual)
+        id_jugador_anterior = id_jugador_actual
+
+        # Terminamos el turno del jugador actual
+        response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
+        assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
+        db.refresh(partida) # Para actualizar localmente la info de la partida
+        
+    return orden_de_turnos
