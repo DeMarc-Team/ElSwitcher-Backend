@@ -1,9 +1,9 @@
-from tests_setup import client
-from factory import crear_partida, unir_jugadores, iniciar_partida
-from models import Partida, Jugador
+import pytest
+
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, PARTIDA_CANCELADA, ACTUALIZAR_TABLERO
-import pytest
+from tests_setup import client
+from factory import crear_partida, unir_jugadores, iniciar_partida
 from verifications import check_jugador_abandoned, check_partida_deletion, check_response
 
 
