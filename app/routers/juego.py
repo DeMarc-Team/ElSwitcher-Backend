@@ -111,8 +111,8 @@ async def get_movimientos_parciales(id_partida: int, id_jugador: int, db: Sessio
     return crud.juego.get_movimientos_parciales(db, id_partida)
 
 @router.put('/juego/{id_partida:int}/jugadores/{id_jugador:int}/tablero/figura',
-            summary="Completar figura propia,",
+            summary="Completar figura propia",
             description="Utiliza la carta de figura especificada a partir de la existencia de la figura en las cordenadas que se pasaron.",
             tags=["Juego"])
-async def completar_figura_propia(id_partida: int, id_jugador: int, figura_data: CompletarFiguraData):
-    pass
+async def completar_figura_propia(id_partida: int, id_jugador: int, figura_data: CompletarFiguraData, db: Session = Depends(get_db)):
+    crud.juego.usar_figura(db, id_partida, id_jugador, figura_data)
