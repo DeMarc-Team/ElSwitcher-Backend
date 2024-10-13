@@ -155,8 +155,6 @@ def test_reponer_cartas_movimiento(test_db):
     assert movimientos == [
         "m1", "m2", "m3"
     ], "Fallo: Las cartas de movimiento del jugador no se repusieron como se esperaba."
-
-    
     
 def test_partida_inexistente_404(test_db, test_ws):
     '''Test sobre los mensajes de error ante el envío de terminar turno a una partida inexistente.'''
