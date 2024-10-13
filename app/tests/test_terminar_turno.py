@@ -26,7 +26,7 @@ def test_terminar_turno(test_db, test_ws):
     # Pasamos el turno
     response = client.put(f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
-    test_db.commit()
+    test_db.refresh(partida)
 
     partida_datos_posteriores = {
         "id": partida.id,
@@ -72,7 +72,7 @@ def test_vuelta_completa(test_db, test_ws):
         # Terminamos el turno del jugador actual
         response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
-        test_db.commit()
+        test_db.refresh(partida)
 
     # Obtenemos el id del nuevo jugador actual
     id_jugador_final = partida.jugador_id
@@ -108,7 +108,7 @@ def test_varias_rondas(test_db, test_ws):
         # Terminamos el turno del jugador actual
         response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
-        test_db.commit()
+        test_db.refresh(partida)
 
     # Verificamos que se haya pasado por todos los jugadores
     assert len(set(orden_de_turnos)) == len(partida.jugadores)
@@ -125,7 +125,7 @@ def test_varias_rondas(test_db, test_ws):
 
         # Terminamos el turno del jugador actual
         response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
-        test_db.commit()
+        test_db.refresh(partida)
 
     assert len(partida.jugadores) == 4, f"Fallo: Se esperaba que la cantidad de jugadores fuera la misma, pero no es así."
 
@@ -148,7 +148,7 @@ def test_reponer_cartas_movimiento(test_db):
         response = client.put(f'juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/turno')
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
     
-    test_db.flush()
+    test_db.refresh(partida)
     
     movimientos = [mov.movimiento for mov in jugador_del_turno.mano_movimientos]
     

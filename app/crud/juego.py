@@ -37,7 +37,7 @@ def get_turno_details(db: Session, partida_id):
     return turno_details
 
 
-def siguiente_turno(db: Session, partida_id):
+def siguiente_turno(db: Session, partida_id, atomic=True):
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
     if (not partida):
         raise ResourceNotFoundError(
@@ -52,11 +52,14 @@ def siguiente_turno(db: Session, partida_id):
     for jugador in partida.jugadores:
         jugador.orden = partida.jugadores.index(jugador)
 
-    db.commit()
+    if atomic:
+        db.commit()
+    else:
+        db.flush()
 
-def reponer_cartas_movimiento(db: Session, partida: Partida, jugador: Jugador, n_cartas_por_jugador=3):
+def reponer_cartas_movimiento(db: Session, partida: Partida, jugador: Jugador, n_cartas_por_jugador=3, atomic=True):
     '''
-    Procedimiento no atómico (i.e. no ejecuta commit) para reponer las cartas de un jugador.
+    Procedimiento para reponer las cartas de un jugador.
     
     Repone hasta que el jugador tenga n_cartas_por_jugador en la mano.
     '''
@@ -67,6 +70,11 @@ def reponer_cartas_movimiento(db: Session, partida: Partida, jugador: Jugador, n
     for i in range(0, n_cartas_por_jugador - cantidad_movimientos):
         new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
         db.add(new_carta)
+        
+    if atomic:
+        db.commit()
+    else:
+        db.flush()
 
 def terminar_turno(db: Session, partida_id, jugador_id):
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
@@ -83,23 +91,27 @@ def terminar_turno(db: Session, partida_id, jugador_id):
     if (actual_jugador.id_jugador != jugador_id):
         raise ForbiddenError(f"El ID del jugador que posee el turno no es {jugador_id}.")
     
-    limpiar_stack_movimientos_parciales(db, partida_id)
+    limpiar_stack_movimientos_parciales(db, partida_id, atomic=False)
     
-    reponer_cartas_movimiento(db, partida, partida.jugador_del_turno)
+    reponer_cartas_movimiento(db, partida, partida.jugador_del_turno, atomic=False)
     db.flush()
-    siguiente_turno(db, partida_id)
+    siguiente_turno(db, partida_id, atomic=False)
 
     db.commit()
 
-def limpiar_stack_movimientos_parciales(db, partida_id):
+def limpiar_stack_movimientos_parciales(db, partida_id, atomic=True):
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
     if (not partida):
         raise ResourceNotFoundError(
             f"Partida con ID {partida_id} no encontrada.")
     
     while partida.movimientos_parciales:
-        deshacer_movimiento(db, partida_id)
-    db.commit()
+        deshacer_movimiento(db, partida_id, atomic=False)
+    
+    if atomic:
+        db.commit()
+    else:
+        db.flush()
 
 
 def get_tablero(db: Session, partida_id: int):
@@ -146,7 +158,7 @@ def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: Ca
 
     carta_id = carta.id
 
-    push_movimiento_parcial(db, id_partida, carta_id, origen, destino)
+    push_movimiento_parcial(db, id_partida, carta_id, origen, destino, atomic=False)
 
     swapear_en_tablero(tablero_deserealizado,origen,destino)
     
@@ -176,7 +188,7 @@ def matchear_obtener_carta(codigo_movimiento):
 def casilla_to_tuple(casilla):
     return (int(casilla.row) ,int(casilla.col))
 
-def push_movimiento_parcial(db: Session, partida_id, carta_id, origen, destino):
+def push_movimiento_parcial(db: Session, partida_id, carta_id, origen, destino, atomic=True):
     '''
     Agrega un movimiento a la lista de movimientos parciales del jugador.
     '''
@@ -201,9 +213,12 @@ def push_movimiento_parcial(db: Session, partida_id, carta_id, origen, destino):
 
     partida.movimientos_parciales.append(movimiento_parcial)
 
-    db.commit()
+    if atomic:
+        db.commit()
+    else:
+        db.flush()
 
-def deshacer_movimiento(db: Session, id_partida):
+def deshacer_movimiento(db: Session, id_partida, atomic=True):
     partida = db.query(Partida).filter(Partida.id == id_partida).first()
     if (not partida):
         raise ResourceNotFoundError(
@@ -233,7 +248,11 @@ def deshacer_movimiento(db: Session, id_partida):
 
     db.delete(ultimo_movimiento)
 
-    db.commit()
+    if atomic:
+        db.commit()
+    else:
+        db.flush()
+
     return ultimo_movimiento
 
 def get_movimientos_parciales(db: Session, id_partida):
