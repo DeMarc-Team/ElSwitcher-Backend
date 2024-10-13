@@ -114,8 +114,11 @@ def test_varias_rondas(test_db, test_ws):
         test_db.refresh(partida) # Para actualizar localmente la info de la partida
 
     # Verificamos que se haya pasado por todos los jugadores
-    assert len(set(orden_de_turnos)) == len(partida.jugadores)
-    
+    n_ids_que_jugaron = len(set(orden_de_turnos))
+    assert n_ids_que_jugaron == len(
+        partida.jugadores
+    ), f"Fallo: Se esperaba que se haya pasado por todos los jugadores ({len(partida.jugadores)}, pero solo jugaron {n_ids_que_jugaron}), "
+
     # Hacemos 4 rondas mas para ver si tal orden se mantiene
     for i in range(0, 4 * len(partida.jugadores)):
 
@@ -123,7 +126,7 @@ def test_varias_rondas(test_db, test_ws):
         id_jugador_actual = partida.jugador_id
 
         # Verificamos que se este siguiendo el mismo orden de antes
-        assert orden_de_turnos[i%len(partida.jugadores)] == id_jugador_actual
+        assert orden_de_turnos[i%len(partida.jugadores)] == id_jugador_actual, "Fallo: El orden de la primera ronda no coincide con el actual."
         id_jugador_anterior = id_jugador_actual
 
         # Terminamos el turno del jugador actual
