@@ -2,7 +2,7 @@ from tests_setup import client
 from factory import crear_partida, unir_jugadores, iniciar_partida
 from models import Partida, Jugador
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
-from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, PARTIDA_CANCELADA
+from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, PARTIDA_CANCELADA, ACTUALIZAR_TABLERO
 
 def test_abandonar_partida_en_el_turno_200(test_db, test_ws):
     '''Test de jugador abandonando una partida en su turno'''
@@ -10,6 +10,7 @@ def test_abandonar_partida_en_el_turno_200(test_db, test_ws):
     test_ws[ACTUALIZAR_SALA_ESPERA] = 1
     test_ws[ACTUALIZAR_TURNO] = 1
     test_ws[ACTUALIZAR_PARTIDAS] = 1
+    test_ws[ACTUALIZAR_TABLERO] = 1
 
     # Inicializamos la precondicion
     partida, _ = crear_partida(db=test_db)
@@ -73,6 +74,7 @@ def test_abandonar_partida_no_iniciada_no_creador_200(test_db, test_ws):
     test_ws[ACTUALIZAR_SALA_ESPERA] = 1
     test_ws[ACTUALIZAR_TURNO] = 1
     test_ws[ACTUALIZAR_PARTIDAS] = 1
+    test_ws[ACTUALIZAR_TABLERO] = 1
 
     # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
@@ -105,6 +107,7 @@ def test_abandonar_partida_iniciada_creador_200(test_db, test_ws):
     test_ws[ACTUALIZAR_SALA_ESPERA] = 1
     test_ws[ACTUALIZAR_TURNO] = 1
     test_ws[ACTUALIZAR_PARTIDAS] = 1
+    test_ws[ACTUALIZAR_TABLERO] = 1
 
     # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
@@ -139,6 +142,7 @@ def test_abandonar_partida_iniciada_no_creador_200(test_db, test_ws):
     test_ws[ACTUALIZAR_SALA_ESPERA] = 1
     test_ws[ACTUALIZAR_TURNO] = 1
     test_ws[ACTUALIZAR_PARTIDAS] = 1
+    test_ws[ACTUALIZAR_TABLERO] = 1
 
     # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
