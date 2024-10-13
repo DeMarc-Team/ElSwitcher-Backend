@@ -73,9 +73,9 @@ def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
     if (not jugador):
         raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
     
-    mazo_del_jugador = jugador.mazo_cartas_de_figura
+    mano_del_jugador = [figura_revelada for figura_revelada in jugador.mazo_cartas_de_figura if figura_revelada.revelada]
 
-    return mazo_del_jugador
+    return mano_del_jugador
 
 def _repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=22, n_cartas_reveladas=N_FIGURAS_REVELADAS):
     for jugador in partida.jugadores:
