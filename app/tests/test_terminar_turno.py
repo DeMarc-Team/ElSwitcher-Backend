@@ -5,7 +5,7 @@ from websockets_manager.ws_partidas_manager import ACTUALIZAR_TURNO, ACTUALIZAR_
 
 def test_terminar_turno(test_db, test_ws):
     '''Test que chequea el funcionamiento en el escenario exitoso del endpoint para terminar_turno.'''
-    
+
     partida, _ = crear_partida(test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores=3)
     iniciar_partida(test_db, partida)
@@ -26,7 +26,7 @@ def test_terminar_turno(test_db, test_ws):
     # Pasamos el turno
     response = client.put(f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
-    test_db.refresh(partida)
+    test_db.refresh(partida) # Para actualizar localmente la info de la partida
 
     partida_datos_posteriores = {
         "id": partida.id,
@@ -42,8 +42,11 @@ def test_terminar_turno(test_db, test_ws):
         partida_datos_invariantes == partida_datos_posteriores
     ), f"Fallo: Se esperaba que el único dato que se modificara de la partida fuera el orden, pero no es así."
 
-    # Comprobamos que el turno sea del jugaddor correspondiente
-    assert partida.jugador_del_turno.id_jugador == segundo_jugador.id_jugador
+    # Comprobamos que el turno sea del jugador correspondiente
+    assert (
+        partida.jugador_del_turno.id_jugador == segundo_jugador.id_jugador
+    ), f"Fallo: Se esperaba que el nuevo jugador del turno fuera el de id {segundo_jugador.id_jugador}, pero tiene id {partida.jugador_del_turno.id_jugador}."
+    
     assert len(partida.jugadores) == 4, f"Fallo: Se esperaba que la cantidad de jugadores fuera la misma, pero no es así."
 
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
@@ -72,7 +75,7 @@ def test_vuelta_completa(test_db, test_ws):
         # Terminamos el turno del jugador actual
         response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
-        test_db.refresh(partida)
+        test_db.refresh(partida) # Para actualizar localmente la info de la partida
 
     # Obtenemos el id del nuevo jugador actual
     id_jugador_final = partida.jugador_id
@@ -108,7 +111,7 @@ def test_varias_rondas(test_db, test_ws):
         # Terminamos el turno del jugador actual
         response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
-        test_db.refresh(partida)
+        test_db.refresh(partida) # Para actualizar localmente la info de la partida
 
     # Verificamos que se haya pasado por todos los jugadores
     assert len(set(orden_de_turnos)) == len(partida.jugadores)
@@ -125,7 +128,7 @@ def test_varias_rondas(test_db, test_ws):
 
         # Terminamos el turno del jugador actual
         response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
-        test_db.refresh(partida)
+        test_db.refresh(partida) # Para actualizar localmente la info de la partida
 
     assert len(partida.jugadores) == 4, f"Fallo: Se esperaba que la cantidad de jugadores fuera la misma, pero no es así."
 
@@ -148,14 +151,14 @@ def test_reponer_cartas_movimiento(test_db):
         response = client.put(f'juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/turno')
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
     
-    test_db.refresh(partida)
+    test_db.refresh(partida) # Para actualizar localmente la info de la partida
     
     movimientos = [mov.movimiento for mov in jugador_del_turno.mano_movimientos]
     
     assert movimientos == [
         "m1", "m2", "m3"
     ], "Fallo: Las cartas de movimiento del jugador no se repusieron como se esperaba."
-    
+
 def test_partida_inexistente_404(test_db, test_ws):
     '''Test sobre los mensajes de error ante el envío de terminar turno a una partida inexistente.'''
 
