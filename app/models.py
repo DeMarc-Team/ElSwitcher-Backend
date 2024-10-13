@@ -84,7 +84,7 @@ class Partida(Base):
         return self.jugadores[0].id_jugador
 
 
-    tablero = mapped_column(String, nullable=False, default=random_tablero())
+    tablero = mapped_column(String, nullable=False, default=random_tablero)
 
     movimientos_parciales = relationship('MovimientoParcial', order_by='MovimientoParcial.orden')
 
