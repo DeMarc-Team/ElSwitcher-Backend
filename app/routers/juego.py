@@ -110,7 +110,7 @@ async def deshacer_movimiento(id_partida: int, id_jugador: int, db: Session = De
 async def get_movimientos_parciales(id_partida: int, id_jugador: int, db: Session = Depends(get_db)):
     return crud.juego.get_movimientos_parciales(db, id_partida)
 
-@router.put('/juego/{id_partida:int}/jugadores/{id_jugador:int}/tablero/figura',
+@router.put('/{id_partida:int}/jugadores/{id_jugador:int}/tablero/figura',
             summary="Completar figura propia",
             description="Utiliza la carta de figura especificada a partir de la existencia de la figura en las cordenadas que se pasaron.",
             tags=["Juego"])
