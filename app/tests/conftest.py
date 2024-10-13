@@ -17,6 +17,7 @@ def test_ws():
     # Generar diccionario automáticamente
     home_ws = {message_type.value: 0 for message_type in MThome}
     partidas_ws = {message_type.value: 0 for message_type in MTpartidas}
+    assert len(set(home_ws.keys()).intersection(partidas_ws.keys())) == 0, "Los diccionarios de mensajes de home y partidas no deben tener claves en común."
     test_ws = {**home_ws, **partidas_ws}
     
     with ExitStack() as stack:
