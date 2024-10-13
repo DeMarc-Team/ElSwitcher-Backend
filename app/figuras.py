@@ -407,7 +407,9 @@ def hallar_todas_las_figuras_en_tablero(tablero):
     figuras = SET_DE_CARTAS
     result = {}
     for figura in figuras:
-        result[figura.id] = figura.matchear_en_tablero(tablero)
+        matches_para_figura = figura.matchear_en_tablero(tablero)
+        if matches_para_figura != []:
+            result[figura.id] = matches_para_figura
 
 
     return result
