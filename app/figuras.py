@@ -282,7 +282,7 @@ class Figura16(Figura):
                  
     """
     def __init__(self):
-        self.recorrido = Recorrido([RIGHT,RIGHT,UP,LEFT])
+        self.recorrido = Recorrido([DOWN,RIGHT,RIGHT,UP])
         self.id = 'f16'
         self.es_dificil = True
 
