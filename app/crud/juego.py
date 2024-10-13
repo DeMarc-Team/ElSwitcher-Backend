@@ -296,11 +296,11 @@ def usar_figura(db: Session, id_partida: int, id_jugador: int, figura_data: Comp
     
     carta_fig_deseada = figura_data.carta_fig
     
-    figuras_usables_jugador = [carta.figura for carta in jugador.mazo_cartas_de_figura if carta.revelada]
+    cartas_a_usar = next((carta for carta in jugador.mazo_cartas_de_figura if (carta.revelada and carta.figura == carta_fig_deseada)), None)
     
-    if (carta_fig_deseada not in figuras_usables_jugador):
+    if (not cartas_a_usar):
         raise ResourceNotFoundError(
-            f"El jugador no tiene en la mano ninguna carta de figura del formato {carta_fig_deseada}."
+            f"El jugador no tiene en la mano ninguna carta de figura revelada del formato {carta_fig_deseada}."
         )
     
     casillas_figura = figura_data.figura
@@ -316,4 +316,6 @@ def usar_figura(db: Session, id_partida: int, id_jugador: int, figura_data: Comp
             f"No existe (en el tablero) la figura que se intenta utilizar en las coordenadas enviadas."
         )
     
+    db.delete(cartas_a_usar)
     
+    db.commit()
