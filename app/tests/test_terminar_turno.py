@@ -1,5 +1,6 @@
+import mock
 from tests_setup import client
-from factory import crear_partida, unir_jugadores, iniciar_partida
+from factory import crear_partida, unir_jugadores, iniciar_partida, consumir_carta_movimiento
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_TURNO, ACTUALIZAR_TABLERO
 
 def test_terminar_turno(test_db, test_ws):
@@ -132,6 +133,31 @@ def test_varias_rondas(test_db, test_ws):
     test_ws[ACTUALIZAR_TURNO] = 5 * len(partida.jugadores)
     test_ws[ACTUALIZAR_TABLERO] = 5 * len(partida.jugadores)
 
+def test_reponer_cartas_movimiento(test_db):
+    '''Test sobre la reposición de las cartas de movimiento al finalizar el turno del jugador.'''
+    
+    partida, _ = crear_partida(test_db)
+    unir_jugadores(test_db, partida, numero_de_jugadores=2)
+    with mock.patch("models.CartaMovimiento.random_movimiento", return_value="m1"):
+        iniciar_partida(db=test_db, partida=partida)
+    jugador_del_turno = partida.jugador_del_turno
+
+    consumir_carta_movimiento(test_db, jugador_del_turno, "m1", cantidad=2)
+    
+    with mock.patch("models.CartaMovimiento.random_movimiento", mock.Mock(side_effect=["m2", "m3"])):
+        response = client.put(f'juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/turno')
+        assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
+    
+    test_db.flush()
+    
+    movimientos = [mov.movimiento for mov in jugador_del_turno.mano_movimientos]
+    
+    assert movimientos == [
+        "m1", "m2", "m3"
+    ], "Fallo: Las cartas de movimiento del jugador no se repusieron como se esperaba."
+
+    
+    
 def test_partida_inexistente_404(test_db, test_ws):
     '''Test sobre los mensajes de error ante el envío de terminar turno a una partida inexistente.'''
 
