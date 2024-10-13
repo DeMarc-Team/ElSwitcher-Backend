@@ -40,6 +40,7 @@ def unir_jugadores(db: Session, partida: Partida , numero_de_jugadores: int = 1)
     Función para unir jugadores a una partida.
 
     Devuelve una lista con los jugadores unidos a la partida.
+    Si numero_de_jugadores es 0, devuelve una lista vacía.
 
     Valores por defecto:
     - partida = Partida
@@ -48,8 +49,11 @@ def unir_jugadores(db: Session, partida: Partida , numero_de_jugadores: int = 1)
     '''
     assert partida.iniciada == False, "La partida ya ha sido iniciada"
     assert len(partida.jugadores) <= 4, "La partida ya tiene 4 jugadores"
+    assert len(partida.jugadores) > 0, "Y el creador? boludito"
     assert numero_de_jugadores < 4, "No se pueden unir más de 4 jugadores a la partida"
-    assert numero_de_jugadores > 0, "Y el creador? boludito"
+    
+    if numero_de_jugadores == 0:
+        return []
 
     nuevos_jugadores = []
     for i in range(numero_de_jugadores):
