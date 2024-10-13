@@ -1,10 +1,7 @@
 import copy
 from tests_setup import client
-from models import Partida
-from factory import crear_partida, unir_jugadores, iniciar_partida, CartaMovimiento
+from factory import crear_partida, unir_jugadores, iniciar_partida
 from test_endpoint_jugar_carta_movimiento import agregar_m1_a_los_inventarios, jugar_carta_m1
-import json
-import mock
 
 
 def test_cancelar_movimiento_parcial(test_db):

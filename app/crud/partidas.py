@@ -5,7 +5,7 @@ from random import shuffle
 from exceptions import ResourceNotFoundError, ForbiddenError
 from schemas import PartidaData
 from models import Jugador, CartaFigura, CartaMovimiento, Partida
-from crud.juego import terminar_turno, limpiar_stack_movimientos_parciales
+from crud.juego import terminar_turno
 
 
 def get_id_creador(db: Session, partida_id):

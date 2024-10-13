@@ -92,7 +92,7 @@ async def modificar_casillas(id_partida: int, id_jugador: int, coordenadas: Casi
     crud.juego.modificar_casillas(
         id_partida, id_jugador, coordenadas, db)
     await ws_partidas_manager.send_actualizar_tablero(id_partida)
-    await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida) # Comentado porque el front no implementa el handle para esto
+    await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
 
 
 @router.delete('/{id_partida}/jugadores/{id_jugador}/mov-parciales',
@@ -101,7 +101,7 @@ async def modificar_casillas(id_partida: int, id_jugador: int, coordenadas: Casi
 async def deshacer_movimiento(id_partida: int, id_jugador: int, db: Session = Depends(get_db)):
     crud.juego.deshacer_movimiento(db, id_partida)
     await ws_partidas_manager.send_actualizar_tablero(id_partida)
-    await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida) # Comentado porque el front no implementa el handle para esto
+    await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
 
 @router.get('/{id_partida}/jugadores/{id_jugador}/mov-parciales',
                summary="Obtiene el stack de los movimientos parciales",
