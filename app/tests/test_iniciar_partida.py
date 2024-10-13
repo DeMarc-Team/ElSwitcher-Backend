@@ -24,7 +24,7 @@ def test_iniciar_partida_200(test_db):
     
     # Verificamos que se hayan repartido las cartas de figura y cartas de movimiento
     for jugador in partida.jugadores:
-        assert len(jugador.mazo_cartas_de_figura) == 3, f"Fallo: Se esperaba que el jugador tuviera 3 cartas de figura, pero se obtuvo {len(jugador.cartas_figura)}"
+        assert len(jugador.mazo_cartas_de_figura) == 3, f"Fallo: Se esperaba que el jugador tuviera 3 cartas de figura, pero se obtuvo {len(jugador.mazo_cartas_de_figura)}"
         for carta in jugador.mazo_cartas_de_figura:
             assert carta.revelada, f"Fallo: Se esperaba que la carta de figura estuviera revelada, pero se obtuvo {carta.revelada}"
         assert len(jugador.mano_movimientos) == 3, f"Fallo: Se esperaba que el jugador tuviera 3 cartas de movimiento, pero se obtuvo {len(jugador.cartas_movimiento)}"
