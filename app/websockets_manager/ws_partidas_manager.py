@@ -15,6 +15,7 @@ ACTUALIZAR_SALA_ESPERA = MessageType.ACTUALIZAR_SALA_ESPERA.value
 ACTUALIZAR_TURNO = MessageType.ACTUALIZAR_TURNO.value
 HAY_GANADOR = MessageType.HAY_GANADOR.value
 PARTIDA_CANCELADA = MessageType.PARTIDA_CANCELADA.value
+ACTUALIZAR_TABLERO = MessageType.ACTUALIZAR_TABLERO.value
 
 class WsMessage(BaseModel):
     action: MessageType

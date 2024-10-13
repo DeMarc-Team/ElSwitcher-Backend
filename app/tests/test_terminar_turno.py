@@ -1,6 +1,6 @@
 from tests_setup import client
 from factory import crear_partida, unir_jugadores, iniciar_partida
-from websockets_manager.ws_partidas_manager import ACTUALIZAR_TURNO
+from websockets_manager.ws_partidas_manager import ACTUALIZAR_TURNO, ACTUALIZAR_TABLERO
 
 def test_terminar_turno(test_db, test_ws):
     '''Test que chequea el funcionamiento en el escenario exitoso del endpoint para terminar_turno.'''
@@ -47,6 +47,7 @@ def test_terminar_turno(test_db, test_ws):
 
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws[ACTUALIZAR_TURNO] = 1
+    test_ws[ACTUALIZAR_TABLERO] = 1
 
 def test_vuelta_completa(test_db, test_ws):
     '''Test que chequea el funcionamiento de una vuelta completa de turnos.'''
@@ -81,6 +82,7 @@ def test_vuelta_completa(test_db, test_ws):
 
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws[ACTUALIZAR_TURNO] = len(partida.jugadores)
+    test_ws[ACTUALIZAR_TABLERO] = len(partida.jugadores)
 
 def test_varias_rondas(test_db, test_ws):
     '''Test sobre la confiabilidad de los turnos a lo largo de varias rondas.'''
@@ -128,6 +130,7 @@ def test_varias_rondas(test_db, test_ws):
 
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws[ACTUALIZAR_TURNO] = 5 * len(partida.jugadores)
+    test_ws[ACTUALIZAR_TABLERO] = 5 * len(partida.jugadores)
 
 def test_partida_inexistente_404(test_db, test_ws):
     '''Test sobre los mensajes de error ante el envío de terminar turno a una partida inexistente.'''
