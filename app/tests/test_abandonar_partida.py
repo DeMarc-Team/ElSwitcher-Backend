@@ -4,6 +4,7 @@ from models import Partida, Jugador
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, PARTIDA_CANCELADA, ACTUALIZAR_TABLERO
 import pytest
+from verifications import check_jugador_abandoned, check_partida_deletion, check_response
 
 
 @pytest.mark.parametrize("numero_de_jugadores", [3, 4])
@@ -29,26 +30,11 @@ def test_abandonar_partida_en_el_turno_200(test_db, test_ws, numero_de_jugadores
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {
-        response.status_code}"
-    respuesta_esperada = {
-        'detail': 'El jugador abandonó la partida exitosamente'}
-    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{
-        respuesta_esperada}', pero se obtuvo {response.json()}"
+    respuesta_esperada = {'detail': 'El jugador abandonó la partida exitosamente'}
+    check_response(response, 200, respuesta_esperada)
 
     # Verificamos que la base de datos se haya actualizado correctamente
-    partida = test_db.query(Partida).filter(Partida.id == id_partida).first()
-
-    assert len(partida.jugadores) == numero_de_jugadores-1, f"Fallo: Se esperaban {
-        numero_de_jugadores-1} jugadores en la partida, pero se obtuvo {len(partida.jugadores)}"
-    assert jugador_del_turno not in partida.jugadores, f"Fallo: Se esperaba que el jugador abandonara la partida, pero no se encontró en la lista de jugadores"
-    assert partida.jugador_del_turno.id_jugador != id_jugador, f"Fallo: Se esperaba que el jugador del turno no fuera el jugador que abandonó, pero se obtuvo {
-        partida.jugador_del_turno.id_jugador}"
-
-    jugador = test_db.query(Jugador).filter(
-        Jugador.id_jugador == id_jugador).first()
-    assert jugador == None, f"Fallo: Se esperaba que el jugador fuera eliminado de la base de datos, pero se encontró {
-        jugador}"
+    check_jugador_abandoned(test_db, numero_de_jugadores-1, id_jugador, id_partida)
 
 # ----------------------------------------------------------------
 
@@ -71,17 +57,11 @@ def test_abandonar_partida_no_iniciada_creador_200(test_db, test_ws, numero_de_j
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {
-        response.status_code}"
-    respuesta_esperada = {
-        'detail': 'El jugador abandonó la partida exitosamente'}
-    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{
-        respuesta_esperada}', pero se obtuvo {response.json()}"
+    respuesta_esperada = {'detail': 'El jugador abandonó la partida exitosamente'}
+    check_response(response, 200, respuesta_esperada)
 
     # Verificamos que la base de datos se haya actualizado correctamente
-    partida = test_db.query(Partida).filter(Partida.id == id_partida).first()
-    assert partida == None, f"Fallo: Se esperaba que la partida fuera eliminada de la base de datos, pero se encontró {
-        partida}"
+    check_partida_deletion(test_db, id_partida)
 
 # ----------------------------------------------------------------
 
@@ -106,23 +86,11 @@ def test_abandonar_partida_no_iniciada_no_creador_200(test_db, test_ws, numero_d
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {
-        response.status_code}"
-    respuesta_esperada = {
-        'detail': 'El jugador abandonó la partida exitosamente'}
-    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{
-        respuesta_esperada}', pero se obtuvo {response.json()}"
+    respuesta_esperada = {'detail': 'El jugador abandonó la partida exitosamente'}
+    check_response(response, 200, respuesta_esperada)
 
     # Verificamos que la base de datos se haya actualizado correctamente
-    partida = test_db.query(Partida).filter(Partida.id == id_partida).first()
-    assert len(partida.jugadores) == numero_de_jugadores-1, f"Fallo: Se esperaba {
-        numero_de_jugadores-1} jugadores en la partida, pero se obtuvo {len(partida.jugadores)}"
-    assert nuevo_jugador not in partida.jugadores, f"Fallo: Se esperaba que el jugador abandonara la partida, pero no se encontró en la lista de jugadores"
-
-    jugador = test_db.query(Jugador).filter(
-        Jugador.id_jugador == id_jugador).first()
-    assert jugador == None, f"Fallo: Se esperaba que el jugador fuera eliminado de la base de datos, pero se encontró {
-        jugador}"
+    check_jugador_abandoned(test_db, numero_de_jugadores-1, id_jugador, id_partida)
 
 # ----------------------------------------------------------------
 
@@ -148,25 +116,12 @@ def test_abandonar_partida_iniciada_creador_200(test_db, test_ws, numero_de_juga
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {
-        response.status_code}"
     respuesta_esperada = {
         'detail': 'El jugador abandonó la partida exitosamente'}
-    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{
-        respuesta_esperada}', pero se obtuvo {response.json()}"
+    check_response(response, 200, respuesta_esperada)
 
     # Verificamos que la base de datos se haya actualizado correctamente
-    partida = test_db.query(Partida).filter(Partida.id == id_partida).first()
-    assert partida != None, f"Fallo: Se esperaba que la partida no fuera eliminada de la base de datos, pero no se encontró {
-        partida}"
-    assert len(partida.jugadores) == numero_de_jugadores-1, f"Fallo: Se esperaba {
-        numero_de_jugadores-1} jugadores en la partida, pero se obtuvo {len(partida.jugadores)}"
-    assert creador not in partida.jugadores, f"Fallo: Se esperaba que el creador abandonara la partida, pero no se encontró en la lista de jugadores"
-
-    jugador = test_db.query(Jugador).filter(
-        Jugador.id_jugador == id_creador).first()
-    assert jugador == None, f"Fallo: Se esperaba que el jugador fuera eliminado de la base de datos, pero se encontró {
-        jugador}"
+    check_jugador_abandoned(test_db, numero_de_jugadores-1, id_creador, id_partida)
 
 # ----------------------------------------------------------------
 
@@ -194,23 +149,11 @@ def test_abandonar_partida_iniciada_no_creador_200(test_db, test_ws, numero_de_j
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {
-        response.status_code}"
-    respuesta_esperada = {
-        'detail': 'El jugador abandonó la partida exitosamente'}
-    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{
-        respuesta_esperada}', pero se obtuvo {response.json()}"
+    respuesta_esperada = {'detail': 'El jugador abandonó la partida exitosamente'}
+    check_response(response, 200, respuesta_esperada)
 
     # Verificamos que la base de datos se haya actualizado correctamente
-    partida = test_db.query(Partida).filter(Partida.id == id_partida).first()
-    assert len(partida.jugadores) == numero_de_jugadores-1, f"Fallo: Se esperaba {
-        numero_de_jugadores-1} jugadores en la partida, pero se obtuvo {len(partida.jugadores)}"
-    assert nuevo_jugador not in partida.jugadores, f"Fallo: Se esperaba que el jugador abandonara la partida, pero no se encontró en la lista de jugadores"
-
-    jugador = test_db.query(Jugador).filter(
-        Jugador.id_jugador == id_jugador).first()
-    assert jugador == None, f"Fallo: Se esperaba que el jugador fuera eliminado de la base de datos, pero se encontró {
-        jugador}"
+    check_jugador_abandoned(test_db, numero_de_jugadores-1, id_jugador, id_partida)
 
 # ----------------------------------------------------------------
 
@@ -225,12 +168,8 @@ def test_abandonar_partida_no_existente_404(test_db, test_ws):
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
-    assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {
-        response.status_code}"
-    respuesta_esperada = {
-        'detail': f'Partida con ID {id_partida} no encontrada.'}
-    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{
-        respuesta_esperada}', pero se obtuvo {response.json()}"
+    respuesta_esperada = {'detail': f'Partida con ID {id_partida} no encontrada.'}
+    check_response(response, 404, respuesta_esperada)
 
 # ----------------------------------------------------------------
 
@@ -246,12 +185,8 @@ def test_abandonar_partida_jugador_no_existente_404(test_db, test_ws):
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
-    assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {
-        response.status_code}"
-    respuesta_esperada = {'detail': f'Jugador con ID {
-        id_jugador} no encontrado en la partida con ID {id_partida}.'}
-    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{
-        respuesta_esperada}', pero se obtuvo {response.json()}"
+    respuesta_esperada = {'detail': f'Jugador con ID {id_jugador} no encontrado en la partida con ID {id_partida}.'}
+    check_response(response, 404, respuesta_esperada)
 
 # ----------------------------------------------------------------
 
@@ -274,24 +209,9 @@ def test_abandonar_partida_iniciada_ultimo_jugador_200(test_db, test_ws):
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {
-        response.status_code}"
     respuesta_esperada = {
         'detail': 'El jugador abandonó la partida exitosamente'}
-    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{
-        respuesta_esperada}', pero se obtuvo {response.json()}"
+    check_response(response, 200, respuesta_esperada)
 
     # Verificamos que la base de datos se haya actualizado correctamente
-    partida = test_db.query(Partida).filter(Partida.id == id_partida).first()
-    assert partida == None, f"Fallo: Se esperaba que la partida fuera eliminada de la base de datos, pero se encontró {
-        partida}"
-
-    jugador = test_db.query(Jugador).filter(
-        Jugador.id_jugador == id_jugador).first()
-    assert jugador == None, f"Fallo: Se esperaba que el jugador fuera eliminado de la base de datos, pero se encontró {
-        jugador}"
-
-    creador = test_db.query(Jugador).filter(
-        Jugador.id_jugador == id_creador).first()
-    assert creador == None, f"Fallo: Se esperaba que el creador fuera eliminado de la base de datos, pero se encontró {
-        creador}"
+    check_partida_deletion(test_db, id_partida)
