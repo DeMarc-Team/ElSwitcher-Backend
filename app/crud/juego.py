@@ -294,6 +294,11 @@ def usar_figura(db: Session, id_partida: int, id_jugador: int, figura_data: Comp
         raise ResourceNotFoundError(
             f"Jugador con ID {id_jugador} no encontrado en la partida con ID {id_jugador}.")
     
+    if (jugador.id_jugador != partida.jugador_id):
+        raise ForbiddenError(
+            f"El jugador con ID {jugador.id_jugador} no posee el turno."
+        )
+    
     carta_fig_deseada = figura_data.carta_fig
     
     cartas_a_usar = next((carta for carta in jugador.mazo_cartas_de_figura if (carta.revelada and carta.figura == carta_fig_deseada)), None)
