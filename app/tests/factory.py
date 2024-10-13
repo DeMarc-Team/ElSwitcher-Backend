@@ -159,7 +159,7 @@ def siguiente_turno(db: Session, partida: Partida):
 
 def consumir_carta_movimiento(db: Session, jugador: Jugador, mov: str, cantidad=1):
     '''
-    Procedimiento para eliminar la primer movimiento de la mano del jugador que es del tipo "mov".
+    Procedimiento para eliminar los primeros "cantidad" de movimientos de la mano del jugador que son del tipo "mov".
     
     En caso de existir menos movimientos de tipo "mov" de la cantidad a consumir especificada, se consumen todas las movimientos del tipo "mov" que hay.
     '''
