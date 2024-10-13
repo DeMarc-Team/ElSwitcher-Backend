@@ -40,6 +40,7 @@ def unir_jugadores(db: Session, partida: Partida , numero_de_jugadores: int = 1)
     Función para unir jugadores a una partida.
 
     Devuelve una lista con los jugadores unidos a la partida.
+    Si numero_de_jugadores es 0, devuelve una lista vacía.
 
     Valores por defecto:
     - partida = Partida
