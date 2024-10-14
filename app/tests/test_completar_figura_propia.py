@@ -4,8 +4,9 @@ from factory import crear_partida, unir_jugadores, iniciar_partida, establecer_t
 from verifications import check_response
 from schemas import Casilla
 from tools import capturar_metadata, comparar_capturas_metadata
+from websockets_manager.ws_partidas_manager import ACTUALIZAR_CARTAS_FIGURA, ACTUALIZAR_CARTAS_MOVIMIENTO
 
-def test_usar_figura_propia(test_db):
+def test_usar_figura_propia(test_db, test_ws):
     partida, _ = crear_partida(test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores=1)
     iniciar_partida(test_db, partida)
@@ -49,8 +50,107 @@ def test_usar_figura_propia(test_db):
     # Chequeamos que la mano de movimientos del jugador se haya "aplicado"
     assert jugador_del_turno.mano_movimientos == [], f"Fallo: Se esperaba que se aplicaran todos los movimientos del jugador, pero le quedan {len(jugador_del_turno.mano_movimientos)}."
 
+    # Ponemos cuantas veces se espera que se envie cada mensaje de ws
+    test_ws[ACTUALIZAR_CARTAS_FIGURA] = 1
+    test_ws[ACTUALIZAR_CARTAS_MOVIMIENTO] = 1
 # ----------------------------------------------------------------
 
+def test_usar_figura_propia_varias_figuras(test_db, test_ws):
+    partida, _ = crear_partida(test_db)
+    unir_jugadores(test_db, partida, numero_de_jugadores=1)
+    iniciar_partida(test_db, partida)
+    jugador_del_turno = partida.jugador_del_turno
+    
+    # Tablero que deseamos que se utilice
+    tablero_mock = [
+        [2, 2, 2, 4, 1, 1],
+        [1, 2, 1, 2, 2, 2],
+        [1, 2, 1, 4, 2, 1],
+        [1, 1, 1, 4, 2, 1],
+        [1, 1, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2]
+    ]
+
+    # Diccionario con las casillas de las figuras formadas en el tablero del mock
+    figuras_formadas_en_mock = {
+        "figuras_a_resaltar": {
+            "f1": [[[0, 1], [2, 1], [0, 0], [1, 1], [0, 2]]]
+        }
+    }
+
+    establecer_tablero(test_db, partida, tablero_mock)
+    cartear_figuras(test_db, jugador_del_turno, ["f1"])
+    movimientos_a_falsear = jugador_del_turno.mano_movimientos
+    falsear_movimientos_parciales(test_db, partida, movimientos_a_falsear)
+
+    # Transformamos del formato de listas al esperado por el endpoint
+    casillas_figura = listas_to_casillas_figura(figuras_formadas_en_mock["figuras_a_resaltar"]["f1"])[0]
+    request_body = {
+        "figura": casillas_figura,
+        "carta_fig": "f1"
+    }
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    check_response(response, status_code_esperado=200, respuesta_esperada=None)
+
+    # Chequeamos que se haya consumido la carta correctamente
+    cartas_reveladas_restantes = [carta_revelada for carta_revelada in jugador_del_turno.mazo_cartas_de_figura if carta_revelada.revelada]
+    assert cartas_reveladas_restantes == [], f"Fallo: Se esperaba que el jugador agotara su única carta de figura, pero le quedan {len(cartas_reveladas_restantes)}."
+    
+    # Chequeamos que la mano de movimientos del jugador se haya "aplicado"
+    assert jugador_del_turno.mano_movimientos == [], f"Fallo: Se esperaba que se aplicaran todos los movimientos del jugador, pero le quedan {len(jugador_del_turno.mano_movimientos)}."
+
+    # Ponemos cuantas veces se espera que se envie cada mensaje de ws
+    test_ws[ACTUALIZAR_CARTAS_FIGURA] = 1
+    test_ws[ACTUALIZAR_CARTAS_MOVIMIENTO] = 1
+# ----------------------------------------------------------------
+def test_usar_figura_propia_varias_cartas(test_db, test_ws):
+    partida, _ = crear_partida(test_db)
+    unir_jugadores(test_db, partida, numero_de_jugadores=1)
+    iniciar_partida(test_db, partida)
+    jugador_del_turno = partida.jugador_del_turno
+    
+    # Tablero que deseamos que se utilice
+    tablero_mock = [
+        [2, 2, 2, 4, 1, 2],
+        [1, 2, 1, 4, 1, 2],
+        [1, 2, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2]
+    ]
+
+    # Diccionario con las casillas de las figuras formadas en el tablero del mock
+    figuras_formadas_en_mock = {
+        "figuras_a_resaltar": {
+            "f1": [[[0, 1], [2, 1], [0, 0], [1, 1], [0, 2]]]
+        }
+    }
+
+    establecer_tablero(test_db, partida, tablero_mock)
+    cartear_figuras(test_db, jugador_del_turno, ["f1", "f2", "f1"])
+    movimientos_a_falsear = jugador_del_turno.mano_movimientos
+    falsear_movimientos_parciales(test_db, partida, movimientos_a_falsear)
+
+    # Transformamos del formato de listas al esperado por el endpoint
+    casillas_figura = listas_to_casillas_figura(figuras_formadas_en_mock["figuras_a_resaltar"]["f1"])[0]
+    request_body = {
+        "figura": casillas_figura,
+        "carta_fig": "f1"
+    }
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    check_response(response, status_code_esperado=200, respuesta_esperada=None)
+
+    # Chequeamos que se haya consumido una unica carta correctamente
+    codigos_cartas_reveladas_restantes = [carta_revelada.figura for carta_revelada in jugador_del_turno.mazo_cartas_de_figura if carta_revelada.revelada]
+    assert codigos_cartas_reveladas_restantes == ["f2", "f1"], f"Fallo: Se esperaba que el jugador agotara su única carta de figura, pero le quedan {len(codigos_cartas_reveladas_restantes)}."
+    
+    # Chequeamos que la mano de movimientos del jugador se haya "aplicado"
+    assert jugador_del_turno.mano_movimientos == [], f"Fallo: Se esperaba que se aplicaran todos los movimientos del jugador, pero le quedan {len(jugador_del_turno.mano_movimientos)}."
+
+    # Ponemos cuantas veces se espera que se envie cada mensaje de ws
+    test_ws[ACTUALIZAR_CARTAS_FIGURA] = 1
+    test_ws[ACTUALIZAR_CARTAS_MOVIMIENTO] = 1
+# ----------------------------------------------------------------
 def test_usar_figura_propia_jugador_no_turno_403(test_db, test_ws):
     '''Test de jugador que no es del turno intentando usar una figura propia'''
     partida, _ = crear_partida(test_db)
