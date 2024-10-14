@@ -115,4 +115,4 @@ async def get_movimientos_parciales(id_partida: int, id_jugador: int, db: Sessio
             description="Utiliza la carta de figura especificada a partir de la existencia de la figura en las cordenadas que se pasaron.",
             tags=["Juego"])
 async def completar_figura_propia(id_partida: int, id_jugador: int, figura_data: CompletarFiguraData, db: Session = Depends(get_db)):
-    crud.juego.usar_figura(db, id_partida, id_jugador, figura_data)
+    crud.juego.completar_figura_propia(db, id_partida, id_jugador, figura_data)

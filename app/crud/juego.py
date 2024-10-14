@@ -279,7 +279,7 @@ def get_figuras_en_tablero(partida: Partida):
 
     return hallar_todas_las_figuras_en_tablero(tablero_decodificado)
 
-def usar_figura(db: Session, id_partida: int, id_jugador: int, figura_data: CompletarFiguraData):
+def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figura_data: CompletarFiguraData):
     partida = db.get(Partida, id_partida)
     if (not partida):
         raise ResourceNotFoundError(
@@ -299,8 +299,13 @@ def usar_figura(db: Session, id_partida: int, id_jugador: int, figura_data: Comp
             f"El jugador con ID {jugador.id_jugador} no posee el turno."
         )
     
+    unatomic_usar_figura(db, partida, jugador, figura_data)
+    unatomic_aplicar_parciales(db, partida, jugador)
+    db.commit()
+
+def unatomic_usar_figura(db: Session, partida: Partida, jugador: Jugador, figura_data: CompletarFiguraData):    
+
     carta_fig_deseada = figura_data.carta_fig
-    
     cartas_a_usar = next((carta for carta in jugador.mazo_cartas_de_figura if (carta.revelada and carta.figura == carta_fig_deseada)), None)
     
     if (not cartas_a_usar):
@@ -325,7 +330,24 @@ def usar_figura(db: Session, id_partida: int, id_jugador: int, figura_data: Comp
     
     db.delete(cartas_a_usar)
     
-    db.commit()
+    db.flush()
+
+def unatomic_aplicar_parciales(db: Session, partida: Partida, jugador: Jugador):
+    '''
+    Aplica los movimientos parciales del jugador (NO HACE VERIFICACIONES DE PERMISOS, i.e, QUE EL JUGADOR TENGA EL TURNO).
+    '''
+    
+    movimientos_parcializados = [movimiento for movimiento in jugador.mano_movimientos if movimiento.movimiento_parcial_en is not None]
+    movimientos_parciales = [movimiento.movimiento_parcial_en for movimiento in movimientos_parcializados]
+    
+    for parcial in movimientos_parciales:
+        db.delete(parcial)
+    
+    for movimiento in movimientos_parcializados:
+        db.delete(movimiento)
+        
+    db.flush()
+
 
 def casillas_to_coords_figura_set(casillas_figura):
     '''
