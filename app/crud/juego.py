@@ -280,7 +280,7 @@ def get_figuras_en_tablero(partida: Partida):
     return hallar_todas_las_figuras_en_tablero(tablero_decodificado)
 
 def usar_figura(db: Session, id_partida: int, id_jugador: int, figura_data: CompletarFiguraData):
-    partida = db.query(Partida).get(id_partida)
+    partida = db.get(Partida, id_partida)
     if (not partida):
         raise ResourceNotFoundError(
             f"Partida con ID {id_partida} no encontrada.")
@@ -289,7 +289,7 @@ def usar_figura(db: Session, id_partida: int, id_jugador: int, figura_data: Comp
         raise ForbiddenError(
             f"La partida con ID {id_partida} todavía no comenzó.")
     
-    jugador = db.query(Jugador).get(id_jugador)
+    jugador = db.get(Jugador, id_jugador)
     if (not jugador):
         raise ResourceNotFoundError(
             f"Jugador con ID {id_jugador} no encontrado en la partida con ID {id_jugador}.")
@@ -308,7 +308,6 @@ def usar_figura(db: Session, id_partida: int, id_jugador: int, figura_data: Comp
             f"El jugador no tiene en la mano ninguna carta de figura revelada del formato {carta_fig_deseada}."
         )
     
-    casillas_figura = figura_data.figura
     figuras_en_tablero = get_figuras_en_tablero(partida)
     
     if (carta_fig_deseada not in figuras_en_tablero.keys()):
@@ -316,7 +315,10 @@ def usar_figura(db: Session, id_partida: int, id_jugador: int, figura_data: Comp
             f"No existe (en el tablero) ninguna figura del tipo que se intenta utilizar."
         )
     
-    if (casillas_figura not in figuras_en_tablero[carta_fig_deseada]):
+    coords_figuras_del_tipo = figuras_en_tablero[carta_fig_deseada]
+    coords_figura = casillas_to_coords_figura_set(figura_data.figura)
+    
+    if (coords_figura not in coords_figuras_del_tipo):
         raise ResourceNotFoundError(
             f"No existe (en el tablero) la figura que se intenta utilizar en las coordenadas enviadas."
         )
@@ -324,3 +326,14 @@ def usar_figura(db: Session, id_partida: int, id_jugador: int, figura_data: Comp
     db.delete(cartas_a_usar)
     
     db.commit()
+
+def casillas_to_coords_figura_set(casillas_figura):
+    '''
+    Convierte una lista de casillas en un conjunto de tuplas con sus equivalentes coordenadas.
+    
+    Por ejemplo:
+    
+    [{row: row_value1, col: col_value1}], [{row: row_value2, col: col_value2}] -> {(row_value1, col_value1), (row_value2, col_value2)}
+    '''
+    
+    return set((casilla.row, casilla.col) for casilla in casillas_figura)

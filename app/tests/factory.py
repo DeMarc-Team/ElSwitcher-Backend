@@ -204,3 +204,18 @@ def cartear_figuras(db: Session, jugador: Jugador, figs: list[str]):
     jugador.mazo_cartas_de_figura = nuevas_figuras
     
     db.commit()
+    
+def listas_to_casillas_figura(figuras: list[list[(int, int)]]):
+    '''
+    Convierte una lista de casillas en formato de tuplas a una en formato de Casillas (como objeto).
+    
+    Por ejemplo:
+    [ [(row_value1, col_value1)], [(row_value2, col_value2)] ] -> [ [{row: row_value1, col: col_value1}], [{row: row_value2, col: col_value2}] ]
+    '''
+    casillas_de_figuras = []
+    
+    for figura in figuras:
+        casillas_figura = [{"row": tupla[0], "col": tupla[1]} for tupla in figura]
+        casillas_de_figuras.append(casillas_figura)
+        
+    return casillas_de_figuras
