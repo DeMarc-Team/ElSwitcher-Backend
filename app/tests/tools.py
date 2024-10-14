@@ -2,7 +2,11 @@ import re
 from sqlalchemy import inspect
 from database import Base
 
-# TODO: No apta para la comparacion actual
+# TODO: Hacer una funcion que devuelva un array con todas los objetos de la base de datos
+# Esta funcion serviria para pasar su resultado a capturar_metadata o capturar_str
+# Y asi poder comparar todas las tablas de la base de datos
+
+
 def capturar_metadata(objetos: list) -> dict:
     '''
     Devuelve un diccionario donde una clave es una tupla (__tablename__, id)
@@ -28,9 +32,87 @@ def capturar_metadata(objetos: list) -> dict:
             # Agrega la columna y su valor al diccionario de metadata
             metadata[obj.__tablename__, obj.id][column_name] = column_value
 
+        # TODO: Captura de propiedades híbridas
+
     return metadata
 
-def capturar(objetos: list) -> dict:
+def comparar_capturas_metadata(metadata_inicial: dict, metadata_final: dict) -> dict:
+    '''
+    Recibe dos diccionarios de metadata y devuelve un diccionario con las 
+    diferencias entre ambas.
+    
+    Por ejemplo, si recibie:
+    metadata_inicial ={
+        ('tabla1', id1): {
+            'clave1': valor1,
+            'clave2': valor2
+        },
+        ('tabla2', id2): {
+            'clave1': valor1,
+            'clave2': valor2
+        }
+    }
+
+    metadata_final ={
+        ('tabla1', id1): {
+            'clave1': valor1,
+            'clave2': valor2
+        },
+        ('tabla2', id2): {
+            'clave1': valor1,
+            'clave2': valor2
+        }
+    }
+
+    Devolverá:
+
+    {
+        ('tabla1', id1): [
+            ('clave1', valor_inicial_1, valor_final_1),
+            ('clave2', valor_inicial_2, valor_final_2)
+        ],
+        ('tabla2', id2): [
+            ('clave1', valor_inicial_1, valor_final_1),
+            ('clave2', valor_inicial_2, valor_final_2)
+        ]
+    }
+
+    donde ('clave1', valor_inicial_1, valor_final_1) es una tupla que indica que
+    la clave1 tenía el valor valor_inicial_1 en la metadata inicial y
+    valor_final_1 en la metadata final.
+    '''
+
+    diferencias = {}
+
+    for clave_tabla, tabla_inicial in metadata_inicial.items():
+        tabla_final = metadata_final.get(clave_tabla, None)
+        if tabla_final is None :
+            diferencias[clave_tabla] = None
+            continue
+        
+        assert len(tabla_inicial) == len(tabla_final), 'La cantidad de columnas debe ser la misma'
+        assert isinstance(clave_tabla, tuple), f'La clave de la tabla debe ser una tupla en vez de {type(clave_tabla)}'
+        assert isinstance(clave_tabla[0], str), f'El primer elemento de la clave de la tabla debe ser un string en vez de {type(clave_tabla[0])}'
+        assert isinstance(clave_tabla[1], int), f'El segundo elemento de la clave de la tabla debe ser un entero en vez de {type(clave_tabla[1])}'
+
+        # Lista de cambios detectados para esta tabla
+        cambios_actuales = []
+
+        for clave, valor_inicial in tabla_inicial.items():
+            valor_final = tabla_final.get(clave, None)
+            assert valor_final is not None, f'La clave {clave} no está en la metadata final'
+
+            if valor_inicial != valor_final:
+                cambios_actuales.append((clave, valor_inicial, valor_final))
+
+        if cambios_actuales:
+            # Guardamos los cambios en el diccionario con la clave (nombre_tabla, id_tabla)
+            diferencias[clave_tabla] = cambios_actuales
+
+    return diferencias
+
+
+def capturar_str(objetos: list) -> dict:
     '''
     Devuelve un dicionario donde una clave es una tupla (__tablename__, id) 
     y su valor es un string del formato de salida de __str__ de los modelos.
@@ -98,7 +180,7 @@ def __limpiar_y_convertir(cadena: str) -> dict:
 
     return diccionario
 
-def comparar_capturas(capturas_iniciales:dict, capturas_finales:dict) -> dict:
+def comparar_capturas_str(capturas_iniciales:dict, capturas_finales:dict) -> dict:
     '''
     Recibe dos diccionarios de capturas y devuelve un diccionario con las 
     diferencias entre ambas.
