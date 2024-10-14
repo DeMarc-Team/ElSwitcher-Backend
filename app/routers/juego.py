@@ -116,3 +116,5 @@ async def get_movimientos_parciales(id_partida: int, id_jugador: int, db: Sessio
             tags=["Juego"])
 async def completar_figura_propia(id_partida: int, id_jugador: int, figura_data: CompletarFiguraData, db: Session = Depends(get_db)):
     crud.juego.completar_figura_propia(db, id_partida, id_jugador, figura_data)
+    await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
+    await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
