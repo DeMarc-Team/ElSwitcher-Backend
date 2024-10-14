@@ -3,7 +3,7 @@ from models import Jugador, Partida
 # --------------------------------Response--------------------------------
 def check_response(response, status_code_esperado, respuesta_esperada):
     assert response.status_code == status_code_esperado, f"Fallo: Se esperaba el estado {status_code_esperado}, pero se obtuvo {
-        response.status_code}"
+        response.status_code}:{response.json()}"
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba '{
         respuesta_esperada}', pero se obtuvo {response.json()}"
 
