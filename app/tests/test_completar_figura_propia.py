@@ -2,7 +2,6 @@ import pdb
 from tests_setup import client
 from factory import crear_partida, unir_jugadores, iniciar_partida, establecer_tablero, cartear_figuras, listas_to_casillas_figura, falsear_movimientos_parciales
 from verifications import check_response
-from schemas import Casilla
 from tools import capturar_metadata, comparar_capturas_metadata
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_CARTAS_FIGURA, ACTUALIZAR_CARTAS_MOVIMIENTO
 
@@ -53,6 +52,7 @@ def test_usar_figura_propia(test_db, test_ws):
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws[ACTUALIZAR_CARTAS_FIGURA] = 1
     test_ws[ACTUALIZAR_CARTAS_MOVIMIENTO] = 1
+
 # ----------------------------------------------------------------
 
 def test_usar_figura_propia_varias_figuras(test_db, test_ws):
@@ -102,7 +102,9 @@ def test_usar_figura_propia_varias_figuras(test_db, test_ws):
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws[ACTUALIZAR_CARTAS_FIGURA] = 1
     test_ws[ACTUALIZAR_CARTAS_MOVIMIENTO] = 1
+
 # ----------------------------------------------------------------
+
 def test_usar_figura_propia_varias_cartas(test_db, test_ws):
     partida, _ = crear_partida(test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores=1)
@@ -150,7 +152,9 @@ def test_usar_figura_propia_varias_cartas(test_db, test_ws):
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws[ACTUALIZAR_CARTAS_FIGURA] = 1
     test_ws[ACTUALIZAR_CARTAS_MOVIMIENTO] = 1
+
 # ----------------------------------------------------------------
+
 def test_usar_figura_propia_jugador_no_turno_403(test_db, test_ws):
     '''Test de jugador que no es del turno intentando usar una figura propia'''
     partida, _ = crear_partida(test_db)
