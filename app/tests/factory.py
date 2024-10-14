@@ -182,3 +182,25 @@ def consumir_carta_movimiento(db: Session, jugador: Jugador, mov: str, cantidad=
         db.delete(carta)    
     
     db.commit()
+ 
+def establecer_tablero(db: Session, partida: Partida, tablero: list[list[int]]):
+    import json
+    partida.tablero = json.dumps(tablero)
+    
+    db.commit()
+    
+def cartear_figuras(db: Session, jugador: Jugador, figs: list[str]):
+    assert len(figs) > 0, "Se requiere al menos una carta."
+    assert len(figs) <= 3, "Se puede cartar una única mano de figuras (3 cartas)."
+    
+    figuras_reveladas = [figura for figura in jugador.mazo_cartas_de_figura if figura.revelada]
+    
+    for figura in figuras_reveladas:
+        db.delete(figura)
+        db.commit()
+    
+    nuevas_figuras = [CartaFigura(figura=fig) for fig in figs]
+    
+    jugador.mazo_cartas_de_figura = nuevas_figuras
+    
+    db.commit()
