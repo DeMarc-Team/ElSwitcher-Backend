@@ -6,10 +6,6 @@ from tools import capturar_metadata, comparar_capturas_metadata
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_CARTAS_FIGURA, ACTUALIZAR_CARTAS_MOVIMIENTO
 
 def test_usar_figura_propia(test_db, test_ws):
-    partida, _ = crear_partida(test_db)
-    unir_jugadores(test_db, partida, numero_de_jugadores=1)
-    iniciar_partida(test_db, partida)
-    jugador_del_turno = partida.jugador_del_turno
     
     # Tablero que deseamos que se utilice
     tablero_mock = [
@@ -28,17 +24,16 @@ def test_usar_figura_propia(test_db, test_ws):
         }
     }
 
-    establecer_tablero(test_db, partida, tablero_mock)
-    cartear_figuras(test_db, jugador_del_turno, ["f1"])
-    movimientos_a_falsear = jugador_del_turno.mano_movimientos
-    falsear_movimientos_parciales(test_db, partida, movimientos_a_falsear)
-
     # Transformamos del formato de listas al esperado por el endpoint
     casillas_figura = listas_to_casillas_figura(figuras_formadas_en_mock["figuras_a_resaltar"]["f1"])[0]
     request_body = {
         "figura": casillas_figura,
         "carta_fig": "f1"
     }
+    
+    # Configuramos el escenario
+    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1"], n_movimientos_a_consumir=3)
+    
     response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
 
@@ -55,10 +50,6 @@ def test_usar_figura_propia(test_db, test_ws):
 # ----------------------------------------------------------------
 
 def test_usar_figura_propia_varias_figuras(test_db, test_ws):
-    partida, _ = crear_partida(test_db)
-    unir_jugadores(test_db, partida, numero_de_jugadores=1)
-    iniciar_partida(test_db, partida)
-    jugador_del_turno = partida.jugador_del_turno
     
     # Tablero que deseamos que se utilice
     tablero_mock = [
@@ -77,17 +68,16 @@ def test_usar_figura_propia_varias_figuras(test_db, test_ws):
         }
     }
 
-    establecer_tablero(test_db, partida, tablero_mock)
-    cartear_figuras(test_db, jugador_del_turno, ["f1"])
-    movimientos_a_falsear = jugador_del_turno.mano_movimientos
-    falsear_movimientos_parciales(test_db, partida, movimientos_a_falsear)
-
     # Transformamos del formato de listas al esperado por el endpoint
     casillas_figura = listas_to_casillas_figura(figuras_formadas_en_mock["figuras_a_resaltar"]["f1"])[0]
     request_body = {
         "figura": casillas_figura,
         "carta_fig": "f1"
     }
+    
+    # Configuramos el escenario
+    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1"], n_movimientos_a_consumir=3)
+    
     response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
 
@@ -121,13 +111,14 @@ def test_usar_figura_propia_varias_cartas(test_db, test_ws):
         }
     }
     
-    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1", "f2", "f1"], n_movimientos_a_consumir=3)
-
     casillas_figura = listas_to_casillas_figura(figuras_formadas_en_mock["figuras_a_resaltar"]["f1"])[0]
     request_body = {
         "figura": casillas_figura,
         "carta_fig": "f1"
     }
+    
+    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1", "f2", "f1"], n_movimientos_a_consumir=3)
+    
     response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
 
