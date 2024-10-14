@@ -2,7 +2,8 @@ from sqlalchemy.orm import Session
 from models import (Partida,
                     Jugador,
                     CartaFigura,
-                    CartaMovimiento
+                    CartaMovimiento,
+                    MovimientoParcial
                     )
 
 
@@ -221,3 +222,26 @@ def listas_to_casillas_figura(figuras: list[list[(int, int)]]):
         casillas_de_figuras.append(casillas_figura)
         
     return casillas_de_figuras
+
+def falsear_movimientos_parciales(db: Session, partida: Partida, movimientos: list[CartaMovimiento]):
+    '''
+    Crea movimientos parciales falsos a partir de la lista de cartas de movimiento pasadas.
+    NOTA: Se presupone que las cartas están en la mano de un mismo jugador, aunque puede que ande de todas formas.
+    '''
+    
+    assert len(movimientos) > 0, "Se esperaba al menos una carta."
+    assert len(movimientos) <= 3, "Solo se pueden recibir a lo sumo 3 cartas."
+    
+
+    for carta in movimientos:
+        orden = len(partida.movimientos_parciales)
+        movimiento_parcial = MovimientoParcial(
+            carta_id=carta.id,
+            origen=str((0,0)),
+            destino=str((1,1)),
+            carta=carta,
+            partida_id=partida.id,
+            orden=orden
+        )
+        partida.movimientos_parciales.append(movimiento_parcial)
+        db.commit()

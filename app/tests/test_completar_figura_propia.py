@@ -1,6 +1,6 @@
 import pdb
 from tests_setup import client
-from factory import crear_partida, unir_jugadores, iniciar_partida, establecer_tablero, cartear_figuras, listas_to_casillas_figura
+from factory import crear_partida, unir_jugadores, iniciar_partida, establecer_tablero, cartear_figuras, listas_to_casillas_figura, falsear_movimientos_parciales
 from verifications import check_response
 from schemas import Casilla
 from tools import capturar_metadata, comparar_capturas_metadata
@@ -10,7 +10,7 @@ def test_usar_figura_propia(test_db):
     unir_jugadores(test_db, partida, numero_de_jugadores=1)
     iniciar_partida(test_db, partida)
     jugador_del_turno = partida.jugador_del_turno
-
+    
     # Tablero que deseamos que se utilice
     tablero_mock = [
         [2, 2, 2, 4, 1, 2],
@@ -30,6 +30,8 @@ def test_usar_figura_propia(test_db):
 
     establecer_tablero(test_db, partida, tablero_mock)
     cartear_figuras(test_db, jugador_del_turno, ["f1"])
+    movimientos_a_falsear = jugador_del_turno.mano_movimientos
+    falsear_movimientos_parciales(test_db, partida, movimientos_a_falsear)
 
     # Transformamos del formato de listas al esperado por el endpoint
     casillas_figura = listas_to_casillas_figura(figuras_formadas_en_mock["figuras_a_resaltar"]["f1"])[0]
@@ -42,7 +44,10 @@ def test_usar_figura_propia(test_db):
 
     # Chequeamos que se haya consumido la carta correctamente
     cartas_reveladas_restantes = [carta_revelada for carta_revelada in jugador_del_turno.mazo_cartas_de_figura if carta_revelada.revelada]
-    assert cartas_reveladas_restantes == [], f"Fallo: Se esperaba que el jugador agotara su única carta, pero le quedan {len(cartas_reveladas_restantes)}."
+    assert cartas_reveladas_restantes == [], f"Fallo: Se esperaba que el jugador agotara su única carta de figura, pero le quedan {len(cartas_reveladas_restantes)}."
+    
+    # Chequeamos que la mano de movimientos del jugador se haya "aplicado"
+    assert jugador_del_turno.mano_movimientos == [], f"Fallo: Se esperaba que se aplicaran todos los movimientos del jugador, pero le quedan {len(jugador_del_turno.mano_movimientos)}."
 
 # ----------------------------------------------------------------
 
