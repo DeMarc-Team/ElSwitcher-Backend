@@ -300,7 +300,7 @@ def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figur
         )
     
     unatomic_usar_figura(db, partida, jugador, figura_data)
-    unatomic_aplicar_parciales(db, partida, jugador)
+    unatomic_aplicar_parciales(db, partida)
     db.commit()
 
 def unatomic_usar_figura(db: Session, partida: Partida, jugador: Jugador, figura_data: CompletarFiguraData):    
@@ -332,13 +332,13 @@ def unatomic_usar_figura(db: Session, partida: Partida, jugador: Jugador, figura
     
     db.flush()
 
-def unatomic_aplicar_parciales(db: Session, partida: Partida, jugador: Jugador):
+def unatomic_aplicar_parciales(db: Session, partida: Partida):
     '''
     Aplica los movimientos parciales del jugador (NO HACE VERIFICACIONES DE PERMISOS, i.e, QUE EL JUGADOR TENGA EL TURNO).
     '''
     
-    movimientos_parcializados = [movimiento for movimiento in jugador.mano_movimientos if movimiento.movimiento_parcial_en is not None]
-    movimientos_parciales = [movimiento.movimiento_parcial_en for movimiento in movimientos_parcializados]
+    movimientos_parciales = partida.movimientos_parciales
+    movimientos_parcializados = [parcial.carta for parcial in movimientos_parciales]
     
     for parcial in movimientos_parciales:
         db.delete(parcial)
