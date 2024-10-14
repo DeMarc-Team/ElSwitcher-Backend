@@ -104,11 +104,6 @@ def test_usar_figura_propia_varias_figuras(test_db, test_ws):
 # ----------------------------------------------------------------
 
 def test_usar_figura_propia_varias_cartas(test_db, test_ws):
-    partida, _ = crear_partida(test_db)
-    unir_jugadores(test_db, partida, numero_de_jugadores=1)
-    iniciar_partida(test_db, partida)
-    jugador_del_turno = partida.jugador_del_turno
-    
     # Tablero que deseamos que se utilice
     tablero_mock = [
         [2, 2, 2, 4, 1, 2],
@@ -125,13 +120,9 @@ def test_usar_figura_propia_varias_cartas(test_db, test_ws):
             "f1": [[[0, 1], [2, 1], [0, 0], [1, 1], [0, 2]]]
         }
     }
+    
+    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1", "f2", "f1"], n_movimientos_a_consumir=3)
 
-    establecer_tablero(test_db, partida, tablero_mock)
-    cartear_figuras(test_db, jugador_del_turno, ["f1", "f2", "f1"])
-    movimientos_a_falsear = jugador_del_turno.mano_movimientos
-    falsear_movimientos_parciales(test_db, partida, movimientos_a_falsear)
-
-    # Transformamos del formato de listas al esperado por el endpoint
     casillas_figura = listas_to_casillas_figura(figuras_formadas_en_mock["figuras_a_resaltar"]["f1"])[0]
     request_body = {
         "figura": casillas_figura,
@@ -149,6 +140,38 @@ def test_usar_figura_propia_varias_cartas(test_db, test_ws):
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws[ACTUALIZAR_CARTAS_FIGURA] = 1
     test_ws[ACTUALIZAR_CARTAS_MOVIMIENTO] = 1
+
+# ----------------------------------------------------------------
+
+def configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas, n_movimientos_a_consumir):
+    '''
+    Configura un escenario medianamente general para los tests de completar figuras.
+    
+    A la salida de este procedimiento, la base de datos test_db queda con:
+    - Una nueva partida iniciada
+    - El jugador del turno tendrá en su mazo las cartas reveladas con los códigos de "cartas_figura_carteadas"
+    - "n_movimientos_a_consumir" del jugador determina cuántas cartas de movimiento del jugador del turno estarán "parcialmente usadas"
+    
+    Retorna: 
+    partida, jugador_del_turno
+    '''
+    
+    
+    # Creamos las bases de la partida
+    partida, _ = crear_partida(test_db)
+    unir_jugadores(test_db, partida, numero_de_jugadores=1)
+    iniciar_partida(test_db, partida)
+    
+    # Configuramos particularidades del jugador que posee el turno
+    establecer_tablero(test_db, partida, tablero_mock)
+    
+    jugador_del_turno = partida.jugador_del_turno
+    cartear_figuras(test_db, jugador_del_turno, cartas_figura_carteadas)
+    
+    movimientos_a_consumir = jugador_del_turno.mano_movimientos[0:n_movimientos_a_consumir]
+    falsear_movimientos_parciales(test_db, partida, movimientos_a_consumir)
+
+    return partida, jugador_del_turno
 
 # ----------------------------------------------------------------
 
