@@ -1,7 +1,7 @@
 import pdb
 from tests_setup import client
 from factory import crear_partida, unir_jugadores, iniciar_partida, establecer_tablero, cartear_figuras, listas_to_casillas_figura, falsear_movimientos_parciales
-from verifications import check_response
+from verifications import check_response, check_cartas_figura_reveladas
 from tools import capturar_metadata, comparar_capturas_metadata
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_CARTAS_FIGURA, ACTUALIZAR_CARTAS_MOVIMIENTO
 
@@ -43,8 +43,7 @@ def test_usar_figura_propia(test_db, test_ws):
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
 
     # Chequeamos que se haya consumido la carta correctamente
-    cartas_reveladas_restantes = [carta_revelada for carta_revelada in jugador_del_turno.mazo_cartas_de_figura if carta_revelada.revelada]
-    assert cartas_reveladas_restantes == [], f"Fallo: Se esperaba que el jugador agotara su única carta de figura, pero le quedan {len(cartas_reveladas_restantes)}."
+    check_cartas_figura_reveladas(jugador_del_turno, expected_codigos_figura=[])
     
     # Chequeamos que la mano de movimientos del jugador se haya "aplicado"
     assert jugador_del_turno.mano_movimientos == [], f"Fallo: Se esperaba que se aplicaran todos los movimientos del jugador, pero le quedan {len(jugador_del_turno.mano_movimientos)}."
@@ -93,8 +92,7 @@ def test_usar_figura_propia_varias_figuras(test_db, test_ws):
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
 
     # Chequeamos que se haya consumido la carta correctamente
-    cartas_reveladas_restantes = [carta_revelada for carta_revelada in jugador_del_turno.mazo_cartas_de_figura if carta_revelada.revelada]
-    assert cartas_reveladas_restantes == [], f"Fallo: Se esperaba que el jugador agotara su única carta de figura, pero le quedan {len(cartas_reveladas_restantes)}."
+    check_cartas_figura_reveladas(jugador_del_turno, expected_codigos_figura=[])
     
     # Chequeamos que la mano de movimientos del jugador se haya "aplicado"
     assert jugador_del_turno.mano_movimientos == [], f"Fallo: Se esperaba que se aplicaran todos los movimientos del jugador, pero le quedan {len(jugador_del_turno.mano_movimientos)}."
@@ -143,8 +141,7 @@ def test_usar_figura_propia_varias_cartas(test_db, test_ws):
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
 
     # Chequeamos que se haya consumido una unica carta correctamente
-    codigos_cartas_reveladas_restantes = [carta_revelada.figura for carta_revelada in jugador_del_turno.mazo_cartas_de_figura if carta_revelada.revelada]
-    assert codigos_cartas_reveladas_restantes == ["f2", "f1"], f"Fallo: Se esperaba que el jugador agotara su única carta de figura, pero le quedan {len(codigos_cartas_reveladas_restantes)}."
+    check_cartas_figura_reveladas(jugador_del_turno, expected_codigos_figura=["f2", "f1"])
     
     # Chequeamos que la mano de movimientos del jugador se haya "aplicado"
     assert jugador_del_turno.mano_movimientos == [], f"Fallo: Se esperaba que se aplicaran todos los movimientos del jugador, pero le quedan {len(jugador_del_turno.mano_movimientos)}."

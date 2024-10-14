@@ -1,4 +1,4 @@
-from models import Jugador, Partida
+from models import Jugador, Partida, CartaFigura
 
 # --------------------------------Response--------------------------------
 def check_response(response, status_code_esperado, respuesta_esperada):
@@ -24,3 +24,7 @@ def check_partida_deletion(test_db, id_partida):
     partida = test_db.query(Partida).filter(Partida.id == id_partida).first()
     assert partida == None, f"Fallo: Se esperaba que la partida fuera eliminada de la base de datos, pero se encontró {
         partida}"
+
+def check_cartas_figura_reveladas(jugador: Jugador, expected_codigos_figura: list[str]):
+    codigos_cartas_reveladas_restantes = [carta_revelada.figura for carta_revelada in jugador.mazo_cartas_de_figura if carta_revelada.revelada]
+    assert codigos_cartas_reveladas_restantes == expected_codigos_figura, f"Fallo: Se esperaba que el jugador tuviera otras cartas revelada."
