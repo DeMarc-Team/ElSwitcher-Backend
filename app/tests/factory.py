@@ -105,6 +105,7 @@ def __repartir_cartas_figura(db: Session, partida: Partida, n_cartas_reveladas, 
         for i in range(n_cartas_por_jugador - len(jugador.mazo_cartas_de_figura)):
             carta = CartaFigura(poseida_por=jugador, revelada=(i < n_cartas_reveladas))
             db.add(carta)
+            jugador.mazo_cartas_de_figura.append(carta)
 
     db.commit()
     return partida
@@ -126,6 +127,7 @@ def __repartir_cartas_movimiento(db: Session, partida: Partida, n_cartas_por_jug
         for i in range(n_cartas_por_jugador - len(jugador.mano_movimientos)):
             carta = CartaMovimiento(movimientos_de=jugador)
             db.add(carta)
+            jugador.mano_movimientos.append(carta)
 
 def abandonar_partida(db: Session, partida: Partida, jugador: Jugador) -> Partida:
     '''
