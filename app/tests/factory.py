@@ -208,6 +208,21 @@ def cartear_figuras(db: Session, jugador: Jugador, figs: list[str]):
     
     db.commit()
     
+def eliminar_cartas_figura_del_maso(db: Session, jugador: Jugador, numero_a_dejar: int):
+    '''
+    Elimina las cartas de figura del jugador dejando `numero_a_dejar` cartas.
+    Elimina al ultimo las cartas reveladas si hay.
+    '''
+    figuras_no_reveladas = [figura for figura in jugador.mazo_cartas_de_figura if not figura.revelada]
+    figuras_reveladas = [figura for figura in jugador.mazo_cartas_de_figura if figura.revelada]
+    # Dejamos las figuras reveladas al final:
+    figuras = figuras_no_reveladas + figuras_reveladas
+
+    for i in range(len(figuras) - numero_a_dejar):
+        db.delete(figuras[i])
+        db.commit()
+    
+
 def listas_to_casillas_figura(figuras: list[list[(int, int)]]):
     '''
     Convierte una lista de casillas en formato de tuplas a una en formato de Casillas (como objeto).
