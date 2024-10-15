@@ -31,6 +31,7 @@ def capturar_metadata(objetos: list) -> dict:
     
     Obs: Quizas deban hacer commit de la db.
     '''
+
     validar_entrada_a_capturar(objetos)
 
     metadata = {}
