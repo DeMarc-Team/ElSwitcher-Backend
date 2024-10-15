@@ -108,8 +108,28 @@ def test_abandonar_partida_ycancelar_ws(expected_msgs_home_ws, expected_msgs_par
     
 # ----------------------------------------------------------
 
+def test_completar_figura_propia_con_ganador_ws(expected_msgs_partidas_ws):
+    with mock.patch('routers.juego.crud.juego.completar_figura_propia', new=mock.MagicMock()) as mock_service:
+        mock_service.return_value = {"hay_ganador": {"id_ganador": 2, "nombre_ganador": "Juanito"}}
+        
+        # Construimos un request body de ejemplo
+        casillas_figura = listas_to_casillas_figura([[[0, 1], [2, 1], [0, 0], [1, 1], [0, 2]]])[0]
+        request_body = {
+            "figura": casillas_figura,
+            "carta_fig": "f1"
+        }
+        
+        response = client.put('/juego/1/jugadores/2/tablero/figura', json=request_body)
+        
+        assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
+        
+    ganador_msg = PartidasMessage(action=MtPartidas.HAY_GANADOR, data=str({"id":2, "nombre":"Juanito"}))
+    expected_msgs_partidas_ws.append(ganador_msg)
+
 def test_completar_figura_propia_ws(expected_msgs_partidas_ws):
-    with mock.patch('routers.juego.crud.juego.completar_figura_propia'):
+    with mock.patch('routers.juego.crud.juego.completar_figura_propia', new=mock.MagicMock()) as mock_service:
+        mock_service.return_value = {"hay_ganador": None}
+        
         # Construimos un request body de ejemplo
         casillas_figura = listas_to_casillas_figura([[[0, 1], [2, 1], [0, 0], [1, 1], [0, 2]]])[0]
         request_body = {
