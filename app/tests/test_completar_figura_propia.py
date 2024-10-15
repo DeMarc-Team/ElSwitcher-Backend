@@ -6,7 +6,7 @@ from tools import capturar_metadata, comparar_capturas_metadata, get_all_tables
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_CARTAS_FIGURA, ACTUALIZAR_CARTAS_MOVIMIENTO
 
 def test_usar_figura_propia(test_db, test_ws):
-    
+
     # Tablero que deseamos que se utilice
     tablero_mock = [
         [2, 2, 2, 4, 1, 2],
@@ -38,28 +38,26 @@ def test_usar_figura_propia(test_db, test_ws):
     captura_inicial = capturar_metadata(get_all_tables(test_db))
 
     response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
-    test_db.commit()
+    check_response(response, status_code_esperado=200, respuesta_esperada=None)
 
     # Capturamos la BDD luego de los cambios
     captura_final = capturar_metadata(get_all_tables(test_db))
     modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
 
-    # Comparo que los conjuntos (PORQUE EL ORDEN DE LAS CAPTURAS NO ES DETERMINISTA) de objetos sean los correctos
+    # Comparamos que los conjuntos (PORQUE EL ORDEN DE LAS CAPTURAS NO ES DETERMINISTA) de objetos sean los correctos
     assert set(modificaciones) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
     assert set(eliminadas) == set(
         [
             ("cartas_de_movimiento", 1),    # Cartas de movimiento falseadas
             ("cartas_de_movimiento", 2),
             ("cartas_de_movimiento", 3),
-            ("movimientos_parciales", 1),   # Movimientos parciales asociados a las cartas falseadas
+            ("movimientos_parciales", 1),   # Movimientos parciales asociados a las cartas falseadas/consumidas
             ("movimientos_parciales", 2),
             ("movimientos_parciales", 3),
             ("cartas_de_figura", 7),        # Carta de figura usada
         ]
     ), "Fallo: Se esperaba otro conjunto de objetos eliminados."
     assert set(creadas) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
-
-    check_response(response, status_code_esperado=200, respuesta_esperada=None)
 
     # Chequeamos que se haya consumido la carta correctamente
     check_cartas_figura_reveladas(jugador_del_turno, expected_codigos_figura=[])
@@ -100,16 +98,33 @@ def test_usar_figura_propia_varias_figuras(test_db, test_ws):
     }
     
     # Configuramos el escenario
-    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1"], n_movimientos_a_consumir=3)
+    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1"], n_movimientos_a_consumir=2)
+    
+    # Capturamos la BDD antes de los cambios
+    captura_inicial = capturar_metadata(get_all_tables(test_db))
     
     response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
+    
+    # Capturamos la BDD luego de los cambios
+    captura_final = capturar_metadata(get_all_tables(test_db))
+    modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
+
+    # Comparamos que los conjuntos (PORQUE EL ORDEN DE LAS CAPTURAS NO ES DETERMINISTA) de objetos sean los correctos
+    assert set(modificaciones) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
+    assert set(eliminadas) == set(
+        [
+            ("cartas_de_movimiento", 1),    # Cartas de movimiento falseadas
+            ("cartas_de_movimiento", 2),
+            ("movimientos_parciales", 1),   # Movimientos parciales asociados a las cartas falseadas/consumidas
+            ("movimientos_parciales", 2),
+            ("cartas_de_figura", 7),        # Carta de figura usada
+        ]
+    ), "Fallo: Se esperaba otro conjunto de objetos eliminados."
+    assert set(creadas) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
 
     # Chequeamos que se haya consumido la carta correctamente
     check_cartas_figura_reveladas(jugador_del_turno, expected_codigos_figura=[])
-    
-    # Chequeamos que la mano de movimientos del jugador se haya "aplicado"
-    assert jugador_del_turno.mano_movimientos == [], f"Fallo: Se esperaba que se aplicaran todos los movimientos del jugador, pero le quedan {len(jugador_del_turno.mano_movimientos)}."
 
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws[ACTUALIZAR_CARTAS_FIGURA] = 1
@@ -143,15 +158,34 @@ def test_usar_figura_propia_varias_cartas(test_db, test_ws):
     
     partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1", "f2", "f1"], n_movimientos_a_consumir=3)
     
+    # Capturamos la BDD antes de los cambios
+    captura_inicial = capturar_metadata(get_all_tables(test_db))
+    
     response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
+
+    # Capturamos la BDD luego de los cambios
+    captura_final = capturar_metadata(get_all_tables(test_db))
+    modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
+
+    # Comparamos que los conjuntos (PORQUE EL ORDEN DE LAS CAPTURAS NO ES DETERMINISTA) de objetos sean los correctos
+    assert set(modificaciones) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
+    assert set(eliminadas) == set(
+        [
+            ("cartas_de_movimiento", 1),    # Cartas de movimiento falseadas
+            ("cartas_de_movimiento", 2),
+            ("cartas_de_movimiento", 3),
+            ("movimientos_parciales", 1),   # Movimientos parciales asociados a las cartas falseadas/consumidas
+            ("movimientos_parciales", 2),
+            ("movimientos_parciales", 3),
+            ("cartas_de_figura", 7),        # Carta de figura usada
+        ]
+    ), "Fallo: Se esperaba otro conjunto de objetos eliminados."
+    assert set(creadas) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
 
     # Chequeamos que se haya consumido una unica carta correctamente
     check_cartas_figura_reveladas(jugador_del_turno, expected_codigos_figura=["f2", "f1"])
     
-    # Chequeamos que la mano de movimientos del jugador se haya "aplicado"
-    assert jugador_del_turno.mano_movimientos == [], f"Fallo: Se esperaba que se aplicaran todos los movimientos del jugador, pero le quedan {len(jugador_del_turno.mano_movimientos)}."
-
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws[ACTUALIZAR_CARTAS_FIGURA] = 1
     test_ws[ACTUALIZAR_CARTAS_MOVIMIENTO] = 1
