@@ -219,10 +219,11 @@ def test_usar_figura_propia_jugador_no_turno_403(test_db, test_ws):
     # Verificamos que no se haya realizado ningun cambio en la base de datos
     test_db.refresh(partida)
     captura_final = capturar_metadata([partida, *partida.jugadores, *jugador_del_turno.mazo_cartas_de_figura, *otro_jugador.mazo_cartas_de_figura])
-    diferencias = comparar_capturas_metadata(captura_inicial, captura_final)
+    modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
 
-    assert not diferencias, f"Se encontraron modificaciones en la db: {diferencias}"
-
+    assert not modificaciones, f"Se encontraron modificaciones en tablas en la db: {modificaciones}"
+    assert not eliminadas, f"Se encontraron tablas eliminadas en la db: {eliminadas}"
+    assert not creadas, f"Se encontraron tablas creadas en la db: {creadas}"
 # ----------------------------------------------------------------
 
 def test_usar_figura_propia_partida_no_existe_404(test_db, test_ws):
@@ -261,10 +262,11 @@ def test_usar_figura_propia_partida_no_iniciada_403(test_db, test_ws):
     # Verificamos que no se haya realizado ningun cambio en la base de datos
     test_db.refresh(partida)
     captura_final = capturar_metadata([partida, *partida.jugadores, *jugador.mazo_cartas_de_figura])
-    diferencias = comparar_capturas_metadata(captura_inicial, captura_final)
+    modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
 
-    assert not diferencias, f"Se encontraron modificaciones en la db: {diferencias}"
-
+    assert not modificaciones, f"Se encontraron modificaciones en tablas en la db: {modificaciones}"
+    assert not eliminadas, f"Se encontraron tablas eliminadas en la db: {eliminadas}"
+    assert not creadas, f"Se encontraron tablas creadas en la db: {creadas}"
 # ----------------------------------------------------------------
 
 def test_usar_figura_propia_jugador_no_existe_404(test_db, test_ws):
@@ -309,10 +311,11 @@ def test_usar_figura_propia_mano_sin_figura_404(test_db, test_ws):
     # Verificamos que no se haya realizado ningun cambio en la base de datos
     test_db.refresh(partida)
     captura_final = capturar_metadata([partida, *partida.jugadores, *jugador_del_turno.mazo_cartas_de_figura])
-    diferencias = comparar_capturas_metadata(captura_inicial, captura_final)
+    modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
 
-    assert not diferencias, f"Se encontraron modificaciones en la db: {diferencias}"
-
+    assert not modificaciones, f"Se encontraron modificaciones en tablas en la db: {modificaciones}"
+    assert not eliminadas, f"Se encontraron tablas eliminadas en la db: {eliminadas}"
+    assert not creadas, f"Se encontraron tablas creadas en la db: {creadas}"
 # ----------------------------------------------------------------
 
 def test_usar_figura_propia_no_en_tablero_404(test_db, test_ws):
@@ -349,10 +352,11 @@ def test_usar_figura_propia_no_en_tablero_404(test_db, test_ws):
     # Verificamos que no se haya realizado ningun cambio en la base de datos
     test_db.refresh(partida)
     captura_final = capturar_metadata([partida, *partida.jugadores, *jugador_del_turno.mazo_cartas_de_figura])
-    diferencias = comparar_capturas_metadata(captura_inicial, captura_final)
+    modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
 
-    assert not diferencias, f"Se encontraron modificaciones en la db: {diferencias}"
-
+    assert not modificaciones, f"Se encontraron modificaciones en tablas en la db: {modificaciones}"
+    assert not eliminadas, f"Se encontraron tablas eliminadas en la db: {eliminadas}"
+    assert not creadas, f"Se encontraron tablas creadas en la db: {creadas}"
 # ----------------------------------------------------------------
 
 def test_usar_figura_propia_casilla_incorrecta_404(test_db,test_ws):
@@ -389,6 +393,8 @@ def test_usar_figura_propia_casilla_incorrecta_404(test_db,test_ws):
     # Verificamos que no se haya realizado ningun cambio en la base de datos
     test_db.refresh(partida)
     captura_final = capturar_metadata([partida, *partida.jugadores, *jugador_del_turno.mazo_cartas_de_figura])
-    diferencias = comparar_capturas_metadata(captura_inicial, captura_final)
+    modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
 
-    assert not diferencias, f"Se encontraron modificaciones en la db: {diferencias}"
+    assert not modificaciones, f"Se encontraron modificaciones en tablas en la db: {modificaciones}"
+    assert not eliminadas, f"Se encontraron tablas eliminadas en la db: {eliminadas}"
+    assert not creadas, f"Se encontraron tablas creadas en la db: {creadas}"

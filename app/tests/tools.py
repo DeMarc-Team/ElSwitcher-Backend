@@ -3,10 +3,6 @@ from sqlalchemy import inspect
 from database import Base
 from sqlalchemy.orm import Session
 
-
-# FIXME: Sera mejor que comparar_capturas devuelva las tablas modificadas en una
-# key 'Modificadas' en vez de en la clave de la tabla ??
-
 def get_all_tables(session: Session) -> list:
     '''
     Devuelve una lista con todas las instancias de todas las tablas de la base de datos.
@@ -52,10 +48,12 @@ def capturar_metadata(objetos: list) -> dict:
 
     return metadata
 
-def comparar_capturas_metadata(metadata_inicial: dict, metadata_final: dict) -> dict:
+def comparar_capturas_metadata(metadata_inicial: dict, metadata_final: dict):
     '''
-    Recibe dos diccionarios de metadata y devuelve un diccionario con las 
-    diferencias entre ambas.
+    Recibe dos diccionarios de metadata y devuelve un diccionario con las
+    modificaciones de cada tabla entre ambas capturas y dos listas con las
+    tablas eliminadas y creadas.
+    Return: modificaciones, eliminadas, creadas
     
     Por ejemplo, si recibie:
     metadata_inicial ={
@@ -77,10 +75,6 @@ def comparar_capturas_metadata(metadata_inicial: dict, metadata_final: dict) -> 
         ('tabla3', id3): {
             'clave1': valor1,
             'clave2': valor2
-        },
-        ('tabla4', id4): {
-            'clave1': valor1,
-            'clave2': valor2
         }
     }
 
@@ -90,23 +84,24 @@ def comparar_capturas_metadata(metadata_inicial: dict, metadata_final: dict) -> 
         ('tabla1', id1): [
             ('clave1', valor_inicial_1, valor_final_1),
         ],
-        'Eliminadas': [('tabla2', id2)]
-        'Creadas': [('tabla3', id3), ('tabla4', id4)]
     }
+    [('tabla2', id2)]
+    [('tabla3', id3)]
+
 
     donde ('clave1', valor_inicial_1, valor_final_1) es una tupla que indica que
     la clave1 tenía el valor valor_inicial_1 en la metadata inicial y
     valor_final_1 en la metadata final.
     '''
 
-    diferencias = {}
-    diferencias['Eliminadas'] = []
-    diferencias['Creadas'] = []
+    modificaciones = {}
+    eliminadas = []
+    creadas = []
 
     for clave_tabla, tabla_inicial in metadata_inicial.items():
         tabla_final = metadata_final.get(clave_tabla, None)
         if tabla_final is None :
-            diferencias['Eliminadas'] = clave_tabla
+            eliminadas.append(clave_tabla)
             continue
         
         assert len(tabla_inicial) == len(tabla_final), 'La cantidad de columnas debe ser la misma'
@@ -126,13 +121,13 @@ def comparar_capturas_metadata(metadata_inicial: dict, metadata_final: dict) -> 
 
         if cambios_actuales:
             # Guardamos los cambios en el diccionario con la clave (nombre_tabla, id_tabla)
-            diferencias[clave_tabla] = cambios_actuales
+            modificaciones[clave_tabla] = cambios_actuales
 
     for clave_tabla, tabla_final in metadata_final.items():
         if metadata_inicial.get(clave_tabla, None) is None:
-            diferencias['Creadas'].append(clave_tabla)
+            creadas.append(clave_tabla)
     
-    return diferencias
+    return modificaciones, eliminadas, creadas
 
 
 def capturar_str(objetos: list) -> dict:
@@ -149,8 +144,10 @@ def capturar_str(objetos: list) -> dict:
 
 def comparar_capturas_str(capturas_iniciales:dict, capturas_finales:dict) -> dict:
     '''
-    Recibe dos diccionarios de capturas y devuelve un diccionario con las 
-    diferencias entre ambas.
+    Recibe dos diccionarios de capturas y devuelve un diccionario con las
+    modificaciones de cada tabla entre ambas capturas y dos listas con las
+    tablas eliminadas y creadas.
+    Return: modificaciones, eliminadas, creadas
     
     Por ejemplo, si recibie:
     metadata_inicial ={
@@ -172,10 +169,6 @@ def comparar_capturas_str(capturas_iniciales:dict, capturas_finales:dict) -> dic
         ('tabla3', id3): {
             'clave1': valor1,
             'clave2': valor2
-        },
-        ('tabla4', id4): {
-            'clave1': valor1,
-            'clave2': valor2
         }
     }
 
@@ -185,23 +178,24 @@ def comparar_capturas_str(capturas_iniciales:dict, capturas_finales:dict) -> dic
         ('tabla1', id1): [
             ('clave1', valor_inicial_1, valor_final_1),
         ],
-        'Eliminadas': [('tabla2', id2)]
-        'Creadas': [('tabla3', id3), ('tabla4', id4)]
     }
+    [('tabla2', id2)]
+    [('tabla3', id3)]
+
 
     donde ('clave1', valor_inicial_1, valor_final_1) es una tupla que indica que
     la clave1 tenía el valor valor_inicial_1 en la metadata inicial y
     valor_final_1 en la metadata final.
     '''
 
-    diferencias = {}
-    diferencias['Eliminadas'] = []
-    diferencias['Creadas'] = []
+    modificaciones = {}
+    eliminadas = []
+    creadas = []
 
     for clave_tabla, captura_inicial in capturas_iniciales.items():
         captura_final = capturas_finales.get(clave_tabla, None)
         if (captura_final is None):
-            diferencias['Eliminadas'].append(clave_tabla)
+            eliminadas.append(clave_tabla)
             continue
         assert captura_inicial.count('=') == captura_final.count('='), 'La cantidad de pares clave=valor debe ser la misma'
         assert isinstance(clave_tabla, tuple), f'La clave de la tabla debe ser una tupla en vez de {type(clave_tabla)}'
@@ -224,13 +218,13 @@ def comparar_capturas_str(capturas_iniciales:dict, capturas_finales:dict) -> dic
 
         if cambios_actuales:
             # Guardamos los cambios en el diccionario con la clave (nombre_tabla, id_tabla)
-            diferencias[clave_tabla] = cambios_actuales
+            modificaciones[clave_tabla] = cambios_actuales
 
     for clave_tabla, captura_final in capturas_finales.items():
         if capturas_iniciales.get(clave_tabla, None) is None:
-            diferencias['Creadas'].append(clave_tabla)
+            creadas.append(clave_tabla)
 
-    return diferencias
+    return modificaciones, eliminadas, creadas
 
 def __limpiar_y_convertir(cadena: str) -> dict:
     assert isinstance(cadena, str), 'La captura debe ser una cadena'
