@@ -1,8 +1,8 @@
 from tests_setup import client
-from factory import crear_partida, unir_jugadores, iniciar_partida, establecer_tablero, cartear_figuras, listas_to_casillas_figura, falsear_movimientos_parciales
+from factory import crear_partida, unir_jugadores, iniciar_partida, establecer_tablero, cartear_figuras, listas_to_casillas_figura, falsear_movimientos_parciales, eliminar_cartas_figura_del_maso
 from verifications import check_response, check_cartas_figura_reveladas
 from tools import capturar_metadata, comparar_capturas_metadata, get_all_tables
-from websockets_manager.ws_partidas_manager import ACTUALIZAR_CARTAS_FIGURA, ACTUALIZAR_CARTAS_MOVIMIENTO
+from websockets_manager.ws_partidas_manager import HAY_GANADOR, ACTUALIZAR_CARTAS_FIGURA, ACTUALIZAR_CARTAS_MOVIMIENTO
 
 def test_usar_figura_propia(test_db, test_ws):
 
@@ -67,6 +67,79 @@ def test_usar_figura_propia(test_db, test_ws):
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws[ACTUALIZAR_CARTAS_FIGURA] = 1
     test_ws[ACTUALIZAR_CARTAS_MOVIMIENTO] = 1
+
+# ----------------------------------------------------------------
+
+def test_usar_figura_propia_yganar(test_db, test_ws):
+    '''Test de jugador que completa una figura y gana la partida'''
+
+    # Tablero que deseamos que se utilice
+    tablero_mock = [
+        [2, 2, 2, 4, 1, 2],
+        [1, 2, 1, 4, 1, 2],
+        [1, 2, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2]
+    ]
+
+    # Diccionario con las casillas de las figuras formadas en el tablero del mock
+    figuras_formadas_en_mock = {
+        "figuras_a_resaltar": {
+            "f1": [[[0, 1], [2, 1], [0, 0], [1, 1], [0, 2]]]
+        }
+    }
+
+    # Transformamos del formato de listas al esperado por el endpoint
+    casillas_figura = listas_to_casillas_figura(figuras_formadas_en_mock["figuras_a_resaltar"]["f1"])[0]
+    request_body = {
+        "figura": casillas_figura,
+        "carta_fig": "f1"
+    }
+
+    # Configuramos el escenario
+    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1"], n_movimientos_a_consumir=3)
+
+    eliminar_cartas_figura_del_maso(test_db, jugador_del_turno, 1)
+
+    # Capturamos la BDD antes de los cambios
+    captura_inicial = capturar_metadata(get_all_tables(test_db))
+
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    test_db.commit()
+    check_response(response, status_code_esperado=200, respuesta_esperada=None)
+
+    # Capturamos la BDD luego de los cambios
+    captura_final = capturar_metadata(get_all_tables(test_db))
+    modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
+
+    # Comparamos que los conjuntos (PORQUE EL ORDEN DE LAS CAPTURAS NO ES DETERMINISTA) de objetos sean los correctos
+    assert set(modificaciones) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
+    assert set(eliminadas) == set(
+        [
+            ('cartas_de_movimiento', 1),
+            ('cartas_de_movimiento', 2),
+            ('cartas_de_movimiento', 3),
+            ('cartas_de_movimiento', 4),
+            ('cartas_de_movimiento', 5),
+            ('cartas_de_movimiento', 6),
+            ('movimientos_parciales', 1),
+            ('movimientos_parciales', 2),
+            ('movimientos_parciales', 3),
+            ('jugadores', 1),
+            ('jugadores', 2),
+            ('cartas_de_figura', 4),
+            ('cartas_de_figura', 5),
+            ('cartas_de_figura', 6),
+            ('cartas_de_figura', 7),
+            ('partidas', 1)
+        ]
+    ), "Fallo: Se esperaba otro conjunto de objetos eliminados."
+    assert set(creadas) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
+    # Chequeamos que se haya eliminado todo de la db
+    assert get_all_tables(test_db) == [], "Fallo: Se esperaba que la base de datos estuviera vacía."
+    # Ponemos cuantas veces se espera que se envie cada mensaje de ws
+    test_ws[HAY_GANADOR] = 1
 
 # ----------------------------------------------------------------
 
