@@ -52,7 +52,7 @@ def comparar_capturas_metadata(metadata_inicial: dict, metadata_final: dict):
     '''
     Recibe dos diccionarios de metadata y devuelve un diccionario con las
     modificaciones de cada tabla entre ambas capturas y dos listas con las
-    tablas eliminadas y creadas.
+    tablas eliminadas y creadas. Todas las listas ordenadas.
     Return: modificaciones, eliminadas, creadas
     
     Por ejemplo, si recibie:
@@ -127,6 +127,12 @@ def comparar_capturas_metadata(metadata_inicial: dict, metadata_final: dict):
         if metadata_inicial.get(clave_tabla, None) is None:
             creadas.append(clave_tabla)
     
+    # Ordenamos las listas
+    eliminadas.sort()
+    creadas.sort()
+    for cambios in modificaciones.values():
+        cambios.sort()
+
     return modificaciones, eliminadas, creadas
 
 
@@ -146,7 +152,7 @@ def comparar_capturas_str(capturas_iniciales:dict, capturas_finales:dict) -> dic
     '''
     Recibe dos diccionarios de capturas y devuelve un diccionario con las
     modificaciones de cada tabla entre ambas capturas y dos listas con las
-    tablas eliminadas y creadas.
+    tablas eliminadas y creadas. Todas las listas ordenadas.
     Return: modificaciones, eliminadas, creadas
     
     Por ejemplo, si recibie:
@@ -223,6 +229,12 @@ def comparar_capturas_str(capturas_iniciales:dict, capturas_finales:dict) -> dic
     for clave_tabla, captura_final in capturas_finales.items():
         if capturas_iniciales.get(clave_tabla, None) is None:
             creadas.append(clave_tabla)
+
+    # Ordenamos las listas
+    eliminadas.sort()
+    creadas.sort()
+    for cambios in modificaciones.values():
+        cambios.sort()
 
     return modificaciones, eliminadas, creadas
 
