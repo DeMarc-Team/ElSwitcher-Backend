@@ -124,7 +124,7 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
     db.delete(jugador)
     db.commit()
 
-    return {**__hay_ganador(db, partida), **__partida_cancelada(db, partida, jugador, id_creador)}
+    return {**hay_ganador(db, partida), **__partida_cancelada(db, partida, jugador, id_creador)}
 
 def __partida_cancelada(db: Session, partida: Partida, jugador: Jugador, id_creador: int):
     if (not partida.iniciada and jugador.id_jugador == id_creador):
@@ -133,13 +133,33 @@ def __partida_cancelada(db: Session, partida: Partida, jugador: Jugador, id_crea
         return {"partida_cancelada" : {"id" : partida.id}}
     return {"partida_cancelada" : None}
 
-def __hay_ganador(db: Session, partida: Partida):
+def hay_ganador(db: Session, partida: Partida = None):
+    '''
+    En la partida pasada por parametro, verifica si hay un ganador y lo
+    devuelve.
+
+    Un jugador gana si cumple alguna de las siguientes condiciones en orden
+    de prioridad:
+
+    1. Se queda en su turno sin cartas de figura en su maso.
+    2. Es el único jugador en la partida.
+
+    Retorna un diccionario con la siguiente estructura:
+    - Si hay un ganador:
+        {"hay_ganador" : {"id_ganador" : id_ganador, "nombre_ganador" : nombre_ganador}}
+    - Si no hay un ganador:
+        {"hay_ganador" : None}
+    '''
+    db.refresh(partida)
     id_ganador = None
     nombre_ganador = None
-    
-    if (partida.iniciada and len(partida.jugadores) == 1):
-        id_ganador = partida.jugadores[0].id_jugador
-        nombre_ganador = partida.jugadores[0].nombre
+    if (partida.iniciada):
+        if (partida.jugador_del_turno.numero_de_cartas_figura == 0):
+            id_ganador = partida.jugador_del_turno.id_jugador
+            nombre_ganador = partida.jugador_del_turno.nombre
+        elif (len(partida.jugadores) == 1):
+            id_ganador = partida.jugadores[0].id_jugador
+            nombre_ganador = partida.jugadores[0].nombre
     
     # Aca pueden ir mas verificaciones para determinar si hay un ganador
 
