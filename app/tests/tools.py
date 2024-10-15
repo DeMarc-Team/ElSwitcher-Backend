@@ -3,6 +3,10 @@ from sqlalchemy import inspect
 from database import Base
 from sqlalchemy.orm import Session
 
+
+# FIXME: Sera mejor que comparar_capturas devuelva las tablas modificadas en una
+# key 'Modificadas' en vez de en la clave de la tabla ??
+
 def get_all_tables(session: Session) -> list:
     '''
     Devuelve una lista con todas las instancias de todas las tablas de la base de datos.
