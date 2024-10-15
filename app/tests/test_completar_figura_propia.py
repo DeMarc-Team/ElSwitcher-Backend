@@ -1,4 +1,3 @@
-import pdb
 from tests_setup import client
 from factory import crear_partida, unir_jugadores, iniciar_partida, establecer_tablero, cartear_figuras, listas_to_casillas_figura, falsear_movimientos_parciales
 from verifications import check_response, check_cartas_figura_reveladas
@@ -32,7 +31,7 @@ def test_usar_figura_propia(test_db, test_ws):
     }
 
     # Configuramos el escenario
-    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1"], n_movimientos_a_consumir=3)
+    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1","f1"], n_movimientos_a_consumir=3)
 
     # Capturamos la BDD antes de los cambios
     captura_inicial = capturar_metadata(get_all_tables(test_db))
@@ -60,7 +59,7 @@ def test_usar_figura_propia(test_db, test_ws):
     assert set(creadas) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
 
     # Chequeamos que se haya consumido la carta correctamente
-    check_cartas_figura_reveladas(jugador_del_turno, expected_codigos_figura=[])
+    check_cartas_figura_reveladas(jugador_del_turno, expected_codigos_figura=["f1"])
 
     # Chequeamos que la mano de movimientos del jugador se haya "aplicado"
     assert jugador_del_turno.mano_movimientos == [], f"Fallo: Se esperaba que se aplicaran todos los movimientos del jugador, pero le quedan {len(jugador_del_turno.mano_movimientos)}."
@@ -98,7 +97,7 @@ def test_usar_figura_propia_varias_figuras(test_db, test_ws):
     }
     
     # Configuramos el escenario
-    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1"], n_movimientos_a_consumir=2)
+    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1","f1"], n_movimientos_a_consumir=2)
     
     # Capturamos la BDD antes de los cambios
     captura_inicial = capturar_metadata(get_all_tables(test_db))
@@ -124,7 +123,7 @@ def test_usar_figura_propia_varias_figuras(test_db, test_ws):
     assert set(creadas) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
 
     # Chequeamos que se haya consumido la carta correctamente
-    check_cartas_figura_reveladas(jugador_del_turno, expected_codigos_figura=[])
+    check_cartas_figura_reveladas(jugador_del_turno, expected_codigos_figura=["f1"])
 
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws[ACTUALIZAR_CARTAS_FIGURA] = 1
