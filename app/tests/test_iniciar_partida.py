@@ -1,6 +1,7 @@
 from tests_setup import client
 from models import Partida
 from factory import crear_partida, unir_jugadores, iniciar_partida
+from constantes_juego import N_CARTAS_FIGURA_TOTALES, N_FIGURAS_REVELADAS
 
 def test_iniciar_partida_200(test_db):
     '''Test para iniciar una partida con suficientes jugadores'''
@@ -22,11 +23,14 @@ def test_iniciar_partida_200(test_db):
     assert partida.iniciada, f"Fallo: Se esperaba que la partida estuviera iniciada, pero se obtuvo {partida.iniciada}"
     assert len(partida.jugadores) == 3, f"Fallo: Se esperaba que la partida tuviera 3 jugadores, pero se obtuvo {len(partida.jugadores)}"
     
+    # Calculamos la cantidad de cartas de figura que cada jugador deberia tener en esta partida
+    n_cartas_fig_por_jugador = int(N_CARTAS_FIGURA_TOTALES/len(partida.jugadores))
+    
     # Verificamos que se hayan repartido las cartas de figura y cartas de movimiento
     for jugador in partida.jugadores:
-        assert len(jugador.mazo_cartas_de_figura) == 3, f"Fallo: Se esperaba que el jugador tuviera 3 cartas de figura, pero se obtuvo {len(jugador.cartas_figura)}"
-        for carta in jugador.mazo_cartas_de_figura:
-            assert carta.revelada, f"Fallo: Se esperaba que la carta de figura estuviera revelada, pero se obtuvo {carta.revelada}"
+        cartas_figura_reveladas = [figura for figura in jugador.mazo_cartas_de_figura if figura.revelada]
+        assert len(jugador.mazo_cartas_de_figura) == n_cartas_fig_por_jugador, f"Fallo: Se esperaba que el jugador tuviera 3 cartas de figura, pero se obtuvo {len(jugador.mazo_cartas_de_figura)}"
+        assert len(cartas_figura_reveladas) == N_FIGURAS_REVELADAS, f"Fallo: Se esperaba que el jugador tuviera {N_FIGURAS_REVELADAS} figuras reveladas, pero tiene {len(cartas_figura_reveladas)}"
         assert len(jugador.mano_movimientos) == 3, f"Fallo: Se esperaba que el jugador tuviera 3 cartas de movimiento, pero se obtuvo {len(jugador.cartas_movimiento)}"
     
     test_db.close()

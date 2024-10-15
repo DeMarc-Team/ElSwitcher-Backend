@@ -8,6 +8,7 @@ class MessageType(Enum):
     ACTUALIZAR_TURNO = "actualizar_turno"
     ACTUALIZAR_TABLERO = "actualizar_tablero"
     ACTUALIZAR_CARTAS_MOVIMIENTO = "actualizar_cartas_movimiento"
+    ACTUALIZAR_CARTAS_FIGURA = "actualizar_cartas_figura"
     HAY_GANADOR = "hay_ganador"
     PARTIDA_CANCELADA = "partida_cancelada"
 
@@ -17,6 +18,7 @@ HAY_GANADOR = MessageType.HAY_GANADOR.value
 PARTIDA_CANCELADA = MessageType.PARTIDA_CANCELADA.value
 ACTUALIZAR_TABLERO = MessageType.ACTUALIZAR_TABLERO.value
 ACTUALIZAR_CARTAS_MOVIMIENTO = MessageType.ACTUALIZAR_CARTAS_MOVIMIENTO.value
+ACTUALIZAR_CARTAS_FIGURA = MessageType.ACTUALIZAR_CARTAS_FIGURA.value
 
 class WsMessage(BaseModel):
     action: MessageType
@@ -67,6 +69,9 @@ class PartidasConnectionManager:
         
     async def send_actualizar_cartas_movimiento(self, partida_id: int):
         await self.broadcast(partida_id, WsMessage(action=MessageType.ACTUALIZAR_CARTAS_MOVIMIENTO))
+
+    async def send_actualizar_cartas_figura(self, partida_id: int):
+        await self.broadcast(partida_id, WsMessage(action=MessageType.ACTUALIZAR_CARTAS_FIGURA))
 
     async def send_partida_cancelada(self, partida_id: int):
         await self.broadcast(partida_id, WsMessage(action=MessageType.PARTIDA_CANCELADA))

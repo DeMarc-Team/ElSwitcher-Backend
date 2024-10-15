@@ -1,13 +1,29 @@
 import re
 from sqlalchemy import inspect
 from database import Base
+from sqlalchemy.orm import Session
 
-# TODO: No apta para la comparacion actual
+def get_all_tables(session: Session) -> list:
+    '''
+    Devuelve una lista con todas las instancias de todas las tablas de la base de datos.
+    Se puede directo a capturar_metadata o capturar_str para capturar toda la db.
+    Obs: Quizas deban hacer commit de la db.
+    '''
+    all_instances = []
+    
+    # Iterar sobre las clases mapeadas en la metadata de Base
+    for mapper in Base.registry.mappers:
+        instances = session.query(mapper.class_).all()
+        all_instances.extend(instances)
+    
+    return all_instances
+
 def capturar_metadata(objetos: list) -> dict:
     '''
     Devuelve un diccionario donde una clave es una tupla (__tablename__, id)
     y su valor es un diccionario con la metadata de la tabla, donde las claves
     son los nombres de las columnas y los valores son sus valores en el objeto.
+    Obs: Quizas deban hacer commit de la db.
     '''
     assert len(objetos) > 0, 'La lista no puede estar vacía'
     assert all([isinstance(obj, Base) for obj in objetos]), 'Todos los objetos deben ser instancias de models'
@@ -28,9 +44,93 @@ def capturar_metadata(objetos: list) -> dict:
             # Agrega la columna y su valor al diccionario de metadata
             metadata[obj.__tablename__, obj.id][column_name] = column_value
 
+        # TODO: Captura de propiedades híbridas
+
     return metadata
 
-def capturar(objetos: list) -> dict:
+def comparar_capturas_metadata(metadata_inicial: dict, metadata_final: dict):
+    '''
+    Recibe dos diccionarios de metadata y devuelve un diccionario con las
+    modificaciones de cada tabla entre ambas capturas y dos listas con las
+    tablas eliminadas y creadas.
+    Return: modificaciones, eliminadas, creadas
+    
+    Por ejemplo, si recibie:
+    metadata_inicial ={
+        ('tabla1', id1): {
+            'clave1': valor1,
+            'clave2': valor2
+        },
+        ('tabla2', id2): {
+            'clave1': valor1,
+            'clave2': valor2
+        }
+    }
+
+    metadata_final ={
+        ('tabla1', id1): {
+            'clave1': valor1_modificado,
+            'clave2': valor2_igual
+        },
+        ('tabla3', id3): {
+            'clave1': valor1,
+            'clave2': valor2
+        }
+    }
+
+    Devolverá:
+
+    {
+        ('tabla1', id1): [
+            ('clave1', valor_inicial_1, valor_final_1),
+        ],
+    }
+    [('tabla2', id2)]
+    [('tabla3', id3)]
+
+
+    donde ('clave1', valor_inicial_1, valor_final_1) es una tupla que indica que
+    la clave1 tenía el valor valor_inicial_1 en la metadata inicial y
+    valor_final_1 en la metadata final.
+    '''
+
+    modificaciones = {}
+    eliminadas = []
+    creadas = []
+
+    for clave_tabla, tabla_inicial in metadata_inicial.items():
+        tabla_final = metadata_final.get(clave_tabla, None)
+        if tabla_final is None :
+            eliminadas.append(clave_tabla)
+            continue
+        
+        assert len(tabla_inicial) == len(tabla_final), 'La cantidad de columnas debe ser la misma'
+        assert isinstance(clave_tabla, tuple), f'La clave de la tabla debe ser una tupla en vez de {type(clave_tabla)}'
+        assert isinstance(clave_tabla[0], str), f'El primer elemento de la clave de la tabla debe ser un string en vez de {type(clave_tabla[0])}'
+        assert isinstance(clave_tabla[1], int), f'El segundo elemento de la clave de la tabla debe ser un entero en vez de {type(clave_tabla[1])}'
+
+        # Lista de cambios detectados para esta tabla
+        cambios_actuales = []
+
+        for clave, valor_inicial in tabla_inicial.items():
+            valor_final = tabla_final.get(clave, None)
+            assert valor_final is not None, f'La clave {clave} no está en la metadata final'
+
+            if valor_inicial != valor_final:
+                cambios_actuales.append((clave, valor_inicial, valor_final))
+
+        if cambios_actuales:
+            # Guardamos los cambios en el diccionario con la clave (nombre_tabla, id_tabla)
+            modificaciones[clave_tabla] = cambios_actuales
+
+    for clave_tabla, tabla_final in metadata_final.items():
+        if metadata_inicial.get(clave_tabla, None) is None:
+            creadas.append(clave_tabla)
+    
+    return modificaciones, eliminadas, creadas
+
+
+def capturar_str(objetos: list) -> dict:
     '''
     Devuelve un dicionario donde una clave es una tupla (__tablename__, id) 
     y su valor es un string del formato de salida de __str__ de los modelos.
@@ -42,6 +142,89 @@ def capturar(objetos: list) -> dict:
 
     return {(obj.__tablename__, obj.id): str(obj) for obj in objetos}
 
+def comparar_capturas_str(capturas_iniciales:dict, capturas_finales:dict) -> dict:
+    '''
+    Recibe dos diccionarios de capturas y devuelve un diccionario con las
+    modificaciones de cada tabla entre ambas capturas y dos listas con las
+    tablas eliminadas y creadas.
+    Return: modificaciones, eliminadas, creadas
+    
+    Por ejemplo, si recibie:
+    metadata_inicial ={
+        ('tabla1', id1): {
+            'clave1': valor1,
+            'clave2': valor2
+        },
+        ('tabla2', id2): {
+            'clave1': valor1,
+            'clave2': valor2
+        }
+    }
+
+    metadata_final ={
+        ('tabla1', id1): {
+            'clave1': valor1_modificado,
+            'clave2': valor2_igual
+        },
+        ('tabla3', id3): {
+            'clave1': valor1,
+            'clave2': valor2
+        }
+    }
+
+    Devolverá:
+
+    {
+        ('tabla1', id1): [
+            ('clave1', valor_inicial_1, valor_final_1),
+        ],
+    }
+    [('tabla2', id2)]
+    [('tabla3', id3)]
+
+
+    donde ('clave1', valor_inicial_1, valor_final_1) es una tupla que indica que
+    la clave1 tenía el valor valor_inicial_1 en la metadata inicial y
+    valor_final_1 en la metadata final.
+    '''
+
+    modificaciones = {}
+    eliminadas = []
+    creadas = []
+
+    for clave_tabla, captura_inicial in capturas_iniciales.items():
+        captura_final = capturas_finales.get(clave_tabla, None)
+        if (captura_final is None):
+            eliminadas.append(clave_tabla)
+            continue
+        assert captura_inicial.count('=') == captura_final.count('='), 'La cantidad de pares clave=valor debe ser la misma'
+        assert isinstance(clave_tabla, tuple), f'La clave de la tabla debe ser una tupla en vez de {type(clave_tabla)}'
+        assert isinstance(clave_tabla[0], str), f'El primer elemento de la clave de la tabla debe ser un string en vez de {type(clave_tabla[0])}'
+        assert isinstance(clave_tabla[1], int), f'El segundo elemento de la clave de la tabla debe ser un entero en vez de {type(clave_tabla[1])}'
+
+        # Convertimos las capturas a diccionarios de clave=valor
+        captura_inicial = __limpiar_y_convertir(captura_inicial)
+        captura_final = __limpiar_y_convertir(captura_final)
+
+        # Lista de cambios detectados para esta tabla
+        cambios_actuales = []
+
+        for clave, valor_inicial in captura_inicial.items():
+            valor_final = captura_final.get(clave, None)
+            assert valor_final is not None, f'La clave {clave} no está en la captura final'
+            
+            if valor_inicial != valor_final:
+                cambios_actuales.append((clave, valor_inicial, valor_final))
+
+        if cambios_actuales:
+            # Guardamos los cambios en el diccionario con la clave (nombre_tabla, id_tabla)
+            modificaciones[clave_tabla] = cambios_actuales
+
+    for clave_tabla, captura_final in capturas_finales.items():
+        if capturas_iniciales.get(clave_tabla, None) is None:
+            creadas.append(clave_tabla)
+
+    return modificaciones, eliminadas, creadas
 
 def __limpiar_y_convertir(cadena: str) -> dict:
     assert isinstance(cadena, str), 'La captura debe ser una cadena'
@@ -97,67 +280,3 @@ def __limpiar_y_convertir(cadena: str) -> dict:
                 diccionario[clave] = valor
 
     return diccionario
-
-def comparar_capturas(capturas_iniciales:dict, capturas_finales:dict) -> dict:
-    '''
-    Recibe dos diccionarios de capturas y devuelve un diccionario con las 
-    diferencias entre ambas.
-    
-    Por ejemplo, si recibie:
-    capturas_iniciales ={
-        ('tabla1', id1): captura_inicial_1,
-        ('tabla2', id2): captura_inicial_2
-    }
-
-    capturas_finales ={
-        ('tabla1', id1): captura_final_1,
-        ('tabla2', id2): captura_final_2
-    }
-
-    Devolverá:
-
-    {
-        ('tabla1', id1): [
-            ('clave1', valor_inicial_1, valor_final_1),
-            ('clave2', valor_inicial_2, valor_final_2)
-        ],
-        ('tabla2', id2): [
-            ('clave1', valor_inicial_1, valor_final_1),
-            ('clave2', valor_inicial_2, valor_final_2)
-        ]
-    }
-
-    donde ('clave1', valor_inicial_1, valor_final_1) es una tupla que indica que
-    la clave1 tenía el valor valor_inicial_1 en la captura inicial y 
-    valor_final_1 en la captura final.
-    '''
-
-    diferencias = {}
-
-    for clave_tabla, captura_inicial in capturas_iniciales.items():
-        captura_final = capturas_finales.get(clave_tabla, None)
-        assert captura_final is not None, f'No existe la clave {clave_tabla} en las capturas finales'
-        assert captura_inicial.count('=') == captura_final.count('='), 'La cantidad de pares clave=valor debe ser la misma'
-        assert isinstance(clave_tabla, tuple), f'La clave de la tabla debe ser una tupla en vez de {type(clave_tabla)}'
-        assert isinstance(clave_tabla[0], str), f'El primer elemento de la clave de la tabla debe ser un string en vez de {type(clave_tabla[0])}'
-        assert isinstance(clave_tabla[1], int), f'El segundo elemento de la clave de la tabla debe ser un entero en vez de {type(clave_tabla[1])}'
-
-        # Convertimos las capturas a diccionarios de clave=valor
-        captura_inicial = __limpiar_y_convertir(captura_inicial)
-        captura_final = __limpiar_y_convertir(captura_final)
-
-        # Lista de cambios detectados para esta tabla
-        cambios_actuales = []
-
-        for clave, valor_inicial in captura_inicial.items():
-            valor_final = captura_final.get(clave, None)
-            assert valor_final is not None, f'La clave {clave} no está en la captura final'
-            
-            if valor_inicial != valor_final:
-                cambios_actuales.append((clave, valor_inicial, valor_final))
-
-        if cambios_actuales:
-            # Guardamos los cambios en el diccionario con la clave (nombre_tabla, id_tabla)
-            diferencias[clave_tabla] = cambios_actuales
-
-    return diferencias

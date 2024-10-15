@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 import crud.juego
 import crud.partidas
 from models import Base
-from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails, TableroData, CasillasMov, MovimientoParcialData
+from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails, TableroData, CasillasMov, MovimientoParcialData, CompletarFiguraData
 from database import engine, get_db
 
 from websockets_manager.ws_partidas_manager import ws_partidas_manager
@@ -109,3 +109,12 @@ async def deshacer_movimiento(id_partida: int, id_jugador: int, db: Session = De
                tags=["Juego"])
 async def get_movimientos_parciales(id_partida: int, id_jugador: int, db: Session = Depends(get_db)):
     return crud.juego.get_movimientos_parciales(db, id_partida)
+
+@router.put('/{id_partida:int}/jugadores/{id_jugador:int}/tablero/figura',
+            summary="Completar figura propia",
+            description="Utiliza la carta de figura especificada a partir de la existencia de la figura en las cordenadas que se pasaron.",
+            tags=["Juego"])
+async def completar_figura_propia(id_partida: int, id_jugador: int, figura_data: CompletarFiguraData, db: Session = Depends(get_db)):
+    crud.juego.completar_figura_propia(db, id_partida, id_jugador, figura_data)
+    await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
+    await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)

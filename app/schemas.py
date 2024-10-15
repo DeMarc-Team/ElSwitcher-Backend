@@ -65,4 +65,9 @@ class MovimientoParcialData(BaseModel):
     origen: str
     destino: str
     orden: int
-    movimiento: str
+    movimiento: str    
+
+class CompletarFiguraData(BaseModel):
+    figura: list[Casilla]
+    carta_fig: str
+    

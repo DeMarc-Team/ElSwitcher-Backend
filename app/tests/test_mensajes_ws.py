@@ -4,6 +4,7 @@ from websockets_manager.ws_home_manager import MessageType as MtHome, WsMessage 
 from websockets_manager.ws_partidas_manager import MessageType as MtPartidas, WsMessage as PartidasMessage
 from schemas import PartidaData, PartidaDetails, JugadorData
 from models import Jugador
+from factory import listas_to_casillas_figura
 
 ACTUALIZAR_PARTIDAS = HomeMessage(action=MtHome.ACTUALIZAR_PARTIDAS)
 # ----------------------------------------------------------
@@ -11,6 +12,8 @@ ACTUALIZAR_SALA_ESPERA = PartidasMessage(action=MtPartidas.ACTUALIZAR_SALA_ESPER
 ACTUALIZAR_TURNO = PartidasMessage(action=MtPartidas.ACTUALIZAR_TURNO)
 PARTIDA_CANCELADA = PartidasMessage(action=MtPartidas.PARTIDA_CANCELADA)
 ACTUALIZAR_TABLERO = PartidasMessage(action=MtPartidas.ACTUALIZAR_TABLERO)
+ACTUALIZAR_CARTAS_MOVIMIENTO = PartidasMessage(action=MtPartidas.ACTUALIZAR_CARTAS_MOVIMIENTO)
+ACTUALIZAR_CARTAS_FIGURA = PartidasMessage(action=MtPartidas.ACTUALIZAR_CARTAS_FIGURA)
 
 def test_create_partida_ws(expected_msgs_home_ws):
     with mock.patch('routers.partidas.crud.create_partida', new=mock.MagicMock()) as mock_create_partida:
@@ -102,3 +105,21 @@ def test_abandonar_partida_ycancelar_ws(expected_msgs_home_ws, expected_msgs_par
         
     expected_msgs_home_ws.append(ACTUALIZAR_PARTIDAS)
     expected_msgs_partidas_ws.append(PARTIDA_CANCELADA)
+    
+# ----------------------------------------------------------
+
+def test_completar_figura_propia_ws(expected_msgs_partidas_ws):
+    with mock.patch('routers.juego.crud.juego.completar_figura_propia'):
+        # Construimos un request body de ejemplo
+        casillas_figura = listas_to_casillas_figura([[[0, 1], [2, 1], [0, 0], [1, 1], [0, 2]]])[0]
+        request_body = {
+            "figura": casillas_figura,
+            "carta_fig": "f1"
+        }
+        
+        response = client.put('/juego/1/jugadores/2/tablero/figura', json=request_body)
+        
+        assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
+        
+    expected_msgs_partidas_ws.append(ACTUALIZAR_CARTAS_FIGURA)
+    expected_msgs_partidas_ws.append(ACTUALIZAR_CARTAS_MOVIMIENTO)

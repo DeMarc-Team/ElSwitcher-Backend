@@ -6,7 +6,7 @@ from exceptions import ResourceNotFoundError, ForbiddenError
 from schemas import PartidaData
 from models import Jugador, CartaFigura, CartaMovimiento, Partida
 from crud.juego import terminar_turno
-
+from constantes_juego import N_CARTAS_FIGURA_TOTALES, N_FIGURAS_REVELADAS
 
 def get_id_creador(db: Session, partida_id):
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
@@ -53,7 +53,8 @@ def iniciar_partida(db: Session, id: int):
         raise ForbiddenError(f"Partida con ID {id} no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.")
 
     partida.iniciada = True
-    _repartir_cartas_figura(db, partida,3,3)
+    n_cartas_fig_por_jugador = int(N_CARTAS_FIGURA_TOTALES/len(partida.jugadores))
+    _repartir_cartas_figura(db, partida, n_cartas_fig_por_jugador, N_FIGURAS_REVELADAS)
     _repartir_cartas_movimiento(db, partida)
     db.flush()
     shuffle(partida.jugadores)
@@ -72,11 +73,11 @@ def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
     if (not jugador):
         raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
     
-    mazo_del_jugador = jugador.mazo_cartas_de_figura
+    mano_del_jugador = [figura_revelada for figura_revelada in jugador.mazo_cartas_de_figura if figura_revelada.revelada]
 
-    return mazo_del_jugador
+    return mano_del_jugador
 
-def _repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=3, n_cartas_reveladas=2):
+def _repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=22, n_cartas_reveladas=N_FIGURAS_REVELADAS):
     for jugador in partida.jugadores:
         for i in range(n_cartas_por_jugador-n_cartas_reveladas):
             new_carta = CartaFigura(jugador_id=jugador.id_jugador, revelada=False)

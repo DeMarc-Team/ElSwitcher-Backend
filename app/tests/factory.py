@@ -2,7 +2,8 @@ from sqlalchemy.orm import Session
 from models import (Partida,
                     Jugador,
                     CartaFigura,
-                    CartaMovimiento
+                    CartaMovimiento,
+                    MovimientoParcial
                     )
 
 
@@ -105,6 +106,7 @@ def __repartir_cartas_figura(db: Session, partida: Partida, n_cartas_reveladas, 
         for i in range(n_cartas_por_jugador - len(jugador.mazo_cartas_de_figura)):
             carta = CartaFigura(poseida_por=jugador, revelada=(i < n_cartas_reveladas))
             db.add(carta)
+            jugador.mazo_cartas_de_figura.append(carta)
 
     db.commit()
     return partida
@@ -126,6 +128,7 @@ def __repartir_cartas_movimiento(db: Session, partida: Partida, n_cartas_por_jug
         for i in range(n_cartas_por_jugador - len(jugador.mano_movimientos)):
             carta = CartaMovimiento(movimientos_de=jugador)
             db.add(carta)
+            jugador.mano_movimientos.append(carta)
 
 def abandonar_partida(db: Session, partida: Partida, jugador: Jugador) -> Partida:
     '''
@@ -182,3 +185,63 @@ def consumir_carta_movimiento(db: Session, jugador: Jugador, mov: str, cantidad=
         db.delete(carta)    
     
     db.commit()
+ 
+def establecer_tablero(db: Session, partida: Partida, tablero: list[list[int]]):
+    import json
+    partida.tablero = json.dumps(tablero)
+    
+    db.commit()
+    
+def cartear_figuras(db: Session, jugador: Jugador, figs: list[str]):
+    assert len(figs) > 0, "Se requiere al menos una carta."
+    assert len(figs) <= 3, "Se puede cartar una única mano de figuras (3 cartas)."
+    
+    figuras_reveladas = [figura for figura in jugador.mazo_cartas_de_figura if figura.revelada]
+    
+    for figura in figuras_reveladas:
+        db.delete(figura)
+        db.commit()
+    
+    nuevas_figuras = [CartaFigura(figura=fig) for fig in figs]
+    
+    jugador.mazo_cartas_de_figura = nuevas_figuras
+    
+    db.commit()
+    
+def listas_to_casillas_figura(figuras: list[list[(int, int)]]):
+    '''
+    Convierte una lista de casillas en formato de tuplas a una en formato de Casillas (como objeto).
+    
+    Por ejemplo:
+    [ [(row_value1, col_value1)], [(row_value2, col_value2)] ] -> [ [{row: row_value1, col: col_value1}], [{row: row_value2, col: col_value2}] ]
+    '''
+    casillas_de_figuras = []
+    
+    for figura in figuras:
+        casillas_figura = [{"row": tupla[0], "col": tupla[1]} for tupla in figura]
+        casillas_de_figuras.append(casillas_figura)
+        
+    return casillas_de_figuras
+
+def falsear_movimientos_parciales(db: Session, partida: Partida, movimientos: list[CartaMovimiento]):
+    '''
+    Crea movimientos parciales falsos a partir de la lista de cartas de movimiento pasadas.
+    NOTA: Se presupone que las cartas están en la mano de un mismo jugador, aunque puede que ande de todas formas.
+    '''
+    
+    assert len(movimientos) > 0, "Se esperaba al menos una carta."
+    assert len(movimientos) <= 3, "Solo se pueden recibir a lo sumo 3 cartas."
+    
+
+    for carta in movimientos:
+        orden = len(partida.movimientos_parciales)
+        movimiento_parcial = MovimientoParcial(
+            carta_id=carta.id,
+            origen=str((0,0)),
+            destino=str((1,1)),
+            carta=carta,
+            partida_id=partida.id,
+            orden=orden
+        )
+        partida.movimientos_parciales.append(movimiento_parcial)
+        db.commit()

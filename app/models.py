@@ -5,6 +5,7 @@ from sqlalchemy import Integer, Boolean, String, ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.ext.orderinglist import ordering_list
+from figuras import SET_DE_CARTAS
 
 # JUGADOR ------------------------------------------------------
 class Jugador(Base):
@@ -103,7 +104,8 @@ class CartaFigura(Base):
 
     def random_figura():
         import random
-        return random.choice(['f1', 'f2', 'f3'])
+        # FIXME: En realidad deberían salir cartas acorde a las que el jugador nunca tuvo
+        return random.choice(SET_DE_CARTAS).id
 
     figura: Mapped[str] = mapped_column(
         String, nullable=False, default=lambda: CartaFigura.random_figura())

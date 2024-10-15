@@ -2,8 +2,8 @@ from sqlalchemy.orm import Session
 
 from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida, Jugador, CartaMovimiento, MovimientoParcial
-from schemas import TurnoDetails, CasillasMov
-
+from schemas import TurnoDetails, CasillasMov, CompletarFiguraData
+from figuras import hallar_todas_las_figuras_en_tablero
 
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (
@@ -267,3 +267,95 @@ def get_movimientos_parciales(db: Session, id_partida):
 
     movimientos_parciales = partida.movimientos_parciales
     return movimientos_parciales
+
+def get_figuras_en_tablero(partida: Partida):
+    '''
+    Calcula y retorna todas las figuras formadas encontradas en el tablero.
+    '''    
+
+    import json
+    tablero = partida.tablero
+    tablero_decodificado = json.loads(tablero)
+
+    return hallar_todas_las_figuras_en_tablero(tablero_decodificado)
+
+def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figura_data: CompletarFiguraData):
+    partida = db.get(Partida, id_partida)
+    if (not partida):
+        raise ResourceNotFoundError(
+            f"Partida con ID {id_partida} no encontrada.")
+
+    if (not partida.iniciada):
+        raise ForbiddenError(
+            f"La partida con ID {id_partida} todavía no comenzó.")
+    
+    jugador = db.get(Jugador, id_jugador)
+    if (not jugador):
+        raise ResourceNotFoundError(
+            f"Jugador con ID {id_jugador} no encontrado en la partida con ID {id_jugador}.")
+    
+    if (jugador.id_jugador != partida.jugador_id):
+        raise ForbiddenError(
+            f"El jugador con ID {jugador.id_jugador} no posee el turno."
+        )
+    
+    unatomic_usar_figura(db, partida, jugador, figura_data)
+    unatomic_aplicar_parciales(db, partida)
+    db.commit()
+
+def unatomic_usar_figura(db: Session, partida: Partida, jugador: Jugador, figura_data: CompletarFiguraData):    
+
+    carta_fig_deseada = figura_data.carta_fig
+    cartas_a_usar = next((carta for carta in jugador.mazo_cartas_de_figura if (carta.revelada and carta.figura == carta_fig_deseada)), None)
+    
+    if (not cartas_a_usar):
+        raise ResourceNotFoundError(
+            f"El jugador no tiene en la mano ninguna carta de figura revelada del formato {carta_fig_deseada}."
+        )
+    
+    figuras_en_tablero = get_figuras_en_tablero(partida)
+    
+    if (carta_fig_deseada not in figuras_en_tablero.keys()):
+        raise ResourceNotFoundError(
+            f"No existe (en el tablero) ninguna figura del tipo que se intenta utilizar."
+        )
+    
+    coords_figuras_del_tipo = figuras_en_tablero[carta_fig_deseada]
+    coords_figura = casillas_to_coords_figura_set(figura_data.figura)
+    
+    if (coords_figura not in coords_figuras_del_tipo):
+        raise ResourceNotFoundError(
+            f"No existe (en el tablero) la figura que se intenta utilizar en las coordenadas enviadas."
+        )
+    
+    db.delete(cartas_a_usar)
+    
+    db.flush()
+
+def unatomic_aplicar_parciales(db: Session, partida: Partida):
+    '''
+    Aplica los movimientos parciales del jugador (NO HACE VERIFICACIONES DE PERMISOS, i.e, QUE EL JUGADOR TENGA EL TURNO).
+    '''
+    
+    movimientos_parciales = partida.movimientos_parciales
+    movimientos_parcializados = [parcial.carta for parcial in movimientos_parciales]
+    
+    for parcial in movimientos_parciales:
+        db.delete(parcial)
+    
+    for movimiento in movimientos_parcializados:
+        db.delete(movimiento)
+        
+    db.flush()
+
+
+def casillas_to_coords_figura_set(casillas_figura):
+    '''
+    Convierte una lista de casillas en un conjunto de tuplas con sus equivalentes coordenadas.
+    
+    Por ejemplo:
+    
+    [{row: row_value1, col: col_value1}], [{row: row_value2, col: col_value2}] -> {(row_value1, col_value1), (row_value2, col_value2)}
+    '''
+    
+    return set((casilla.row, casilla.col) for casilla in casillas_figura)
