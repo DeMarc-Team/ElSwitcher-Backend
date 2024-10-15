@@ -108,7 +108,7 @@ def test_abandonar_partida_ycancelar_ws(expected_msgs_home_ws, expected_msgs_par
     
 # ----------------------------------------------------------
 
-def test_completar_figura_propia(expected_msgs_partidas_ws):
+def test_completar_figura_propia_ws(expected_msgs_partidas_ws):
     with mock.patch('routers.juego.crud.juego.completar_figura_propia'):
         # Construimos un request body de ejemplo
         casillas_figura = listas_to_casillas_figura([[[0, 1], [2, 1], [0, 0], [1, 1], [0, 2]]])[0]
