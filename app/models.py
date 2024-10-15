@@ -146,7 +146,7 @@ class CartaMovimiento(Base):
     movimientos_de = relationship('Jugador', back_populates='mano_movimientos')
     jugador_id = mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
 
-    movimiento_parcial_en = relationship('MovimientoParcial', uselist=False, back_populates='carta')
+    movimiento_parcial_en = relationship('MovimientoParcial', uselist=False, back_populates='carta', cascade="all, delete-orphan")
 
     @hybrid_property
     def usada_en_movimiento_parcial(self):
