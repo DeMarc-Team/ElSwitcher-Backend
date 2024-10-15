@@ -25,7 +25,6 @@ def capturar_metadata(objetos: list) -> dict:
     son los nombres de las columnas y los valores son sus valores en el objeto.
     Obs: Quizas deban hacer commit de la db.
     '''
-    assert len(objetos) > 0, 'La lista no puede estar vacía'
     assert all([isinstance(obj, Base) for obj in objetos]), 'Todos los objetos deben ser instancias de models'
     assert all([hasattr(obj, '__tablename__') for obj in objetos]), 'Todos los objetos deben tener __tablename__'
     assert all([hasattr(obj, 'id') for obj in objetos]), 'Todos los objetos deben tener id'
@@ -41,10 +40,17 @@ def capturar_metadata(objetos: list) -> dict:
             column_name = column.key
             column_value = getattr(obj, column_name)
 
-            # Agrega la columna y su valor al diccionario de metadata
-            metadata[obj.__tablename__, obj.id][column_name] = column_value
+            # Verifica si la columna es una clave foránea
+            if column.foreign_keys:
+                # Si es una ForeignKey, maneja de manera especial si es necesario
+                metadata[obj.__tablename__, obj.id][f'{column_name} (FK)'] = f'{column_value}'
+            else:
+                # Agrega la columna y su valor al diccionario de metadata
+                metadata[obj.__tablename__, obj.id][column_name] = column_value
 
-        # TODO: Captura de propiedades híbridas
+        # TODO: Captura de propiedades híbridas si las hay.
+        # PELIGRO: al ejecutar una propiedad híbrida se puede
+        # modificar la db
 
     return metadata
 
@@ -114,7 +120,7 @@ def comparar_capturas_metadata(metadata_inicial: dict, metadata_final: dict):
 
         for clave, valor_inicial in tabla_inicial.items():
             valor_final = tabla_final.get(clave, None)
-            assert valor_final is not None, f'La clave {clave} no está en la metadata final'
+            assert valor_final is not None, f'La columna {clave} de la tabla {clave_tabla} no está en la metadata final'
 
             if valor_inicial != valor_final:
                 cambios_actuales.append((clave, valor_inicial, valor_final))
