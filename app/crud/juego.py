@@ -302,7 +302,7 @@ def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figur
     hay_ganador = unatomic_usar_figura(db, partida, jugador, figura_data)
     if (not hay_ganador.get("hay_ganador")):
         unatomic_aplicar_parciales(db, partida)
-        db.commit()
+    db.commit()
     return hay_ganador
 
 def unatomic_usar_figura(db: Session, partida: Partida, jugador: Jugador, figura_data: CompletarFiguraData):    
