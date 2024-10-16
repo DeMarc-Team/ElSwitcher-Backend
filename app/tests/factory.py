@@ -5,7 +5,7 @@ from models import (Partida,
                     CartaMovimiento,
                     MovimientoParcial
                     )
-
+from constantes_juego import N_CARTAS_FIGURA_TOTALES
 
 def crear_partida(db: Session, nombre_partida: str = "Partida", nombre_creador: str = "Creador") -> Partida:
     '''
@@ -84,19 +84,21 @@ def iniciar_partida(db: Session, partida: Partida) -> Partida:
 
     partida.iniciada = True
 
-    __repartir_cartas_figura(db, partida, 3, 3)
+    numero_de_cartas_por_jugador = int(N_CARTAS_FIGURA_TOTALES/len(partida.jugadores))
+    __repartir_cartas_figura(db, partida, 3, numero_de_cartas_por_jugador)
     __repartir_cartas_movimiento(db, partida, 3)
 
     db.commit()
     return partida
 
-def __repartir_cartas_figura(db: Session, partida: Partida, n_cartas_reveladas, n_cartas_por_jugador=3):
+def __repartir_cartas_figura(db: Session, partida: Partida, n_cartas_reveladas, n_cartas_por_jugador):
     '''
     Función para repartir las cartas de figura a los jugadores de una partida.
 
     Valores por defecto:
     - n_cartas_por_jugador = 3
     '''
+    assert n_cartas_por_jugador <= int(N_CARTAS_FIGURA_TOTALES/len(partida.jugadores))
     assert partida.iniciada == True, "La partida no ha sido iniciada"
     assert len(partida.jugadores) > 1, "La partida debe tener al menos 2 jugadores para poder repartir las cartas de figura"
     assert len(partida.jugadores) <= 4, "La partida no puede tener más de 4 jugadores"
@@ -204,7 +206,7 @@ def cartear_figuras(db: Session, jugador: Jugador, figs: list[str]):
     
     nuevas_figuras = [CartaFigura(figura=fig) for fig in figs]
     
-    jugador.mazo_cartas_de_figura = nuevas_figuras
+    jugador.mazo_cartas_de_figura.extend(nuevas_figuras)
     
     db.commit()
     
