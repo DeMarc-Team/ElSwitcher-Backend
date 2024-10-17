@@ -3,12 +3,17 @@ from sqlalchemy import inspect
 from database import Base
 from sqlalchemy.orm import Session
 
-def get_all_tables(session: Session) -> list:
+def get_all_tables(session: Session, hacer_commit:bool = True) -> list:
     '''
     Devuelve una lista con todas las instancias de todas las tablas de la base de datos.
     Se puede directo a capturar_metadata o capturar_str para capturar toda la db.
-    Obs: Quizas deban hacer commit de la db.
+    IMPORTANTE: Se hace commit de la db si no se aclara lo contrario.
     '''
+    assert isinstance(session, Session), 'El argumento debe ser una sesión de sqlalchemy'
+
+    if hacer_commit:
+        session.commit()
+
     all_instances = []
     
     # Iterar sobre las clases mapeadas en la metadata de Base
