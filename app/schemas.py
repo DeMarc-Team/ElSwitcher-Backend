@@ -11,6 +11,14 @@ class PartidaDetails(PartidaData):
     id_creador: int
     iniciada: bool
 
+class GetPartida(PartidaData): #Listar partidas
+    id: int
+    nombre_partida: str
+    nombre_creador: str
+    id_creador: int
+    iniciada: bool
+    numero_de_jugadores: int
+
 class PartidaDetails2(PartidaData):
     id: int
     nombre_partida: str

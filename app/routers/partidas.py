@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 import crud.partidas as crud
 from models import Base
 from database import engine, get_db
-from schemas import PartidaData, PartidaDetails, PartidaDetails2, JuegoDetails, CartaFiguraData
+from schemas import PartidaData, GetPartida, PartidaDetails, PartidaDetails2, JuegoDetails, CartaFiguraData
 from websockets_manager.ws_home_manager import ws_home_manager
 from websockets_manager.ws_partidas_manager import ws_partidas_manager
 
@@ -23,7 +23,7 @@ router = APIRouter(
 )
 
 @router.get('/',
-            response_model=list[PartidaDetails],
+            response_model=list[GetPartida],
             summary="Obtener partidas",
             description="Devuelve la lista de partidas disponibles.",
             tags=["Partidas"])

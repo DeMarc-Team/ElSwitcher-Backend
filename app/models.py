@@ -68,6 +68,11 @@ class Partida(Base):
     iniciada = mapped_column(Boolean, default=False)
     jugadores: Mapped[list[Jugador]] = relationship(
         'Jugador', back_populates='partidas', cascade="all", order_by='Jugador.orden', collection_class=ordering_list('orden'))
+    
+    @hybrid_property
+    def numero_de_jugadores(self) -> int:
+        return len(self.jugadores)
+    
     @hybrid_property
     def id_creador(self) -> int:
         id_jugador_creador = next(
