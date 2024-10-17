@@ -2,7 +2,7 @@ import pdb
 from tests_setup import client
 from factory import crear_partida, unir_jugadores, iniciar_partida, establecer_tablero, cartear_figuras, listas_to_casillas_figura, falsear_movimientos_parciales
 from verifications import check_response, check_cartas_figura_reveladas
-from tools import capturar_metadata, comparar_capturas_metadata, get_all_tables
+from tools import capturar_metadata, comparar_capturas, get_all_tables
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_CARTAS_FIGURA, ACTUALIZAR_CARTAS_MOVIMIENTO
 
 def test_usar_figura_propia(test_db, test_ws):
@@ -42,7 +42,7 @@ def test_usar_figura_propia(test_db, test_ws):
 
     # Capturamos la BDD luego de los cambios
     captura_final = capturar_metadata(get_all_tables(test_db))
-    modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
     # Comparamos que los conjuntos (PORQUE EL ORDEN DE LAS CAPTURAS NO ES DETERMINISTA) de objetos sean los correctos
     assert set(modificaciones) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
@@ -108,7 +108,7 @@ def test_usar_figura_propia_varias_figuras(test_db, test_ws):
     
     # Capturamos la BDD luego de los cambios
     captura_final = capturar_metadata(get_all_tables(test_db))
-    modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
     # Comparamos que los conjuntos (PORQUE EL ORDEN DE LAS CAPTURAS NO ES DETERMINISTA) de objetos sean los correctos
     assert set(modificaciones) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
@@ -166,7 +166,7 @@ def test_usar_figura_propia_varias_cartas(test_db, test_ws):
 
     # Capturamos la BDD luego de los cambios
     captura_final = capturar_metadata(get_all_tables(test_db))
-    modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
     # Comparamos que los conjuntos (PORQUE EL ORDEN DE LAS CAPTURAS NO ES DETERMINISTA) de objetos sean los correctos
     assert set(modificaciones) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
@@ -277,7 +277,7 @@ def test_usar_figura_propia_jugador_no_turno_403(test_db, test_ws):
     # Verificamos que no se haya realizado ningun cambio en la base de datos
     test_db.refresh(partida)
     captura_final = capturar_metadata([partida, *partida.jugadores, *jugador_del_turno.mazo_cartas_de_figura, *otro_jugador.mazo_cartas_de_figura])
-    modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
     assert not modificaciones, f"Se encontraron modificaciones en tablas en la db: {modificaciones}"
     assert not eliminadas, f"Se encontraron tablas eliminadas en la db: {eliminadas}"
@@ -320,7 +320,7 @@ def test_usar_figura_propia_partida_no_iniciada_403(test_db, test_ws):
     # Verificamos que no se haya realizado ningun cambio en la base de datos
     test_db.refresh(partida)
     captura_final = capturar_metadata([partida, *partida.jugadores, *jugador.mazo_cartas_de_figura])
-    modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
     assert not modificaciones, f"Se encontraron modificaciones en tablas en la db: {modificaciones}"
     assert not eliminadas, f"Se encontraron tablas eliminadas en la db: {eliminadas}"
@@ -369,7 +369,7 @@ def test_usar_figura_propia_mano_sin_figura_404(test_db, test_ws):
     # Verificamos que no se haya realizado ningun cambio en la base de datos
     test_db.refresh(partida)
     captura_final = capturar_metadata([partida, *partida.jugadores, *jugador_del_turno.mazo_cartas_de_figura])
-    modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
     assert not modificaciones, f"Se encontraron modificaciones en tablas en la db: {modificaciones}"
     assert not eliminadas, f"Se encontraron tablas eliminadas en la db: {eliminadas}"
@@ -410,7 +410,7 @@ def test_usar_figura_propia_no_en_tablero_404(test_db, test_ws):
     # Verificamos que no se haya realizado ningun cambio en la base de datos
     test_db.refresh(partida)
     captura_final = capturar_metadata([partida, *partida.jugadores, *jugador_del_turno.mazo_cartas_de_figura])
-    modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
     assert not modificaciones, f"Se encontraron modificaciones en tablas en la db: {modificaciones}"
     assert not eliminadas, f"Se encontraron tablas eliminadas en la db: {eliminadas}"
@@ -451,7 +451,7 @@ def test_usar_figura_propia_casilla_incorrecta_404(test_db,test_ws):
     # Verificamos que no se haya realizado ningun cambio en la base de datos
     test_db.refresh(partida)
     captura_final = capturar_metadata([partida, *partida.jugadores, *jugador_del_turno.mazo_cartas_de_figura])
-    modificaciones, eliminadas, creadas = comparar_capturas_metadata(captura_inicial, captura_final)
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
     assert not modificaciones, f"Se encontraron modificaciones en tablas en la db: {modificaciones}"
     assert not eliminadas, f"Se encontraron tablas eliminadas en la db: {eliminadas}"
