@@ -103,7 +103,8 @@ def comparar_capturas(metadata_inicial: dict, metadata_final: dict):
     '''
     Recibe dos diccionarios de capturas y devuelve un diccionario con las
     modificaciones de cada tabla entre ambas capturas y dos listas con las
-    tablas eliminadas y creadas.
+    tablas eliminadas y creadas. Todas las listas se devuelven ordenadas.
+
     Return: modificaciones, eliminadas, creadas
     
     Por ejemplo, si recibie:
@@ -178,6 +179,13 @@ def comparar_capturas(metadata_inicial: dict, metadata_final: dict):
         if metadata_inicial.get(clave_tabla, None) is None:
             creadas.append(clave_tabla)
     
+    # Ordenamos las listas
+    eliminadas.sort()
+    creadas.sort()
+    for cambios in modificaciones.values():
+        cambios.sort()
+
+
     return modificaciones, eliminadas, creadas
 
 def __limpiar_y_convertir(cadena: str) -> dict:
