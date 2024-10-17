@@ -27,4 +27,4 @@ def check_partida_deletion(test_db, id_partida):
 
 def check_cartas_figura_reveladas(jugador: Jugador, expected_codigos_figura: list[str]):
     codigos_cartas_reveladas_restantes = [carta_revelada.figura for carta_revelada in jugador.mazo_cartas_de_figura if carta_revelada.revelada]
-    assert codigos_cartas_reveladas_restantes == expected_codigos_figura, f"Fallo: Se esperaba que el jugador tuviera otras cartas revelada."
+    assert codigos_cartas_reveladas_restantes == expected_codigos_figura, f"Fallo: Se esperaba que el jugador tuviera {expected_codigos_figura} cartas revelada pero tiene {codigos_cartas_reveladas_restantes}."

@@ -26,6 +26,10 @@ class Jugador(Base):
         'CartaMovimiento', back_populates='movimientos_de', cascade="all, delete-orphan")
     
     @hybrid_property
+    def numero_de_cartas_figura(self) -> int:
+        return len(self.mazo_cartas_de_figura)
+
+    @hybrid_property
     def id(self) -> int:
         return self.id_jugador
         
@@ -142,7 +146,7 @@ class CartaMovimiento(Base):
     movimientos_de = relationship('Jugador', back_populates='mano_movimientos')
     jugador_id = mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
 
-    movimiento_parcial_en = relationship('MovimientoParcial', uselist=False, back_populates='carta')
+    movimiento_parcial_en = relationship('MovimientoParcial', uselist=False, back_populates='carta', cascade="all, delete-orphan")
 
     @hybrid_property
     def usada_en_movimiento_parcial(self):
