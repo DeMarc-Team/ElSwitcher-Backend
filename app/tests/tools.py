@@ -3,7 +3,7 @@ from sqlalchemy import inspect
 from database import Base
 from sqlalchemy.orm import Session
 
-def get_all_tables(session: Session, hacer_commit:bool = True) -> list:
+def get_all_tables(session: Session, hacer_commit:bool = False) -> list:
     '''
     Devuelve una lista con todas las instancias de todas las tablas de la base de datos.
     Se puede pasar directo a capturar_metadata, capturar_str o capturar_metadata_str para capturar toda la db.
