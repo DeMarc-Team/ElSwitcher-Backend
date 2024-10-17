@@ -59,7 +59,7 @@ def siguiente_turno(db: Session, partida_id, atomic=True):
 
 def reponer_cartas_movimiento(db: Session, partida: Partida, jugador: Jugador, n_cartas_por_jugador=3, atomic=True):
     '''
-    Procedimiento para reponer las cartas de un jugador.
+    Procedimiento para reponer las cartas movimeinto de un jugador.
     
     Repone hasta que el jugador tenga n_cartas_por_jugador en la mano.
     '''
@@ -71,6 +71,25 @@ def reponer_cartas_movimiento(db: Session, partida: Partida, jugador: Jugador, n
         new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
         db.add(new_carta)
         
+    if atomic:
+        db.commit()
+    else:
+        db.flush()
+
+def reponer_cartas_figura(db: Session, partida: Partida, jugador: Jugador, n_reveladas=3, atomic=True):
+    '''
+    Procedimiento para reponer las cartas figura de un jugador.
+    
+    Repone hasta que el jugador tenga n_reveladas en la mano.
+    '''
+    
+    cartas_no_reveladas = [carta for carta in jugador.mazo_cartas_de_figura if not carta.revelada]
+    cantidad_reveladas = len([carta for carta in jugador.mazo_cartas_de_figura if carta.revelada])
+    cartas_a_revelar = min(len(cartas_no_reveladas), n_reveladas - cantidad_reveladas)
+
+    for i in range(cartas_a_revelar):
+        cartas_no_reveladas[i].revelada = True
+    
     if atomic:
         db.commit()
     else:
@@ -94,6 +113,7 @@ def terminar_turno(db: Session, partida_id, jugador_id):
     limpiar_stack_movimientos_parciales(db, partida_id, atomic=False)
     
     reponer_cartas_movimiento(db, partida, partida.jugador_del_turno, atomic=False)
+    reponer_cartas_figura(db, partida, partida.jugador_del_turno, atomic=False)
     db.flush()
     siguiente_turno(db, partida_id, atomic=False)
 
@@ -364,3 +384,4 @@ def casillas_to_coords_figura_set(casillas_figura):
     '''
     
     return set((casilla.row, casilla.col) for casilla in casillas_figura)
+
