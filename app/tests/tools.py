@@ -74,7 +74,29 @@ def capturar_str(objetos: list) -> dict:
         capturas[obj.__tablename__, obj.id] = captura
     
     return capturas
+
+def capturar_metadata_str(objetos: list) -> dict:
+    '''
+    Captura metadata al igual que capturar_metadata y luego captura el __str__ de cada objeto como 
+    capturar_str ignorando las claves que ya estaban en la metadata.
+
+    Devuelve un diccionario donde una clave es una tupla (__tablename__, id) y su valor es un diccionario
+    con la metadata de la tabla y el __str__ del models de la tabla, donde las claves son los nombres de las
+    columnas y los valores son sus valores en el objeto.
+
+    Obs: Quizas deban hacer commit de la db.
+    Obs: Si hay algo que quieran agregar, pueden hacerlo en el __str__ de los models. Para esto su nombre 
+    debe ser diferente al de las columnas de la tabla o se sobreescribirá.
+    '''
+    assert all([isinstance(obj, Base) for obj in objetos]), 'Todos los objetos deben ser instancias de models'
+
+    metadata = capturar_metadata(objetos)
+    capturas = capturar_str(objetos)
+
+    for clave, data in metadata.items():
+        capturas[clave].update(data)
     
+    return capturas
 
 
 def comparar_capturas(metadata_inicial: dict, metadata_final: dict):
