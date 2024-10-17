@@ -6,10 +6,10 @@ from sqlalchemy.orm import Session
 def get_all_tables(session: Session, hacer_commit:bool = True) -> list:
     '''
     Devuelve una lista con todas las instancias de todas las tablas de la base de datos.
-    Se puede directo a capturar_metadata o capturar_str para capturar toda la db.
+    Se puede pasar directo a capturar_metadata, capturar_str o capturar_metadata_str para capturar toda la db.
+    
     IMPORTANTE: Se hace commit de la db si no se aclara lo contrario.
     '''
-    assert isinstance(session, Session), 'El argumento debe ser una sesión de sqlalchemy'
 
     if hacer_commit:
         session.commit()
@@ -28,11 +28,10 @@ def capturar_metadata(objetos: list) -> dict:
     Devuelve un diccionario donde una clave es una tupla (__tablename__, id)
     y su valor es un diccionario con la metadata de la tabla, donde las claves
     son los nombres de las columnas y los valores son sus valores en el objeto.
+    
     Obs: Quizas deban hacer commit de la db.
     '''
-    assert all([isinstance(obj, Base) for obj in objetos]), 'Todos los objetos deben ser instancias de models'
-    assert all([hasattr(obj, '__tablename__') for obj in objetos]), 'Todos los objetos deben tener __tablename__'
-    assert all([hasattr(obj, 'id') for obj in objetos]), 'Todos los objetos deben tener id'
+    validar_entrada_a_capturar(objetos)
 
     metadata = {}
     for obj in objetos:
@@ -64,11 +63,10 @@ def capturar_str(objetos: list) -> dict:
     Devuelve un diccionario donde una clave es una tupla (__tablename__, id)
     y su valor es un diccionario con el __str__ del models de la tabla, donde las claves
     son los nombres de las columnas y los valores son sus valores en el objeto.
+    
     Obs: Quizas deban hacer commit de la db.
     '''
-    assert all([isinstance(obj, Base) for obj in objetos]), 'Todos los objetos deben ser instancias de models'
-    assert all([hasattr(obj, '__tablename__') for obj in objetos]), 'Todos los objetos deben tener __tablename__'
-    assert all([hasattr(obj, 'id') for obj in objetos]), 'Todos los objetos deben tener id'
+    validar_entrada_a_capturar(objetos)
 
     capturas = {}
     for obj in objetos:
@@ -90,10 +88,11 @@ def capturar_metadata_str(objetos: list) -> dict:
     columnas y los valores son sus valores en el objeto.
 
     Obs: Quizas deban hacer commit de la db.
+    
     Obs: Si hay algo que quieran agregar, pueden hacerlo en el __str__ de los models. Para esto su nombre 
     debe ser diferente al de las columnas de la tabla o se sobreescribirá.
     '''
-    assert all([isinstance(obj, Base) for obj in objetos]), 'Todos los objetos deben ser instancias de models'
+    # validar_entrada_a_capturar(objetos) # No es necesario porque ya se hace en las funciones llamadas
 
     metadata = capturar_metadata(objetos)
     capturas = capturar_str(objetos)
@@ -247,3 +246,19 @@ def __limpiar_y_convertir(cadena: str) -> dict:
                 diccionario[clave] = valor
 
     return diccionario
+
+def validar_entrada_a_capturar(objetos: list):
+    '''
+    Valida que todos los objetos en la lista sean instancias de Base, 
+    tengan el atributo __tablename__ y el atributo id.
+    
+    Lanza una ValueError si alguna de las condiciones no se cumple.
+    '''
+    if not all(isinstance(obj, Base) for obj in objetos):
+        raise ValueError('Todos los objetos deben ser instancias de models')
+
+    if not all(hasattr(obj, '__tablename__') for obj in objetos):
+        raise ValueError('Todos los objetos deben tener __tablename__')
+
+    if not all(hasattr(obj, 'id') for obj in objetos):
+        raise ValueError('Todos los objetos deben tener id')
