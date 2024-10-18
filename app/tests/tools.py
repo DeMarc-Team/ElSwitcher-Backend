@@ -3,7 +3,7 @@ from sqlalchemy import inspect
 from database import Base
 from sqlalchemy.orm import Session
 
-def get_all_tables(session: Session) -> list:
+def get_all_tables(session: Session, hacer_commit:bool = False) -> list:
     '''
     Devuelve una lista con todas las instancias de todas las tablas de la base de datos.
     Se puede directo a capturar_metadata o capturar_str para capturar toda la db.
@@ -286,3 +286,36 @@ def __limpiar_y_convertir(cadena: str) -> dict:
                 diccionario[clave] = valor
 
     return diccionario
+
+def verificar_tuplas(entrada, validos):
+    '''
+    Recibe un array de entrada del estilo [(str, ?), (str, ?, ?), ...]
+    y un array de strings validos del estilo ['string1', 'string2', ...]
+    Devuelve True si todas las entrada tienen strings validos, False en caso contrario.
+    '''
+    conjunto_validos = set(validos)
+    
+    for tupla in entrada:
+        for elemento in tupla:
+            assert isinstance(elemento[0], str), 'El primer elemento de la tupla debe ser string'
+            if not elemento[0] in conjunto_validos:
+                print(f'Error: {elemento[0]} no es un string válido')
+                return False
+    return True
+
+def verificar_diccionarios( entrada, validos):
+    '''
+    Verifica que las claves de entrada y validos sean las mismas
+    y que para cada clave de entrada, su array tenga entrada
+    que tengan un str válido correspondiente al array de la clave en validos.
+    '''
+    if entrada.keys() != validos.keys():
+        print('Error: Las claves de entrada y validos no coinciden.')
+        return False
+    
+    for clave in entrada.keys():
+        if not verificar_tuplas(entrada[clave], validos[clave]):
+            print(f'Error: Los valores de la clave "{clave}" no son válidos.')
+            return False
+    
+    return True
