@@ -2,6 +2,30 @@ import re
 from sqlalchemy import inspect
 from database import Base
 from sqlalchemy.orm import Session
+import random
+from itertools import product
+#TODO: Separar en clases los diferentes tipos de tools (si lo hacemos con capturar,... el import seria mas lindo)
+
+PARAMETRIZACION_COMPLETA = False
+def seleccionar_parametros(parametros:list, numero_a_seleccionar:int=None)->list:
+    '''
+    Recibe una lista de `parametros` con sus posibles valores [(p1,p2,p3), (q1,q2), (s1,s2,s3)]
+    Y un numero de tuplas a devolver.
+
+    Se retornara algo de la forma: [(p1,q2,s1), (p3,q2,s1)] donde se selecciona un parametro de cada tupla
+    al azar.
+
+    Si no se pasa `numero_a_seleccionar` o la variable global`PARAMETRIZACION_COMPLETA` es True, 
+    se devolveran todas las combinaciones posibles.
+    '''
+    combinaciones_posibles = list(product(*parametros))
+    if PARAMETRIZACION_COMPLETA or numero_a_seleccionar is None:
+        return combinaciones_posibles
+    
+    assert numero_a_seleccionar <= len(combinaciones_posibles), "El numero a seleccionar es mayor a las combinaciones posibles"
+    return random.sample(combinaciones_posibles, numero_a_seleccionar)
+
+# Para la base de datos:
 
 def get_all_tables(session: Session, hacer_commit:bool = False) -> list:
     '''
@@ -237,6 +261,8 @@ def validar_entrada_a_capturar(objetos: list):
     if not all(hasattr(obj, 'id') for obj in objetos):
         raise ValueError('Todos los objetos deben tener id')
 
+#TODO: Agregar en las de especificar que se pueda pasar para cada str un numero de veces que
+# se debe repetir
 def verificar_tuplas(entrada:list, validos:list)->bool:
     '''
     Recibe un array de entrada del estilo [(str, ?), (str, ?, ?), ...]
@@ -249,6 +275,7 @@ def verificar_tuplas(entrada:list, validos:list)->bool:
         if not tupla[0] in conjunto_validos:
             print(f'Error: {tupla[0]} no es un string válido')
             return False
+    # TODO: agregar que devuelva false cuando ago en validos no se encontro
     return True
 
 def verificar_diccionarios(entrada:dict, validos:dict)->bool:
@@ -266,6 +293,6 @@ def verificar_diccionarios(entrada:dict, validos:dict)->bool:
         if not verificar_tuplas(entrada[clave], validos[clave[0]]):
             print(f'Error: Los valores de la clave "{clave}" no son válidos.')
             return False
-    
+    # TODO: agregar que devuelva false cuando ago en validos no se encontro
     return True
 
