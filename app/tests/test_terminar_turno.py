@@ -33,7 +33,7 @@ def test_terminar_turno_yreponer_figuras(test_db, test_ws, numero_de_jugadores, 
     test_db.refresh(jugador_inicial) # Para actualizar localmente la info del jugador
     captura_final = capturar(get_all_tables(test_db))
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
-    print(modificaciones)
+
     # Verificamos que se hayan reinsertado las figuras
     numero_de_figuras_reveladas = len([figura for figura in jugador_inicial.mazo_cartas_de_figura if figura.revelada])
     numero_esperado = min(3,len(jugador_inicial.mazo_cartas_de_figura))
