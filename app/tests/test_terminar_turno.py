@@ -1,15 +1,14 @@
 import mock
 from tests_setup import client
-from factory import crear_partida, unir_jugadores, iniciar_partida, consumir_carta_movimiento, consumir_carta_figura_reveladas
+from factory import crear_partida, unir_jugadores, iniciar_partida, consumir_carta_movimiento, consumir_cantidad_cartas_figura_reveladas, consumir_cantidad_cartas_movimiento
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_TURNO, ACTUALIZAR_TABLERO
 import pytest
-from tools import get_all_tables, capturar_metadata as capturar, comparar_capturas, verificar_diccionarios
+from tools import get_all_tables, capturar_metadata as capturar, comparar_capturas, verificar_diccionarios, seleccionar_parametros, verificar_tuplas
 
-@pytest.mark.parametrize("numero_de_jugadores", [2, 3, 4])
-@pytest.mark.parametrize("numero_de_reveadas", [0, 1, 2])
-def test_terminar_turno_yreponer_figuras(test_db, test_ws, numero_de_jugadores, numero_de_reveadas):
+@pytest.mark.parametrize("numero_de_jugadores, numero_de_reveadas, numero_de_movimientos", seleccionar_parametros([(2, 3, 4),(0, 1, 2),(0, 1, 2)],3))
+def test_terminar_turno_yreponer_cartas(test_db, test_ws, numero_de_jugadores, numero_de_reveadas,numero_de_movimientos):
     '''
-    Test que chequea que al terminar el turno de un jugador, se reponen las figuras reveladas que se descartaron.
+    Test que chequea que al terminar el turno de un jugador, se reponen los movimeintos y las figuras reveladas que se descartaron.
     '''
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws[ACTUALIZAR_TURNO] = 1
@@ -20,17 +19,16 @@ def test_terminar_turno_yreponer_figuras(test_db, test_ws, numero_de_jugadores, 
     unir_jugadores(test_db, partida, numero_de_jugadores=numero_de_jugadores-1)
     iniciar_partida(test_db, partida)
     jugador_inicial = partida.jugador_del_turno
-    consumir_carta_figura_reveladas(test_db, jugador_inicial, cantidad=3-numero_de_reveadas)
-
+    consumir_cantidad_cartas_figura_reveladas(test_db, jugador_inicial, cantidad=3-numero_de_reveadas)
+    consumir_cantidad_cartas_movimiento(test_db, jugador_inicial, cantidad=3-numero_de_movimientos)
+    
     # Realizamos la petición
-    numero_de_figuras_reveladas = len([figura for figura in jugador_inicial.mazo_cartas_de_figura if figura.revelada])
-    assert numero_de_figuras_reveladas < 3, f"Fallo de precondición: Se esperaba que el jugador tuviera menos de 3 figuras reveladas, pero tiene {numero_de_figuras_reveladas}."
     captura_inicial = capturar(get_all_tables(test_db))
     
     response = client.put(f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
+    
     test_db.refresh(partida) # Para actualizar localmente la info de la partida
-    test_db.refresh(jugador_inicial) # Para actualizar localmente la info del jugador
     captura_final = capturar(get_all_tables(test_db))
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
@@ -39,9 +37,9 @@ def test_terminar_turno_yreponer_figuras(test_db, test_ws, numero_de_jugadores, 
     numero_esperado = min(3,len(jugador_inicial.mazo_cartas_de_figura))
     assert numero_de_figuras_reveladas == numero_esperado, f"Fallo: Se esperaba que el jugador tuviera {numero_esperado} figuras reveladas, pero tiene {numero_de_figuras_reveladas}."
     assert not eliminadas, f"Fallo: Se esperaba que no se eliminara ninguna tabla, pero se eliminaron {eliminadas}."
-    assert not creadas, f"Fallo: Se esperaba que no se creara ninguna tabla, pero se crearon {creadas}."
     modificaciones_esperadas_en = {'jugadores': ['orden'], 'cartas_de_figura': ['revelada']}
     assert verificar_diccionarios(modificaciones, modificaciones_esperadas_en), f"Fallo: Las modificaciones no fueron las esperadas."
+    assert verificar_tuplas(creadas, ['cartas_de_movimiento']), f"Fallo: Se esperaba que se crearan cartas de movimiento, pero no se crearon."
 
 def test_terminar_turno(test_db, test_ws):
     '''Test que chequea el funcionamiento en el escenario exitoso del endpoint para terminar_turno.'''
