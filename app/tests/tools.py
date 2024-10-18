@@ -237,34 +237,33 @@ def validar_entrada_a_capturar(objetos: list):
     if not all(hasattr(obj, 'id') for obj in objetos):
         raise ValueError('Todos los objetos deben tener id')
 
-def verificar_tuplas(entrada, validos):
+def verificar_tuplas(entrada:list, validos:list)->bool:
     '''
     Recibe un array de entrada del estilo [(str, ?), (str, ?, ?), ...]
     y un array de strings validos del estilo ['string1', 'string2', ...]
     Devuelve True si todas las entrada tienen strings validos, False en caso contrario.
     '''
     conjunto_validos = set(validos)
-    
     for tupla in entrada:
-        for elemento in tupla:
-            assert isinstance(elemento[0], str), 'El primer elemento de la tupla debe ser string'
-            if not elemento[0] in conjunto_validos:
-                print(f'Error: {elemento[0]} no es un string válido')
-                return False
+        assert isinstance(tupla[0], str), 'El primer elemento de la tupla debe ser string'
+        if not tupla[0] in conjunto_validos:
+            print(f'Error: {tupla[0]} no es un string válido')
+            return False
     return True
 
-def verificar_diccionarios( entrada, validos):
+def verificar_diccionarios(entrada:dict, validos:dict)->bool:
     '''
-    Verifica que las claves de entrada y validos sean las mismas
+    Verifica que el string primero de las claves de entrada (str,?) y validos sean las mismas
     y que para cada clave de entrada, su array tenga entrada
     que tengan un str válido correspondiente al array de la clave en validos.
     '''
-    if entrada.keys() != validos.keys():
-        print('Error: Las claves de entrada y validos no coinciden.')
+    clave_util = [clave[0] for clave in entrada.keys()]
+    if not set(clave_util) == set(validos.keys()):
+        print(f'Error: Las claves de entrada {clave_util} no son válidas.')
         return False
     
     for clave in entrada.keys():
-        if not verificar_tuplas(entrada[clave], validos[clave]):
+        if not verificar_tuplas(entrada[clave], validos[clave[0]]):
             print(f'Error: Los valores de la clave "{clave}" no son válidos.')
             return False
     
