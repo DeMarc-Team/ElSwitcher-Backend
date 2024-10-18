@@ -187,6 +187,22 @@ def consumir_carta_movimiento(db: Session, jugador: Jugador, mov: str, cantidad=
         db.delete(carta)    
     
     db.commit()
+
+def consumir_carta_figura_reveladas(db: Session, jugador: Jugador, cantidad:int = 1):
+    '''
+    Procedimiento para eliminar las primeras "cantidad" de cartas de figura reveladas de la mano del jugador.
+    '''
+    assert cantidad >= 1, "La cantidad de cartas a consumir debe ser mayor o igual que 1."
+    assert jugador.mazo_cartas_de_figura is not None, "El jugador no tiene una mano de cartas de figura asignada (su mano es None)."
+
+    cartas_reveladas = [carta for carta in jugador.mazo_cartas_de_figura if carta.revelada]
+
+    assert cartas_reveladas is not None, "El jugador no posee ninguna carta revelada."
+
+    for carta in cartas_reveladas[:cantidad]:
+        db.delete(carta)
+    
+    db.commit()
  
 def establecer_tablero(db: Session, partida: Partida, tablero: list[list[int]]):
     import json
