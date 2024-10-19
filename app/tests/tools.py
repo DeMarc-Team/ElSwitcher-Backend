@@ -261,38 +261,40 @@ def validar_entrada_a_capturar(objetos: list):
     if not all(hasattr(obj, 'id') for obj in objetos):
         raise ValueError('Todos los objetos deben tener id')
 
-#TODO: Agregar en las de especificar que se pueda pasar para cada str un numero de veces que
-# se debe repetir
 def verificar_tuplas(entrada:list, validos:list)->bool:
     '''
     Recibe un array de entrada del estilo [(str, ?), (str, ?, ?), ...]
-    y un array de strings validos del estilo ['string1', 'string2', ...]
-    Devuelve True si todas las entrada tienen strings validos, False en caso contrario.
+    y un array de strings validos del estilo ['str', 'str', ...]
+    Devuelve True si todas las entrada tienen strings en validos y todos los strings
+    en validos estan en entrada.
     '''
-    conjunto_validos = set(validos)
-    for tupla in entrada:
-        assert isinstance(tupla[0], str), 'El primer elemento de la tupla debe ser string'
-        if not tupla[0] in conjunto_validos:
-            print(f'Error: {tupla[0]} no es un string válido')
-            return False
-    # TODO: agregar que devuelva false cuando ago en validos no se encontro
+    set_entrada = set([tupla[0] for tupla in entrada])
+    set_validos = set(validos)
+    if not set_entrada == set_validos:
+        diferencia = set_entrada - set_validos
+        print(f'Error: Las claves {diferencia} no son válidas.')
+        return False
     return True
 
+#TODO: Agregar en las de especificar que se pueda pasar para cada str un numero de veces que
+# se debe repetir (incluyendo 0). Usar from collections import Counter
 def verificar_diccionarios(entrada:dict, validos:dict)->bool:
     '''
-    Verifica que el string primero de las claves de entrada (str,?) y validos sean las mismas
-    y que para cada clave de entrada, su array tenga entrada
-    que tengan un str válido correspondiente al array de la clave en validos.
+    Verifica que toda clave (str,?) en entrada tenga el str en validos y que el str en validos
+    tenga un str en entrada.
+    Ademas verifica que los valores de cada clave sean validos segun el diccionario de validos,
+    utilizando verificar_tuplas.
     '''
-    clave_util = [clave[0] for clave in entrada.keys()]
-    if not set(clave_util) == set(validos.keys()):
-        print(f'Error: Las claves de entrada {clave_util} no son válidas.')
+    set_entrada = set([clave[0] for clave in entrada.keys()])
+    set_validos = set(validos.keys())
+    if not set_entrada == set_validos:
+        diferencia = set_entrada - set_validos
+        print(f'Error: Las claves {diferencia} no son válidas.')
         return False
     
-    for clave in entrada.keys():
-        if not verificar_tuplas(entrada[clave], validos[clave[0]]):
-            print(f'Error: Los valores de la clave "{clave}" no son válidos.')
+    for clave, valor in entrada.items():
+        if not verificar_tuplas(valor, validos[clave[0]]):
+            print(f'Error: Los valores de la clave {clave} no son validos segun verificar_tuplas()')
             return False
-    # TODO: agregar que devuelva false cuando ago en validos no se encontro
     return True
 
