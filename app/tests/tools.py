@@ -2,6 +2,30 @@ import re
 from sqlalchemy import inspect
 from database import Base
 from sqlalchemy.orm import Session
+import random
+from itertools import product
+#TODO: Separar en clases los diferentes tipos de tools (si lo hacemos con capturar,... el import seria mas lindo)
+
+PARAMETRIZACION_COMPLETA = False
+def seleccionar_parametros(parametros:list, numero_a_seleccionar:int=None)->list:
+    '''
+    Recibe una lista de `parametros` con sus posibles valores [(p1,p2,p3), (q1,q2), (s1,s2,s3)]
+    Y un numero de tuplas a devolver.
+
+    Se retornara algo de la forma: [(p1,q2,s1), (p3,q2,s1)] donde se selecciona un parametro de cada tupla
+    al azar.
+
+    Si no se pasa `numero_a_seleccionar` o la variable global`PARAMETRIZACION_COMPLETA` es True, 
+    se devolveran todas las combinaciones posibles.
+    '''
+    combinaciones_posibles = list(product(*parametros))
+    if PARAMETRIZACION_COMPLETA or numero_a_seleccionar is None:
+        return combinaciones_posibles
+    
+    assert numero_a_seleccionar <= len(combinaciones_posibles), "El numero a seleccionar es mayor a las combinaciones posibles"
+    return random.sample(combinaciones_posibles, numero_a_seleccionar)
+
+# Para la base de datos:
 
 def get_all_tables(session: Session, hacer_commit:bool = False) -> list:
     '''
@@ -236,3 +260,41 @@ def validar_entrada_a_capturar(objetos: list):
 
     if not all(hasattr(obj, 'id') for obj in objetos):
         raise ValueError('Todos los objetos deben tener id')
+
+def verificar_tuplas(entrada:list, validos:list)->bool:
+    '''
+    Recibe un array de entrada del estilo [(str, ?), (str, ?, ?), ...]
+    y un array de strings validos del estilo ['str', 'str', ...]
+    Devuelve True si todas las entrada tienen strings en validos y todos los strings
+    en validos estan en entrada.
+    '''
+    set_entrada = set([tupla[0] for tupla in entrada])
+    set_validos = set(validos)
+    if not set_entrada == set_validos:
+        diferencia = set_entrada - set_validos
+        print(f'Error: Las claves {diferencia} no son válidas.')
+        return False
+    return True
+
+#TODO: Agregar en las de especificar que se pueda pasar para cada str un numero de veces que
+# se debe repetir (incluyendo 0). Usar from collections import Counter
+def verificar_diccionarios(entrada:dict, validos:dict)->bool:
+    '''
+    Verifica que toda clave (str,?) en entrada tenga el str en validos y que el str en validos
+    tenga un str en entrada.
+    Ademas verifica que los valores de cada clave sean validos segun el diccionario de validos,
+    utilizando verificar_tuplas.
+    '''
+    set_entrada = set([clave[0] for clave in entrada.keys()])
+    set_validos = set(validos.keys())
+    if not set_entrada == set_validos:
+        diferencia = set_entrada - set_validos
+        print(f'Error: Las claves {diferencia} no son válidas.')
+        return False
+    
+    for clave, valor in entrada.items():
+        if not verificar_tuplas(valor, validos[clave[0]]):
+            print(f'Error: Los valores de la clave {clave} no son validos segun verificar_tuplas()')
+            return False
+    return True
+
