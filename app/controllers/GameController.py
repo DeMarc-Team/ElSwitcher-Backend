@@ -1,11 +1,11 @@
 import crud
-from websockets_manager import ws_partidas_manager
 from figuras import hallar_todas_las_figuras_en_tablero
 import json
 
 class GameController:
-    def __init__(self, db):
+    def __init__(self, db, communicator):
         self.db = db
+        self.communicator = communicator
 
     async def get_cartas_figura_jugador(self, partida_id, jugador_id):
         return crud.partidas.get_cartas_figura_jugador(self.db, partida_id, jugador_id)
@@ -18,8 +18,8 @@ class GameController:
 
     async def terminar_turno(self, id_partida, id_jugador):
         crud.juego.terminar_turno(self.db, id_partida, id_jugador)
-        await ws_partidas_manager.send_actualizar_turno(id_partida)
-        await ws_partidas_manager.send_actualizar_tablero(id_partida)
+        await self.communicator.send_actualizar_turno(id_partida)
+        await self.communicator.send_actualizar_tablero(id_partida)
 
     async def get_tablero(self, id_partida):
         """Obtiene el tablero de una partida."""
@@ -33,13 +33,13 @@ class GameController:
 
     async def modificar_casillas(self, id_partida, id_jugador, coordenadas):
         crud.juego.modificar_casillas(id_partida, id_jugador, coordenadas, self.db)
-        await ws_partidas_manager.send_actualizar_tablero(id_partida)
-        await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
+        await self.communicator.send_actualizar_tablero(id_partida)
+        await self.communicator.send_actualizar_cartas_movimiento(id_partida)
 
     async def deshacer_movimiento(self, id_partida):
         crud.juego.deshacer_movimiento(self.db, id_partida)
-        await ws_partidas_manager.send_actualizar_tablero(id_partida)
-        await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
+        await self.communicator.send_actualizar_tablero(id_partida)
+        await self.communicator.send_actualizar_cartas_movimiento(id_partida)
 
     async def get_movimientos_parciales(self, id_partida):
         return crud.juego.get_movimientos_parciales(self.db, id_partida)
@@ -50,7 +50,7 @@ class GameController:
         if (hay_ganador):
             id_ganador = hay_ganador.get("id_ganador")
             nombre_ganador = hay_ganador.get("nombre_ganador")
-            await ws_partidas_manager.send_hay_ganador(id_partida, id_ganador, nombre_ganador)
+            await self.communicator.send_hay_ganador(id_partida, id_ganador, nombre_ganador)
         else:
-            await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
-            await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
+            await self.communicator.send_actualizar_cartas_figura(id_partida)
+            await self.communicator.send_actualizar_cartas_movimiento(id_partida)
