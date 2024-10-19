@@ -6,7 +6,7 @@ import pytest
 from tools import get_all_tables, capturar_metadata as capturar, comparar_capturas, verificar_diccionarios, seleccionar_parametros, verificar_tuplas
 
 @pytest.mark.parametrize("numero_de_jugadores, numero_de_reveadas, numero_de_movimientos", seleccionar_parametros([(2, 3, 4),(0, 1, 2),(0, 1, 2)],3))
-def test_terminar_turno_yreponer_cartas(test_db, test_ws, numero_de_jugadores, numero_de_reveadas,numero_de_movimientos):
+def test_terminar_turno_reponer_cartas(test_db, test_ws, numero_de_jugadores, numero_de_reveadas,numero_de_movimientos):
     '''
     Test que chequea que al terminar el turno de un jugador, se reponen los movimeintos y las figuras reveladas que se descartaron.
     '''

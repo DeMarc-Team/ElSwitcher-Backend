@@ -4,7 +4,7 @@ from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida, Jugador, CartaMovimiento, MovimientoParcial
 from schemas import TurnoDetails, CasillasMov, CompletarFiguraData
 from figuras import hallar_todas_las_figuras_en_tablero
-
+from constantes_juego import N_FIGURAS_REVELADAS
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (
         Jugador.id_jugador == jugador_id)).first()
@@ -59,7 +59,7 @@ def siguiente_turno(db: Session, partida_id, atomic=True):
 
 def reponer_cartas_movimiento(db: Session, partida: Partida, jugador: Jugador, n_cartas_por_jugador=3, atomic=True):
     '''
-    Procedimiento para reponer las cartas movimeinto de un jugador.
+    Procedimiento para reponer las cartas movimiento de un jugador.
     
     Repone hasta que el jugador tenga n_cartas_por_jugador en la mano.
     '''
@@ -76,7 +76,7 @@ def reponer_cartas_movimiento(db: Session, partida: Partida, jugador: Jugador, n
     else:
         db.flush()
 
-def reponer_cartas_figura(db: Session, partida: Partida, jugador: Jugador, n_reveladas=3, atomic=True):
+def reponer_cartas_figura(db: Session, partida: Partida, jugador: Jugador, n_reveladas=N_FIGURAS_REVELADAS, atomic=True):
     '''
     Procedimiento para reponer las cartas figura de un jugador.
     
