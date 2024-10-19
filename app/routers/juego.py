@@ -12,6 +12,7 @@ Base.metadata.create_all(bind=engine)
 
 router = APIRouter(prefix="/juego")
 
+# FIXME:  Aca se puede inyectar facilmente service y communication_manager
 # Crear una dependencia para el controlador
 async def get_game_controller(db: Session = Depends(get_db)):
     return GameController(db)
