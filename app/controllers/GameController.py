@@ -1,5 +1,5 @@
 import crud
-from websockets_manager import ws_partidas_manager
+from websockets_manager.ws_partidas_manager import ws_partidas_manager
 from figuras import hallar_todas_las_figuras_en_tablero
 import json
 
