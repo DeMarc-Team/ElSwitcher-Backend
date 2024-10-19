@@ -6,6 +6,8 @@ import random
 from itertools import product
 #TODO: Separar en clases los diferentes tipos de tools (si lo hacemos con capturar,... el import seria mas lindo)
 
+#TODO: Que se fijen todos los valores menos dos al azar y que esos varien solamente n veces?
+# (pseudoTesting de a pares)
 PARAMETRIZACION_COMPLETA = False
 def seleccionar_parametros(parametros:list, numero_a_seleccionar:int=None)->list:
     '''
