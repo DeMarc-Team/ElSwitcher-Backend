@@ -1,9 +1,9 @@
-from tests_setup import client
+
 from models import Partida
 from factory import crear_partida, unir_jugadores, iniciar_partida
 from constantes_juego import N_CARTAS_FIGURA_TOTALES, N_FIGURAS_REVELADAS
 
-def test_iniciar_partida_200(test_db):
+def test_iniciar_partida_200(client, test_db):
     '''Test para iniciar una partida con suficientes jugadores'''
     partida, _ = crear_partida(db=test_db, nombre_partida="partida_con_2_jugadores", nombre_creador="Creador")
     unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=2)
@@ -37,7 +37,7 @@ def test_iniciar_partida_200(test_db):
 
 # ----------------------------------------------------------------
 
-def test_iniciar_partida_con_jugadores_insuficientes_403(test_db):
+def test_iniciar_partida_con_jugadores_insuficientes_403(client, test_db):
     '''Test para iniciar una partida sin suficientes jugadores'''
     id_partida = 1
     partida, _ = crear_partida(db=test_db, nombre_partida="partida_con_1_jugador", nombre_creador="Creador")
@@ -62,7 +62,7 @@ def test_iniciar_partida_con_jugadores_insuficientes_403(test_db):
 
 # ----------------------------------------------------------------
 
-def test_iniciar_partida_ya_iniciada_403(test_db):
+def test_iniciar_partida_ya_iniciada_403(client, test_db):
     '''Test para iniciar una partida que ya esta iniciada'''
     partida, _ = crear_partida(db=test_db, nombre_partida="partida_ya_iniciada", nombre_creador="Creador")
     unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=1)
@@ -85,7 +85,7 @@ def test_iniciar_partida_ya_iniciada_403(test_db):
 
 # ----------------------------------------------------------------
 
-def test_iniciar_partida_404(test_db):
+def test_iniciar_partida_404(client, test_db):
     '''Test para iniciar una partida que no existe'''
     response = client.put("partidas/1")
     print(f"Response: {response.json()}")

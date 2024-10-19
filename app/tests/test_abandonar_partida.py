@@ -2,13 +2,12 @@ import pytest
 
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, PARTIDA_CANCELADA, ACTUALIZAR_TABLERO
-from tests_setup import client
 from factory import crear_partida, unir_jugadores, iniciar_partida
 from verifications import check_jugador_abandoned, check_partida_deletion, check_response
 
 
 @pytest.mark.parametrize("numero_de_jugadores", [3, 4])
-def test_abandonar_partida_en_el_turno_200(test_db, test_ws, numero_de_jugadores):
+def test_abandonar_partida_en_el_turno_200(client, test_db, test_ws, numero_de_jugadores):
     '''Test de jugador abandonando una partida en su turno'''
 
     # Ponemos cuantas veces se espera que se envie cada ws
@@ -40,7 +39,7 @@ def test_abandonar_partida_en_el_turno_200(test_db, test_ws, numero_de_jugadores
 
 
 @pytest.mark.parametrize("numero_de_jugadores", [1, 2, 3, 4])
-def test_abandonar_partida_no_iniciada_creador_200(test_db, test_ws, numero_de_jugadores):
+def test_abandonar_partida_no_iniciada_creador_200(client, test_db, test_ws, numero_de_jugadores):
     '''Test de creador abandonando su partida no iniciada'''
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws[ACTUALIZAR_PARTIDAS] = 1
@@ -67,7 +66,7 @@ def test_abandonar_partida_no_iniciada_creador_200(test_db, test_ws, numero_de_j
 
 
 @pytest.mark.parametrize("numero_de_jugadores", [2, 3, 4])
-def test_abandonar_partida_no_iniciada_no_creador_200(test_db, test_ws, numero_de_jugadores):
+def test_abandonar_partida_no_iniciada_no_creador_200(client, test_db, test_ws, numero_de_jugadores):
     '''Test de jugador no creador abandonando una partida no iniciada'''
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws[ACTUALIZAR_SALA_ESPERA] = 1
@@ -96,7 +95,7 @@ def test_abandonar_partida_no_iniciada_no_creador_200(test_db, test_ws, numero_d
 
 
 @pytest.mark.parametrize("numero_de_jugadores", [3, 4])
-def test_abandonar_partida_iniciada_creador_200(test_db, test_ws, numero_de_jugadores):
+def test_abandonar_partida_iniciada_creador_200(client, test_db, test_ws, numero_de_jugadores):
     '''Test de creador abandonando su partida iniciada'''
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws[ACTUALIZAR_SALA_ESPERA] = 1
@@ -127,7 +126,7 @@ def test_abandonar_partida_iniciada_creador_200(test_db, test_ws, numero_de_juga
 
 
 @pytest.mark.parametrize("numero_de_jugadores", [3, 4])
-def test_abandonar_partida_iniciada_no_creador_200(test_db, test_ws, numero_de_jugadores):
+def test_abandonar_partida_iniciada_no_creador_200(client, test_db, test_ws, numero_de_jugadores):
     '''Test de jugador no creador abandonando una partida iniciada'''
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws[ACTUALIZAR_SALA_ESPERA] = 1
@@ -158,7 +157,7 @@ def test_abandonar_partida_iniciada_no_creador_200(test_db, test_ws, numero_de_j
 # ----------------------------------------------------------------
 
 
-def test_abandonar_partida_no_existente_404(test_db, test_ws):
+def test_abandonar_partida_no_existente_404(client, test_db, test_ws):
     '''Test de jugador abandonando una partida que no existe'''
     id_partida = 1
     id_jugador = 1
@@ -174,7 +173,7 @@ def test_abandonar_partida_no_existente_404(test_db, test_ws):
 # ----------------------------------------------------------------
 
 
-def test_abandonar_partida_jugador_no_existente_404(test_db, test_ws):
+def test_abandonar_partida_jugador_no_existente_404(client, test_db, test_ws):
     '''Test de jugador no existente abandonando una partida'''
     partida, creador = crear_partida(test_db)
     id_partida = partida.id
@@ -191,7 +190,7 @@ def test_abandonar_partida_jugador_no_existente_404(test_db, test_ws):
 # ----------------------------------------------------------------
 
 
-def test_abandonar_partida_iniciada_ultimo_jugador_200(test_db, test_ws):
+def test_abandonar_partida_iniciada_ultimo_jugador_200(client, test_db, test_ws):
     '''Test de jugador abandonando una partida iniciada y queda solo un jugador'''
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws[HAY_GANADOR] = 1

@@ -1,10 +1,9 @@
-from tests_setup import client
 from factory import crear_partida, unir_jugadores, iniciar_partida, establecer_tablero, cartear_figuras, listas_to_casillas_figura, falsear_movimientos_parciales, eliminar_cartas_figura_del_maso
 from verifications import check_response, check_cartas_figura_reveladas
 from tools import capturar_metadata, comparar_capturas, get_all_tables
 from websockets_manager.ws_partidas_manager import HAY_GANADOR, ACTUALIZAR_CARTAS_FIGURA, ACTUALIZAR_CARTAS_MOVIMIENTO
 
-def test_usar_figura_propia(test_db, test_ws):
+def test_usar_figura_propia(client, test_db, test_ws):
 
     # Tablero que deseamos que se utilice
     tablero_mock = [
@@ -70,7 +69,7 @@ def test_usar_figura_propia(test_db, test_ws):
 
 # ----------------------------------------------------------------
 
-def test_usar_figura_propia_yganar(test_db, test_ws):
+def test_usar_figura_propia_yganar(client, test_db, test_ws):
     '''Test de jugador que completa una figura y gana la partida'''
 
     # Tablero que deseamos que se utilice
@@ -113,7 +112,7 @@ def test_usar_figura_propia_yganar(test_db, test_ws):
 
 # ----------------------------------------------------------------
 
-def test_usar_figura_propia_varias_figuras(test_db, test_ws):
+def test_usar_figura_propia_varias_figuras(client, test_db, test_ws):
     
     # Tablero que deseamos que se utilice
     tablero_mock = [
@@ -174,7 +173,7 @@ def test_usar_figura_propia_varias_figuras(test_db, test_ws):
 
 # ----------------------------------------------------------------
 
-def test_usar_figura_propia_varias_cartas(test_db, test_ws):
+def test_usar_figura_propia_varias_cartas(client, test_db, test_ws):
     # Tablero que deseamos que se utilice
     tablero_mock = [
         [2, 2, 2, 4, 1, 2],
@@ -266,7 +265,7 @@ def configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas, n_mo
 
 # ----------------------------------------------------------------
 
-def test_usar_figura_propia_jugador_no_turno_403(test_db, test_ws):
+def test_usar_figura_propia_jugador_no_turno_403(client, test_db, test_ws):
     '''Test de jugador que no es del turno intentando usar una figura propia'''
     partida, _ = crear_partida(test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores=1)
@@ -326,7 +325,7 @@ def test_usar_figura_propia_jugador_no_turno_403(test_db, test_ws):
     assert not creadas, f"Se encontraron tablas creadas en la db: {creadas}"
 # ----------------------------------------------------------------
 
-def test_usar_figura_propia_partida_no_existe_404(test_db, test_ws):
+def test_usar_figura_propia_partida_no_existe_404(client, test_db, test_ws):
     '''Test de jugador que no es del turno intentando usar una figura propia'''
     # Realizamos la petición
     id_partida = 1
@@ -341,7 +340,7 @@ def test_usar_figura_propia_partida_no_existe_404(test_db, test_ws):
 
 # ----------------------------------------------------------------
 
-def test_usar_figura_propia_partida_no_iniciada_403(test_db, test_ws):
+def test_usar_figura_propia_partida_no_iniciada_403(client, test_db, test_ws):
     '''Test de jugador que no es del turno intentando usar una figura propia'''
     partida, _ = crear_partida(test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores=1)
@@ -369,7 +368,7 @@ def test_usar_figura_propia_partida_no_iniciada_403(test_db, test_ws):
     assert not creadas, f"Se encontraron tablas creadas en la db: {creadas}"
 # ----------------------------------------------------------------
 
-def test_usar_figura_propia_jugador_no_existe_404(test_db, test_ws):
+def test_usar_figura_propia_jugador_no_existe_404(client, test_db, test_ws):
     '''Test de jugador que no es del turno intentando usar una figura propia'''
     partida, _ = crear_partida(test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores=1)
@@ -388,7 +387,7 @@ def test_usar_figura_propia_jugador_no_existe_404(test_db, test_ws):
 
 # ----------------------------------------------------------------
 
-def test_usar_figura_propia_mano_sin_figura_404(test_db, test_ws):
+def test_usar_figura_propia_mano_sin_figura_404(client, test_db, test_ws):
     '''Test de jugador del turno intentando usar una figura propia que no tiene en su mano.'''
     partida, creador = crear_partida(test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores=1)
@@ -418,7 +417,7 @@ def test_usar_figura_propia_mano_sin_figura_404(test_db, test_ws):
     assert not creadas, f"Se encontraron tablas creadas en la db: {creadas}"
 # ----------------------------------------------------------------
 
-def test_usar_figura_propia_no_en_tablero_404(test_db, test_ws):
+def test_usar_figura_propia_no_en_tablero_404(client, test_db, test_ws):
     '''Test de jugador del turno intentando usar una figura propia que no está en el tablero.'''
     partida, creador = crear_partida(test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores=1)
@@ -459,7 +458,7 @@ def test_usar_figura_propia_no_en_tablero_404(test_db, test_ws):
     assert not creadas, f"Se encontraron tablas creadas en la db: {creadas}"
 # ----------------------------------------------------------------
 
-def test_usar_figura_propia_casilla_incorrecta_404(test_db,test_ws):
+def test_usar_figura_propia_casilla_incorrecta_404(client, test_db,test_ws):
     '''Test de jugador del turno intentando usar una figura propia en una casilla incorrecta.'''
     partida, creador = crear_partida(test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores=1)

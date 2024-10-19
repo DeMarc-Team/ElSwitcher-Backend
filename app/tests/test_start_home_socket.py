@@ -1,9 +1,9 @@
 import pytest
 import mock
-from tests_setup import client
+
 from websockets_manager.ws_home_manager import ws_home_manager, WsMessage, MessageType
 
-def test_start_home_socket():
+def test_start_home_socket(client):
     """
     Test que prueba el establecimiento y almacenamiento de una conexion por medio de websockets orientada al home.
     """
