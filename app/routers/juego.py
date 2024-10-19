@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 from database import engine, get_db
 from models import Base
 from controllers.GameController import GameController
-from websockets_manager import ws_partidas_manager
 from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails, TableroData, CasillasMov, MovimientoParcialData, CompletarFiguraData
 
 Base.metadata.create_all(bind=engine)
@@ -15,7 +14,7 @@ router = APIRouter(prefix="/juego")
 
 # Crear una dependencia para el controlador
 async def get_game_controller(db: Session = Depends(get_db)):
-    return GameController(db, ws_partidas_manager)
+    return GameController(db)
 
 @router.get('/{partida_id:int}/jugadores/{jugador_id:int}/cartas_figura',
             response_model=list[CartaFiguraData],
