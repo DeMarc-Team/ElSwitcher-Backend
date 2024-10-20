@@ -84,8 +84,7 @@ def expected_msgs_home_ws():
         connection_id, fake_ws = fake_connection
         
         numero_mensajes = len(expected_msgs_home_ws)
-        assert fake_ws.send_text.call_count == numero_mensajes, f"Fallo: Se esperaba que el websocket de id {
-            connection_id} recibiera {numero_mensajes} mensajes."
+        assert fake_ws.send_text.call_count == numero_mensajes, f"Fallo: Se esperaba que el websocket de id {connection_id} recibiera {numero_mensajes} mensajes."
         
         # Revisamos que el mensaje sea el que se corresponde con la especificacion de la api.
         fake_ws.send_text.assert_has_calls(
@@ -115,8 +114,7 @@ def expected_msgs_partidas_ws():
         connection_id, fake_ws = fake_connection
 
         numero_mensajes = len(expected_msgs_partidas_ws)
-        assert fake_ws.send_text.call_count == numero_mensajes, f"Fallo: Se esperaba que el websocket de id {
-            connection_id} recibiera {numero_mensajes} mensajes."
+        assert fake_ws.send_text.call_count == numero_mensajes, f"Fallo: Se esperaba que el websocket de id {connection_id} recibiera {numero_mensajes} mensajes."
 
         # Revisamos que el mensaje sea el que se corresponde con la especificacion de la api.
         fake_ws.send_text.assert_has_calls(
