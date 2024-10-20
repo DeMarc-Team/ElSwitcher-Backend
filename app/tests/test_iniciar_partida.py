@@ -12,8 +12,7 @@ def test_iniciar_partida_200(test_db):
     print(f"Response: {response.json()}")
     
     # Verificamos la respuesta del servidor
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {
-        response.status_code}"
+    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     respuesta_esperada = {'details': 'Partida iniciada correctamemte', 'partida_id': 1}
 
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada}, pero se obtuvo {response.json}"
@@ -46,8 +45,7 @@ def test_iniciar_partida_con_jugadores_insuficientes_403(test_db):
     print(f"Response: {response.json()}")
     
     # Verificamos la respuesta del servidor
-    assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {
-        response.status_code}"
+    assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
     respuesta_esperada = {'detail': 'Partida con ID 1 no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.'}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada}, pero se obtuvo {response.json()}"
     
@@ -91,7 +89,6 @@ def test_iniciar_partida_404(test_db):
     print(f"Response: {response.json()}")
     
     # Verificamos la respuesta del servidor
-    assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {
-        response.status_code}"
+    assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
     respuesta_esperada = {'detail': 'Partida con ID 1 no encontrada.'}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada}, pero se obtuvo {response.json()}"

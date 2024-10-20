@@ -405,7 +405,7 @@ def test_usar_figura_propia_mano_sin_figura_404(test_db, test_ws):
         "carta_fig": "f1"
     }
     response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
-    respuesta_esperada = {'detail': f"El jugador no tiene en la mano ninguna carta de figura revelada del formato {request_body.get("carta_fig")}."}
+    respuesta_esperada = {'detail': f"El jugador no tiene en la mano ninguna carta de figura revelada del formato {request_body.get('carta_fig')}."}
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
     # Verificamos que no se haya realizado ningun cambio en la base de datos
