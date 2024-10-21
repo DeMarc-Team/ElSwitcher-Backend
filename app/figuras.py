@@ -422,15 +422,3 @@ class MazoDeCartasFigura():
         """
         self.cartas = 4*SET_DE_CARTAS # Cuatro juegos.
 
-
-    def repartir_para_n(self, n_jugadores: int):
-        """
-        Reparte el mazo de cartas de figura para n jugadores
-        Args:
-            n_jugadores (int): cantidad de jugadores
-
-        Returns:
-            List[List[Figura]]: Lista de listas de figuras
-        """        
-        # TODO: Abrir el ticket para hacer esto
-        pass
