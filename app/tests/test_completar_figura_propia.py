@@ -276,7 +276,6 @@ def test_usar_figura_propia_jugador_no_turno_403(test_db, test_ws):
     otro_jugador = partida.jugadores[1]
     assert jugador_del_turno != otro_jugador, "Se cambio models y no se actualizo el test"
     
-    # FIXME: Repeticion de codigo, se puede modularizar (No lo hago por si a caso)
     tablero_mock = [
         [2, 2, 2, 4, 1, 2],
         [1, 2, 1, 4, 1, 2],

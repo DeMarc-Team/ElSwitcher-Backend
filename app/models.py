@@ -118,7 +118,6 @@ class CartaFigura(Base):
 
     figura: Mapped[str] = mapped_column(
         String, nullable=False, default=lambda: CartaFigura.random_figura())
-    # Default true para que en la demo se vea ajsja
     revelada: Mapped[Boolean] = mapped_column(Boolean, default=True)
 
     # Las relaciones necesitan que exista además una foreign key
