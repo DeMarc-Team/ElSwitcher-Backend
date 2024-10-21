@@ -1,106 +1,94 @@
-from tests_setup import client, TestingSessionLocal
-from models import Jugador, Partida, Juego
+from tests_setup import client
+from models import Partida
+from factory import crear_partida, unir_jugadores, iniciar_partida
+from constantes_juego import N_CARTAS_FIGURA_TOTALES, N_FIGURAS_REVELADAS
 
-import pytest
-
-
-@pytest.fixture(scope="function")
-def test_data():
-    db = TestingSessionLocal()
-
-    partida1 = Partida(
-        nombre_partida="partida_con_2_jugadores", nombre_creador="Creador")
-    creador1 = Jugador(nombre="Creador", partida_id=1,
-                       es_creador=True, partidas=partida1)
-    jugador1 = Jugador(nombre="Jugador1", partida_id=1, partidas=partida1)
-    jugador2 = Jugador(nombre="Jugador2", partida_id=1, partidas=partida1)
-    partida2 = Partida(nombre_partida="partida_con_1_jugador",
-                       nombre_creador="Creador")
-    creador2 = Jugador(nombre="Creador", partida_id=2,
-                       es_creador=True, partidas=partida2)
-    
-    partida3 = Partida(nombre_partida="partida_ya_iniciada", nombre_creador="Creador", iniciada=True)
-    juego3 = Juego(partida_id=3, partida=partida3)
-    creador3 = Jugador(nombre="Creador", partida_id=3, es_creador=True, partidas=partida3)
-    jugador3 = Jugador(nombre="Jugador1", partida_id=3, partidas=partida3)
-
-    db.add(partida1)
-    db.add(creador1)
-    db.add(jugador1)
-    db.add(jugador2)
-    db.add(partida2)
-    db.add(creador2)
-    db.add(partida3)
-    db.add(juego3)
-    db.add(creador3)
-    db.add(jugador3)
-
-    db.commit()
-    db.close()
-    yield db
-
-    db.query(Jugador).delete()
-    db.query(Partida).delete()
-    db.query(Juego).delete()
-    db.commit()
-    db.close()
-
-
-def test_iniciar_partida_200(test_data):
+def test_iniciar_partida_200(test_db):
     '''Test para iniciar una partida con suficientes jugadores'''
+    partida, _ = crear_partida(db=test_db, nombre_partida="partida_con_2_jugadores", nombre_creador="Creador")
+    unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=2)
+
     response = client.put("partidas/1")
     print(f"Response: {response.json()}")
+    
     # Verificamos la respuesta del servidor
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {
-        response.status_code}"
-    assert response.json() == {"message": "Partida iniciada correctamemte", "partida_id": 1}, f"Fallo: Se esperaba {
-        {'message': 'Partida iniciada correctamemte', 'partida_id': 1}}, pero se obtuvo {response.json}"
+    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
+    respuesta_esperada = {'details': 'Partida iniciada correctamemte', 'partida_id': 1}
+
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada}, pero se obtuvo {response.json}"
+    
     # Verificamos que se haya iniciado la partida
-    db = test_data
-    partida = db.query(Partida).filter(Partida.id == 1).first()
+    partida = test_db.query(Partida).filter(Partida.id == 1).first()
     assert partida.iniciada, f"Fallo: Se esperaba que la partida estuviera iniciada, pero se obtuvo {partida.iniciada}"
-    assert partida.juego, f"Fallo: Se esperaba que la partida tuviera juego, pero se obtuvo {partida.juego}"
-    db.close()
+    assert len(partida.jugadores) == 3, f"Fallo: Se esperaba que la partida tuviera 3 jugadores, pero se obtuvo {len(partida.jugadores)}"
+    
+    # Calculamos la cantidad de cartas de figura que cada jugador deberia tener en esta partida
+    n_cartas_fig_por_jugador = int(N_CARTAS_FIGURA_TOTALES/len(partida.jugadores))
+    
+    # Verificamos que se hayan repartido las cartas de figura y cartas de movimiento
+    for jugador in partida.jugadores:
+        cartas_figura_reveladas = [figura for figura in jugador.mazo_cartas_de_figura if figura.revelada]
+        assert len(jugador.mazo_cartas_de_figura) == n_cartas_fig_por_jugador, f"Fallo: Se esperaba que el jugador tuviera 3 cartas de figura, pero se obtuvo {len(jugador.mazo_cartas_de_figura)}"
+        assert len(cartas_figura_reveladas) == N_FIGURAS_REVELADAS, f"Fallo: Se esperaba que el jugador tuviera {N_FIGURAS_REVELADAS} figuras reveladas, pero tiene {len(cartas_figura_reveladas)}"
+        assert len(jugador.mano_movimientos) == 3, f"Fallo: Se esperaba que el jugador tuviera 3 cartas de movimiento, pero se obtuvo {len(jugador.cartas_movimiento)}"
+    
+    test_db.close()
 
+# ----------------------------------------------------------------
 
-def test_iniciar_partida_con_jugadores_insuficientes_403(test_data):
+def test_iniciar_partida_con_jugadores_insuficientes_403(test_db):
     '''Test para iniciar una partida sin suficientes jugadores'''
-    response = client.put("partidas/2")
+    id_partida = 1
+    partida, _ = crear_partida(db=test_db, nombre_partida="partida_con_1_jugador", nombre_creador="Creador")
+
+    response = client.put("partidas/1")
     print(f"Response: {response.json()}")
+    
     # Verificamos la respuesta del servidor
-    assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {
-        response.status_code}"
-    assert response.json()['detail'] == "Partida con ID 2 no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.", f"Fallo: Se esperaba 'Partida con ID 2 no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.', pero se obtuvo {
-        response.json()['detail']}"
-    # Verificamos que no se haya iniciado la partida
-    db = test_data
-    partida = db.query(Partida).filter(Partida.id == 2).first()
+    assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
+    respuesta_esperada = {'detail': 'Partida con ID 1 no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.'}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada}, pero se obtuvo {response.json()}"
+    
+    # Verificamos la db
+    partida = test_db.query(Partida).filter(Partida.id == 1).first()
     assert not partida.iniciada, f"Fallo: Se esperaba que la partida no estuviera iniciada, pero se obtuvo {partida.iniciada}"
-    assert not partida.juego, f"Fallo: Se esperaba que la partida no tuviera juego, pero se obtuvo {partida.juego}"
-    db.close()
+    assert len(partida.jugadores) == 1, f"Fallo: Se esperaba que la partida tuviera 1 jugador, pero se obtuvo {len(partida.jugadores)}"
+    assert partida.jugadores[0].es_creador, f"Fallo: Se esperaba que el jugador fuera el creador, pero se obtuvo {partida.jugadores[0].es_creador}"
+    assert partida.jugadores[0].mano_movimientos == [], f"Fallo: Se esperaba que el jugador no tuviera cartas de movimiento, pero se obtuvo {partida.jugadores[0].mano_movimientos}"
+    assert partida.jugadores[0].mazo_cartas_de_figura == [], f"Fallo: Se esperaba que el jugador no tuviera cartas de figura, pero se obtuvo {partida.jugadores[0].mazo_cartas_de_figura}"
+    test_db.close()
 
-def test_iniciar_partida_ya_iniciada_403(test_data):
+# ----------------------------------------------------------------
+
+def test_iniciar_partida_ya_iniciada_403(test_db):
     '''Test para iniciar una partida que ya esta iniciada'''
-    response = client.put("partidas/3")
+    partida, _ = crear_partida(db=test_db, nombre_partida="partida_ya_iniciada", nombre_creador="Creador")
+    unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=1)
+    iniciar_partida(db=test_db, partida=partida)
+    
+    # 
+    response = client.put("partidas/1")
     print(f"Response: {response.json()}")
+    
     # Verificamos la respuesta del servidor
-    assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {
-        response.status_code}"
-    assert response.json()['detail'] == "La partida con ID 3 ya está iniciada.", f"Fallo: Se esperaba 'La partida con ID 3 ya está iniciada.', pero se obtuvo {
-        response.json()['detail']}"
-    # Verificamos que no se haya iniciado la partida
-    db = test_data
-    partida = db.query(Partida).filter(Partida.id == 3).first()
+    assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
+    respuesta_esperada = {'detail': 'La partida con ID 1 ya está iniciada.'}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada}, pero se obtuvo {response.json()}"
+    
+    # Verificamos la db
+    partida = test_db.query(Partida).filter(Partida.id == 1).first()
     assert partida.iniciada, f"Fallo: Se esperaba que la partida estuviera iniciada, pero se obtuvo {partida.iniciada}"
-    assert partida.juego, f"Fallo: Se esperaba que la partida tuviera juego, pero se obtuvo {partida.juego}"
-    db.close()
+    assert len(partida.jugadores) == 2, f"Fallo: Se esperaba que la partida tuviera 2 jugadores, pero se obtuvo {len(partida.jugadores)}"
+    test_db.close()
 
-def test_iniciar_partida_404(test_data):
+# ----------------------------------------------------------------
+
+def test_iniciar_partida_404(test_db):
     '''Test para iniciar una partida que no existe'''
-    response = client.put("partidas/4")
+    response = client.put("partidas/1")
     print(f"Response: {response.json()}")
+    
     # Verificamos la respuesta del servidor
-    assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {
-        response.status_code}"
-    assert response.json()['detail'] == "Partida con ID 4 no encontrada.", f"Fallo: Se esperaba 'Partida con ID 4 no encontrada.', pero se obtuvo {
-        response.json()['detail']}"
+    assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
+    respuesta_esperada = {'detail': 'Partida con ID 1 no encontrada.'}
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada}, pero se obtuvo {response.json()}"

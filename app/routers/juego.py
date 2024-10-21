@@ -8,11 +8,10 @@ from sqlalchemy.orm import Session
 import crud.juego
 import crud.partidas
 from models import Base
-from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails
+from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails, TableroData, CasillasMov, MovimientoParcialData, CompletarFiguraData
 from database import engine, get_db
 
-from pydantic import Json
-
+from websockets_manager.ws_partidas_manager import ws_partidas_manager
 
 Base.metadata.create_all(bind=engine)
 
@@ -53,12 +52,13 @@ async def get_turno_details(id_partida: int,  db: Session = Depends(get_db)):
             description="Termina el turno del jugador actual, si es que el id del mismo coincide con el del parámetro.",
             tags=["Juego"])
 async def terminar_turno(id_partida: int, id_jugador, db: Session = Depends(get_db)):
-    return crud.juego.terminar_turno(db, id_partida, id_jugador)
-
+    crud.juego.terminar_turno(db, id_partida, id_jugador)
+    await ws_partidas_manager.send_actualizar_turno(id_partida)
+    await ws_partidas_manager.send_actualizar_tablero(id_partida)
 
 @router.get('/{id_partida:int}/tablero',
             summary='Obetener el tablero del juego',
-            response_model=Json,
+            response_model=TableroData,
             tags=["Juego"])
 async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
     """Obtiene el tablero de una partida
@@ -73,5 +73,54 @@ async def get_tablero(id_partida: int, db: Session = Depends(get_db)):
         Response 200 en caso de que el tablero se haya obtenido correctamente.
         Response 404 en caso de que la partida no exista o no haya sido iniciada.
     """
+    from figuras import hallar_todas_las_figuras_en_tablero  
+    import json  
     tablero = crud.juego.get_tablero(db, id_partida)
-    return tablero
+    tablero_desearilizado = json.loads(tablero)
+    response = {
+        'tablero': tablero_desearilizado,
+        'figuras_a_resaltar': hallar_todas_las_figuras_en_tablero(tablero_desearilizado)
+    }
+    return response
+
+
+@router.put('/{id_partida}/jugadores/{id_jugador}/tablero/casilla',
+            summary="Jugar carta movimiento.",
+            description="Modificar el tablero segun las coordenadas de las fichas que envia el jugador del tueno actual.",
+            tags=["Juego"])
+async def modificar_casillas(id_partida: int, id_jugador: int, coordenadas: CasillasMov, db: Session = Depends(get_db)):
+    crud.juego.modificar_casillas(
+        id_partida, id_jugador, coordenadas, db)
+    await ws_partidas_manager.send_actualizar_tablero(id_partida)
+    await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
+
+
+@router.delete('/{id_partida}/jugadores/{id_jugador}/mov-parciales',
+               summary="Eliminar el ultimo movimiento parcial de un jugador.",
+               tags=["Juego"])
+async def deshacer_movimiento(id_partida: int, id_jugador: int, db: Session = Depends(get_db)):
+    crud.juego.deshacer_movimiento(db, id_partida)
+    await ws_partidas_manager.send_actualizar_tablero(id_partida)
+    await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
+
+@router.get('/{id_partida}/jugadores/{id_jugador}/mov-parciales',
+               summary="Obtiene el stack de los movimientos parciales",
+               response_model=list[MovimientoParcialData],
+               tags=["Juego"])
+async def get_movimientos_parciales(id_partida: int, id_jugador: int, db: Session = Depends(get_db)):
+    return crud.juego.get_movimientos_parciales(db, id_partida)
+
+@router.put('/{id_partida:int}/jugadores/{id_jugador:int}/tablero/figura',
+            summary="Completar figura propia",
+            description="Utiliza la carta de figura especificada a partir de la existencia de la figura en las cordenadas que se pasaron.",
+            tags=["Juego"])
+async def completar_figura_propia(id_partida: int, id_jugador: int, figura_data: CompletarFiguraData, db: Session = Depends(get_db)):
+    eventos = crud.juego.completar_figura_propia(db, id_partida, id_jugador, figura_data)
+    hay_ganador = eventos.get("hay_ganador")
+    if (hay_ganador):
+        id_ganador = hay_ganador.get("id_ganador")
+        nombre_ganador = hay_ganador.get("nombre_ganador")
+        await ws_partidas_manager.send_hay_ganador(id_partida, id_ganador, nombre_ganador)
+    else:
+        await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
+        await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)

@@ -34,3 +34,20 @@ def get_jugadores(db: Session, partida_id: int):
         raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
 
     return db.query(Jugador).filter(Jugador.partida_id == partida_id).all()
+
+
+def set_movement_card_used(db: Session, jugador:Jugador, mov_id):
+    for movimiento in jugador.mano_movimientos:
+        if (movimiento.movimiento == mov_id and movimiento.usada_en_movimiento_parcial == False):
+            movimiento.usada_en_movimiento_parcial = True
+
+            db.commit()
+            return
+        
+def set_movement_card_unused(db: Session, jugador:Jugador, mov_id):
+    for movimiento in jugador.mano_movimientos:
+        if (movimiento.movimiento == mov_id and movimiento.usada_en_movimiento_parcial == True):
+            movimiento.usada_en_movimiento_parcial = False
+
+            db.commit()
+            return

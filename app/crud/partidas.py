@@ -3,18 +3,16 @@ from sqlalchemy import func
 from random import shuffle
 
 from exceptions import ResourceNotFoundError, ForbiddenError
-from models import Partida
 from schemas import PartidaData
-from models import Jugador
-from models import Juego
-from models import CartaFigura
-from models import CartaMovimiento
+from models import Jugador, CartaFigura, CartaMovimiento, Partida
+from crud.juego import terminar_turno
+from constantes_juego import N_CARTAS_FIGURA_TOTALES, N_FIGURAS_REVELADAS
 
 def get_id_creador(db: Session, partida_id):
-    jugador = db.query(Jugador).filter((Jugador.es_creador == True) & (Jugador.partida_id == partida_id)).first()
-    if (not jugador):
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+    if (not partida):
         raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
-    return jugador.id_jugador
+    return partida.id_creador
 
 def get_partidas(db: Session):
     subquery = (
@@ -48,20 +46,20 @@ def iniciar_partida(db: Session, id: int):
     if (not partida):
         raise ResourceNotFoundError(f"Partida con ID {id} no encontrada.")
     
-    if (partida.juego or partida.iniciada):
+    if (partida.iniciada):
         raise ForbiddenError(f"La partida con ID {id} ya está iniciada.")
     
     if (not len(partida.jugadores) > 1):
         raise ForbiddenError(f"Partida con ID {id} no tiene suficientes jugadores para iniciar. Mínimo de jugadores: 4.")
-    
-    new_juego = Juego(jugadores=partida.jugadores, partida_id=partida.id, partida=partida)
 
-    db.add(new_juego)
     partida.iniciada = True
-    repartir_cartas_figura(db, partida,3,3)
-    repartir_cartas_movimiento(db, partida)
+    n_cartas_fig_por_jugador = int(N_CARTAS_FIGURA_TOTALES/len(partida.jugadores))
+    _repartir_cartas_figura(db, partida, n_cartas_fig_por_jugador, N_FIGURAS_REVELADAS)
+    _repartir_cartas_movimiento(db, partida)
     db.flush()
-    shuffle(partida.juego[0].jugadores)
+    shuffle(partida.jugadores)
+    for jugador in partida.jugadores: # FIXME: Revisar si es necesario
+        jugador.orden = partida.jugadores.index(jugador)
     db.commit()
 
 def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
@@ -75,11 +73,11 @@ def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
     if (not jugador):
         raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
     
-    mazo_del_jugador = jugador.mazo_cartas_de_figura
+    mano_del_jugador = [figura_revelada for figura_revelada in jugador.mazo_cartas_de_figura if figura_revelada.revelada]
 
-    return mazo_del_jugador
+    return mano_del_jugador
 
-def repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=3, n_cartas_reveladas=2):
+def _repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=22, n_cartas_reveladas=N_FIGURAS_REVELADAS):
     for jugador in partida.jugadores:
         for i in range(n_cartas_por_jugador-n_cartas_reveladas):
             new_carta = CartaFigura(jugador_id=jugador.id_jugador, revelada=False)
@@ -89,8 +87,85 @@ def repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=3, n_carta
             new_carta = CartaFigura(jugador_id=jugador.id_jugador, revelada=True)
             db.add(new_carta)
     
-def repartir_cartas_movimiento(db: Session, partida, n_cartas_por_jugador=3):
+def _repartir_cartas_movimiento(db: Session, partida, n_cartas_por_jugador=3):
     for jugador in partida.jugadores:
         for i in range(n_cartas_por_jugador):
             new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
             db.add(new_carta)
+
+def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
+    '''
+    Pasa el turno y elimina al jugador de la partida.
+    
+    Si hay un ganador,
+    - Elimina la partida.
+    - Devuelve {"hay_ganador" : {"id_ganador" : id_ganador, "nombre_ganador" : nombre_ganador}, "partida_cancelada" : None}
+    
+    Si el creador abandona la partida antes de iniciarla,
+    - Elimina la partida.
+    - Devuelve {"partida_cancelada" : { "id" : id_partida }, "hay_ganador" : None}
+    
+    Si no,
+    - Devuelve {"hay_ganador" : None, "partida_cancelada" : None}
+    '''
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+    if (not partida):
+        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
+    id_creador = partida.id_creador
+    
+    jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
+    if (not jugador):
+        raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
+    
+    if (partida.iniciada and jugador == partida.jugador_del_turno):
+        terminar_turno(db, partida_id, jugador_id)
+    
+    partida.jugadores.remove(jugador)
+    db.delete(jugador)
+    db.commit()
+
+    return {**hay_ganador(db, partida), **__partida_cancelada(db, partida, jugador, id_creador)}
+
+def __partida_cancelada(db: Session, partida: Partida, jugador: Jugador, id_creador: int):
+    if (not partida.iniciada and jugador.id_jugador == id_creador):
+        db.delete(partida)
+        db.commit()
+        return {"partida_cancelada" : {"id" : partida.id}}
+    return {"partida_cancelada" : None}
+
+def hay_ganador(db: Session, partida: Partida = None):
+    '''
+    En la partida pasada por parametro, verifica si hay un ganador y lo
+    devuelve.
+
+    Un jugador gana si cumple alguna de las siguientes condiciones en orden
+    de prioridad:
+
+    1. Se queda en su turno sin cartas de figura en su maso.
+    2. Es el único jugador en la partida.
+
+    Retorna un diccionario con la siguiente estructura:
+    - Si hay un ganador:
+        {"hay_ganador" : {"id_ganador" : id_ganador, "nombre_ganador" : nombre_ganador}}
+    - Si no hay un ganador:
+        {"hay_ganador" : None}
+    '''
+    db.refresh(partida)
+    id_ganador = None
+    nombre_ganador = None
+    if (partida.iniciada):
+        if (partida.jugador_del_turno.numero_de_cartas_figura == 0):
+            id_ganador = partida.jugador_del_turno.id_jugador
+            nombre_ganador = partida.jugador_del_turno.nombre
+        elif (len(partida.jugadores) == 1):
+            id_ganador = partida.jugadores[0].id_jugador
+            nombre_ganador = partida.jugadores[0].nombre
+    
+    # Aca pueden ir mas verificaciones para determinar si hay un ganador
+
+    if (id_ganador is not None):
+        db.delete(partida)  
+        db.commit()
+        return {"hay_ganador" : {"id_ganador" : id_ganador, "nombre_ganador" : nombre_ganador}}
+
+    return {"hay_ganador" : None}

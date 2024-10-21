@@ -1,192 +1,73 @@
 from tests_setup import client, TestingSessionLocal
-from models import Partida, Jugador, CartaFigura, CartaMovimiento, Juego
-from crud.juego import siguiente_turno
-import pytest
+from models import Partida, Jugador, CartaFigura, CartaMovimiento
+from factory import crear_partida, unir_jugadores, iniciar_partida, siguiente_turno
 
-@pytest.fixture(scope="function")
-def test_db():
-    db = TestingSessionLocal()
-    
-    # Se limpia lo que tenía anteriormente la base de datos
-    try:
-        db.query(CartaFigura).delete()
-        db.query(CartaMovimiento).delete()
-        db.query(Jugador).delete()
-        db.query(Juego).delete()
-        db.query(Partida).delete()
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise e
-    
-    yield db
-
-    # Se limpia lo que quedó en la base de datos
-    try:
-        db.query(CartaFigura).delete()
-        db.query(CartaMovimiento).delete()
-        db.query(Jugador).delete()
-        db.query(Juego).delete()
-        db.query(Partida).delete()
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise e
-    finally:
-        db.close()
-        
 def test_get_turno_details(test_db):
-    '''Test para crear iniciar una partida con un juego asociado'''
-    nueva_partida = {
-        "nombre_partida": "Partida_nueva",
-        "nombre_creador": "Jugador_nuevo"
-    }
-    response = client.post("/partidas", json=nueva_partida)
-    print(f"Response: {response.json()}")
+    '''Test sobre la obtención de detalles del turno de una partida iniciada.'''
+    
+    partida, creador = crear_partida(test_db, nombre_partida="Partida 1", nombre_creador="Creador 1")
+    unir_jugadores(test_db, partida=partida, numero_de_jugadores=3)
+    iniciar_partida(test_db, partida)
+    
+    response = client.get(f"/juego/{partida.id}/turno")
+    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
+    
+    turno_details = response.json()
+    
+    # Verificamos que se hayan recibido los datos correctos.
+    assert turno_details == {
+        "id_jugador": creador.id_jugador,
+        "nombre_jugador": creador.nombre
+    }, f"Fallo: Se esperaba los datos fueran {{'id_jugador': 1, 'nombre_jugador': Creador 1}}, pero son {turno_details}."
 
-    # Verificamos que la respuesta sea la esperada
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    response_data = response.json()
-    assert response_data['nombre_partida'] == "Partida_nueva", f"Fallo: Se obtuvo {response_data['nombre']} como nombre de la partida"
-    assert response_data['nombre_creador'] == "Jugador_nuevo", f"Fallo: Se obtuvo {response_data['nombre_creador']} como nombre del creador de la partida"
+def test_partida_sin_iniciar_403(test_db):
+    '''Test sobre el comportamiento de get_turno_details ante el intento de acceso cuando una partida no está iniciada.'''
     
-    # Verificamos que la partida se haya creado correctamente en la db
-    db = test_db
-    partida = db.query(Partida).filter(Partida.id == 1).first()
-    
-    assert partida.nombre_partida == "Partida_nueva", f"Fallo: Se esperaba Partida_nueva como nombre de la partida, pero se obtuvo {partida.nombre_partida}"
-    assert partida.nombre_creador == "Jugador_nuevo", f"Fallo: Se esperaba Jugador_nuevo como nombre del creador de la partida, pero se obtuvo {partida.nombre_creador}"
-    
-    # Añadimos otro jugador a la partida para poder iniciarla
-    otro_jugador = {
-        "nombre": "Otro_jugador"
-    }
-    
-    response = client.post(f'/partidas/{partida.id}/jugadores', json=otro_jugador)
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    
-    # Iniciamos la partida
-    response = client.put(f"/partidas/{partida.id}")
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    
-    # Verificamos que la partida tenga un objeto de juego asociado
-    assert len(partida.juego) == 1
-    
-    juego = partida.juego[0]
-    
-    # Verificamos el funcionamiento del endpoint según la especificación de la api
-    datos_turno = {
-        "id_jugador": juego.jugador_id,
-        "nombre_jugador": juego.jugador_del_turno.nombre
-    }
+    partida, _ = crear_partida(test_db)
+    unir_jugadores(test_db, partida=partida, numero_de_jugadores=1)
     
     response = client.get(f'/juego/{partida.id}/turno')
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
+    assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}."
     
-    assert response.json() == datos_turno
+def test_la_partida_no_existe_404(test_db):
+    '''Test sobre el comportamiento de get_turno_details ante el intento de acceso cuando una partida no está iniciada.'''
+   
+    partida_id = 1    
+    response = client.get(f'/juego/{partida_id}/turno')
+    
+    assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}."
+    
+def test_cambio_en_el_turno(test_db):
+    '''Test que revisa la correcta actualización de la informacion de un turno ante un pasaje del mismo.'''
+    partida, creador = crear_partida(test_db, nombre_partida="Partida 2", nombre_creador="Creador 2")
+    unir_jugadores(test_db, partida=partida, numero_de_jugadores=2)
+    iniciar_partida(test_db, partida)
+    
+    response = client.get(f"/juego/{partida.id}/turno")
+    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
+    
+    turno_details = response.json()
+    
+    # Nos aseguramos cual es el valor que se obtiene primero
+    assert turno_details == {
+        "id_jugador": creador.id_jugador,
+        "nombre_jugador": creador.nombre
+    }, f"Fallo: Se esperaba los datos fueran {{'id_jugador': 1, 'nombre_jugador': Creador 1}}, pero son {turno_details}."
+    
+    # Pasamos al siguiente turno
+    siguiente_turno(test_db, partida)
+    
+    # Obtenemos nuevamente la información
+    response = client.get(f"/juego/{partida.id}/turno")
+    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
+    
+    # Chequeamos que el turno se haya pasado y sea lo unico que cambio
+    turno_details = response.json()
+    assert turno_details == {
+        "id_jugador": 2,
+        "nombre_jugador": "Jugador2"
+    }, f"Fallo: Se esperaba los datos fueran {{'id_jugador': 1, 'nombre_jugador': Creador 1}}, pero son {turno_details}."
 
-def test_casos_prohibidos(test_db):
-    '''Test para verificar que estén cubiertos los casos prohibidos especificados en la api'''
-    
-    # Verificamos que no se pueda acceder a la información del turno en una partida inexistente
-    response = client.get(f'/juego/1/turno')
-    assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
-    
-    nueva_partida = {
-        "nombre_partida": "Partida_nueva",
-        "nombre_creador": "Jugador_nuevo"
-    }
-    response = client.post("/partidas", json=nueva_partida)
-    print(f"Response: {response.json()}")
-
-    # Verificamos que la respuesta sea la esperada
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    response_data = response.json()
-    assert response_data['nombre_partida'] == "Partida_nueva", f"Fallo: Se obtuvo {response_data['nombre']} como nombre de la partida"
-    assert response_data['nombre_creador'] == "Jugador_nuevo", f"Fallo: Se obtuvo {response_data['nombre_creador']} como nombre del creador de la partida"
-    
-    # Verificamos que la partida se haya creado correctamente en la db
-    db = test_db
-    partida = db.query(Partida).filter(Partida.id == 1).first()
-    
-    assert partida.nombre_partida == "Partida_nueva", f"Fallo: Se esperaba Partida_nueva como nombre de la partida, pero se obtuvo {partida.nombre_partida}"
-    assert partida.nombre_creador == "Jugador_nuevo", f"Fallo: Se esperaba Jugador_nuevo como nombre del creador de la partida, pero se obtuvo {partida.nombre_creador}"
-    
-    # Verificamos que no se pueda acceder a la información del turno en una partida no iniciada
-    response = client.get(f'/juego/{partida.id}/turno')
-    assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
-
-def test_siguiente_turno(test_db):
-    '''Test para verificar el correcto funcionamiento de la lista ordenada de turnos'''
-    nueva_partida = {
-        "nombre_partida": "Partida_nueva",
-        "nombre_creador": "Jugador_nuevo"
-    }
-    response = client.post("/partidas", json=nueva_partida)
-    print(f"Response: {response.json()}")
-
-    # Verificamos que la respuesta sea la esperada
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    response_data = response.json()
-    assert response_data['nombre_partida'] == "Partida_nueva", f"Fallo: Se obtuvo {response_data['nombre']} como nombre de la partida"
-    assert response_data['nombre_creador'] == "Jugador_nuevo", f"Fallo: Se obtuvo {response_data['nombre_creador']} como nombre del creador de la partida"
-    
-    # Verificamos que la partida se haya creado correctamente en la db
-    db = test_db
-    partida = db.query(Partida).filter(Partida.id == 1).first()
-    
-    assert partida.nombre_partida == "Partida_nueva", f"Fallo: Se esperaba Partida_nueva como nombre de la partida, pero se obtuvo {partida.nombre_partida}"
-    assert partida.nombre_creador == "Jugador_nuevo", f"Fallo: Se esperaba Jugador_nuevo como nombre del creador de la partida, pero se obtuvo {partida.nombre_creador}"
-    
-    # Añadimos otro jugador a la partida para poder iniciarla
-    otro_jugador = {
-        "nombre": "Otro_jugador"
-    }
-    
-    response = client.post(f'/partidas/{partida.id}/jugadores', json=otro_jugador)
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    
-    # Iniciamos la partida
-    response = client.put(f"/partidas/{partida.id}")
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    
-    # Este refresh es necesario, dado que una nueva query no actualiza el valor de partida (hasta que la sesión cierre)
-    db.refresh(partida)
-    
-    # Verificamos que la partida tenga un objeto de juego asociado
-    assert len(partida.juego) == 1
-    
-    juego = partida.juego[0]
-    
-    # Obtenemos el jugador actual
-    response = client.get(f'/juego/{partida.id}/turno')
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    
-    id_primer_jugador = response.json()['id_jugador']
-    
-    # Forzamos el cambio al siguiente jugador
-    siguiente_turno(db, juego.partida_id)
-    db.refresh(partida)    
-    
-    # Obtenemos el nuevo jugador actual
-    response = client.get(f'/juego/{partida.id}/turno')
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    
-    id_segundo_jugador = response.json()['id_jugador']
-    
-    # Verificamos que los ids sean distintos
-    assert id_primer_jugador != id_segundo_jugador
-    
-    # Forzamos nuevamente el cambio al siguiente jugador
-    siguiente_turno(db, juego.partida_id)
-    db.refresh(partida)
-    
-    # Obtenemos el nuevo jugador actual
-    tercer_id = response.json()['id_jugador']
-    
-    # Verificamos que se vuelva al primer turno
-    assert id_primer_jugador != tercer_id
-    
     
     
     

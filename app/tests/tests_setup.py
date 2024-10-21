@@ -1,11 +1,12 @@
-import sys
 import os
+
+# Estas dos lineas modifican las importanciones de los modulos en los tests
+import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
-import os
 
 from main import app
 from database import Base, get_db
@@ -13,10 +14,6 @@ from database import Base, get_db
 # Configuramos la Base de Datos de pruebas
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), "test.db")
 SQLALCHEMY_DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
-
-if os.path.exists(DATABASE_PATH): # Elimina el archivo si ya existe
-    os.remove(DATABASE_PATH)
-    print("Base de datos anterior eliminada.")
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -32,6 +29,7 @@ def override_get_db():
         yield db
     finally:
         db.close()
+
 app.dependency_overrides[get_db] = override_get_db
 
 # Creamos del cliente de pruebas
