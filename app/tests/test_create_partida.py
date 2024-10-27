@@ -1,7 +1,6 @@
-from tests_setup import client
 from models import Partida, Jugador
 
-def test_create_partida(test_db):
+def test_create_partida(client, test_db):
     '''Test para crear una partida'''
     nueva_partida = {
         "nombre_partida": "Partida_nueva",

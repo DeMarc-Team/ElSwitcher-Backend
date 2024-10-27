@@ -1,11 +1,7 @@
-from tests_setup import client, TestingSessionLocal
 from factory import crear_partida, unir_jugadores, iniciar_partida
 import mock
 
-# Tests
-
-
-def test_get_cartas_figura_happy_path(test_db):
+def test_get_cartas_figura_happy_path(client, test_db):
     """Test para obtener las cartas de figura de los jugadores en una partida iniciada"""
     # Creamos 3 partidas: una no iniciada, una iniciada y una llena
     partida, creador = crear_partida(
@@ -33,7 +29,7 @@ def test_get_cartas_figura_happy_path(test_db):
             assert carta["revelada"] == True
 
 
-def test_get_cartas_figura_jugador_no_iniciada(test_db):
+def test_get_cartas_figura_jugador_no_iniciada(client, test_db):
     """Test para obtener las cartas de figura de un jugador en una partida no iniciada"""
     partida, _ = crear_partida(
         db=test_db, nombre_partida="partida_no_iniciada", nombre_creador="Creador1"
@@ -53,7 +49,7 @@ def test_get_cartas_figura_jugador_no_iniciada(test_db):
     ), f"Fallo: Se esperaba una lista vacía, pero se obtuvo {j1_cartas}"
 
 
-def test_get_cartas_figura_jugador_partida_llena_no_iniciada(test_db):
+def test_get_cartas_figura_jugador_partida_llena_no_iniciada(client, test_db):
     """Test para obtener las cartas de figura de un jugador en una partida llena pero no iniciada"""
     partida, creador = crear_partida(
         db=test_db,
