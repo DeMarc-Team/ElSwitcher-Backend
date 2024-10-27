@@ -8,16 +8,14 @@ from collections import Counter
 
 from websockets_manager.ws_home_manager import MessageType as MThome, ws_home_manager, WsMessage as WsHomeMessage
 from websockets_manager.ws_partidas_manager import MessageType as MTpartidas, ws_partidas_manager, WsMessage as WsPartidasMessage
-
-# FIXME: eliminar esta fixture?
-@pytest.fixture(scope='function')
-def test_ws(): # TODO: cambiar nombre a test_ws_counts
+# FIXME: Mover a otro archivo?
+def test_ws_factory(default_value, assert_func):
     ws_home_manager_path = 'websockets_manager.ws_home_manager.ws_home_manager'
     ws_partidas_manager_path = 'websockets_manager.ws_partidas_manager.ws_partidas_manager'
     
     # Generar diccionario automáticamente
-    home_ws = {message_type.value: 0 for message_type in MThome}
-    partidas_ws = {message_type.value: 0 for message_type in MTpartidas}
+    home_ws = {message_type.value: default_value for message_type in MThome}
+    partidas_ws = {message_type.value: default_value for message_type in MTpartidas}
     assert len(set(home_ws.keys()).intersection(partidas_ws.keys())) == 0, \
         "Los diccionarios de mensajes de home y partidas no deben tener claves en común."
     test_ws = {**home_ws, **partidas_ws}
@@ -31,42 +29,33 @@ def test_ws(): # TODO: cambiar nombre a test_ws_counts
 
         yield test_ws
         print(test_ws)
-
+        
+        assert_func(test_ws, mocks)
+        
+# FIXME: eliminar esta fixture?
+@pytest.fixture(scope='function')
+def test_ws(): # TODO: cambiar nombre a test_ws_counts
+    def assert_mock_counts(test_ws, mocks):
         # Realizar asserts dinámicos
         for message_type, mock in mocks.items():
             print(message_type)
             assert mock.call_count == test_ws[message_type], \
-                f"Se esperaba que se llame función send_{message_type} {test_ws[message_type]} veces y se la llamo {mock.call_count}."
+                    f"Se esperaba que se llame función send_{message_type} {test_ws[message_type]} veces y se la llamo {mock.call_count}."
+    
+    yield from test_ws_factory(0, assert_mock_counts)
+
 
 @pytest.fixture(scope='function')
 def test_ws_messages():
-    ws_home_manager_path = 'websockets_manager.ws_home_manager.ws_home_manager'
-    ws_partidas_manager_path = 'websockets_manager.ws_partidas_manager.ws_partidas_manager'
-    
-    # Generar diccionario automáticamente
-    home_ws = {message_type.value: [] for message_type in MThome}
-    partidas_ws = {message_type.value: [] for message_type in MTpartidas}
-    assert len(set(home_ws.keys()).intersection(partidas_ws.keys())) == 0, \
-        "Los diccionarios de mensajes de home y partidas no deben tener claves en común."
-    test_ws = {**home_ws, **partidas_ws}
-    
-    with ExitStack() as stack:
-        mocks = {}
-        for message_type in MThome:
-            mocks[message_type.value] = stack.enter_context(patch(f'{ws_home_manager_path}.send_{message_type.value}'))
-        for message_type in MTpartidas:
-            mocks[message_type.value] = stack.enter_context(patch(f'{ws_partidas_manager_path}.send_{message_type.value}'))
-
-        yield test_ws
-
-        # Validar el contenido de los mensajes enviados
+    def assert_message_calls(test_ws, mocks):
         for message_type, mock in mocks.items():
             actual_calls = [call_arg[0] for call_arg in mock.call_args_list]
             expected_messages = test_ws[message_type]
-            # NOTE: Usamos Counter para comparar listas sin importar el orden
+                # NOTE: Usamos Counter para comparar listas sin importar el orden
             assert Counter(actual_calls) == Counter(expected_messages), \
-                f"send_{message_type} recibio: {actual_calls} pero esperaba {expected_messages}."
+                    f"send_{message_type} recibio: {actual_calls} pero esperaba {expected_messages}."
 
+    yield from test_ws_factory([], assert_message_calls)
 
 @pytest.fixture(scope='function')
 def test_db():
