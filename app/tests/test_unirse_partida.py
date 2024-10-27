@@ -1,11 +1,9 @@
-from tests_setup import client
-from models import Jugador
-from models import Partida
+from models import Jugador, Partida
 from factory import crear_partida, unir_jugadores, iniciar_partida
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, PARTIDA_CANCELADA, ACTUALIZAR_TABLERO
 
-def test_unirse_partida_200(test_db, test_ws_messages):
+def test_unirse_partida_200(client, test_db, test_ws_messages):
     '''Test al unirse a una partida existente no llena'''
     test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
     test_ws_messages[ACTUALIZAR_SALA_ESPERA] = [{'partida_id': 1}]
@@ -31,7 +29,7 @@ def test_unirse_partida_200(test_db, test_ws_messages):
 
 # ----------------------------------------------------------------
 
-def test_unirse_partida_llena_403(test_db):
+def test_unirse_partida_llena_403(client, test_db):
     '''Test al unirse a una partida llena'''
     # Creamos una partida con 4 jugadores
     partida, _ = crear_partida(db=test_db, nombre_partida="partida_llena", nombre_creador="Creador2")
@@ -54,7 +52,7 @@ def test_unirse_partida_llena_403(test_db):
 
 # ----------------------------------------------------------------
 
-def test_unirse_partida_iniciada_403(test_db):
+def test_unirse_partida_iniciada_403(client, test_db):
     '''Test al unirse a una partida ya iniciada'''
     # Creamos una partida con 2 jugadores y la iniciamos
     partida, _ = crear_partida(db=test_db, nombre_partida="partida_iniciada", nombre_creador="Creador3")
@@ -78,7 +76,7 @@ def test_unirse_partida_iniciada_403(test_db):
 
 # ----------------------------------------------------------------
 
-def test_unirse_partida_404(test_db):
+def test_unirse_partida_404(client, test_db):
     '''Test al unirse a una partida inexistente'''
     body = {"nombre": "Jugador5"}
     response = client.post("partidas/1/jugadores", json=body)

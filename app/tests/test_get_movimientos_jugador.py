@@ -1,8 +1,7 @@
-from tests_setup import client, TestingSessionLocal
 from factory import crear_partida, unir_jugadores, iniciar_partida
 import mock
 
-def test_get_cartas_de_movimiento_happy_path(test_db):
+def test_get_cartas_de_movimiento_happy_path(client, test_db):
 
     # Creamos 3 partidas: una no iniciada, una iniciada y una llena
     partida, creador = crear_partida(
@@ -32,7 +31,7 @@ def test_get_cartas_de_movimiento_happy_path(test_db):
             ), f"Fallo: Se esperaba la carta 'mov01', pero se obtuvo {carta['figura']}"
 
 
-def test_get_cartas_movimiento_jugador_no_iniciada(test_db):
+def test_get_cartas_movimiento_jugador_no_iniciada(client, test_db):
     """Test para obtener las cartas de movimiento de un jugador en una partida no iniciada"""
     partida, creador = crear_partida(
         db=test_db, nombre_partida="partida_no_iniciada", nombre_creador="Creador1"

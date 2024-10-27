@@ -1,11 +1,11 @@
 import copy
-from tests_setup import client
+
 from factory import crear_partida, unir_jugadores, iniciar_partida
 from test_endpoint_jugar_carta_movimiento import agregar_m1_a_los_inventarios, jugar_carta_m1
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_TURNO, ACTUALIZAR_TABLERO, ACTUALIZAR_CARTAS_MOVIMIENTO, ACTUALIZAR_SALA_ESPERA
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS # Hace falta porque un jugador abandona
 
-def test_cancelar_movimiento_parcial(test_db, test_ws):
+def test_cancelar_movimiento_parcial(client, test_db, test_ws):
     test_ws[ACTUALIZAR_TABLERO] = 2
     test_ws[ACTUALIZAR_CARTAS_MOVIMIENTO] = 2
 
@@ -27,7 +27,7 @@ def test_cancelar_movimiento_parcial(test_db, test_ws):
 
     assert len(jugador_del_turno.mano_movimientos) == 3, "Fallo: El jugador debería haber jugado su carta de movimiento"
 
-    response = jugar_carta_m1(partida, id_jugador_del_turno)
+    response = jugar_carta_m1(client, partida, id_jugador_del_turno)
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     test_db.refresh(jugador_del_turno) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
 
@@ -44,7 +44,7 @@ def test_cancelar_movimiento_parcial(test_db, test_ws):
     assert partida.tablero == tablero_original, "Fallo: El tablero no debería haber cambiado"
                                                             
 
-def test_no_se_puede_cancelar_movimiento_parcial_si_no_hay_movimientos_parciales(test_db, test_ws):
+def test_no_se_puede_cancelar_movimiento_parcial_si_no_hay_movimientos_parciales(client, test_db, test_ws):
     test_ws[ACTUALIZAR_TABLERO] = 0
     partida, creador = crear_partida(db=test_db, nombre_partida="partida_con_2_jugadores", nombre_creador="Creador")
 
@@ -70,7 +70,7 @@ def test_no_se_puede_cancelar_movimiento_parcial_si_no_hay_movimientos_parciales
     assert partida.movimientos_parciales == [], "Fallo: Debería haberse limpiado la lista de movimientos parciales"
     assert partida.tablero == tablero_original, "Fallo: El tablero no debería haber cambiado"
 
-def test_se_limpian_los_movs_parciales_pasando_turno(test_db):
+def test_se_limpian_los_movs_parciales_pasando_turno(client, test_db):
     partida, creador = crear_partida(db=test_db, nombre_partida="partida_con_2_jugadores", nombre_creador="Creador")
     tablero_original = copy.copy(partida.tablero)
     tablero_esperado = '[[3, 1, 3, 4, 2, 3], [4, 2, 1, 1, 3, 3], [2, 1, 2, 2, 3, 4], [4, 1, 1, 2, 2, 4], [1, 3, 1, 2, 1, 3], [2, 3, 4, 4, 4, 4]]'
@@ -89,7 +89,7 @@ def test_se_limpian_los_movs_parciales_pasando_turno(test_db):
 
     assert len(jugador_del_turno.mano_movimientos) == 3, "Fallo: El jugador debería haber jugado su carta de movimiento"
 
-    response = jugar_carta_m1(partida, id_jugador_del_turno)
+    response = jugar_carta_m1(client, partida, id_jugador_del_turno)
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     test_db.refresh(jugador_del_turno) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
 
@@ -100,7 +100,7 @@ def test_se_limpian_los_movs_parciales_pasando_turno(test_db):
     assert partida.movimientos_parciales == [], "Fallo: Debería haberse limpiado la lista de movimientos parciales"
 
 
-def test_se_limpian_los_movs_parciales_abandonando(test_db, test_ws):
+def test_se_limpian_los_movs_parciales_abandonando(client, test_db, test_ws):
     test_ws[ACTUALIZAR_CARTAS_MOVIMIENTO] = 1 # Se actualizan las cartas de movimiento, pero despues abandona y no hace falta
     test_ws[ACTUALIZAR_TABLERO] = 2 # El tablero se cambia, pero despues se restaura
     test_ws[ACTUALIZAR_TURNO] = 1 # Un jugador abandona y se pasa su turno
@@ -124,7 +124,7 @@ def test_se_limpian_los_movs_parciales_abandonando(test_db, test_ws):
 
     assert len(jugador_del_turno.mano_movimientos) == 3, "Fallo: El jugador debería haber jugado su carta de movimiento"
 
-    response = jugar_carta_m1(partida, id_jugador_del_turno)
+    response = jugar_carta_m1(client, partida, id_jugador_del_turno)
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     test_db.refresh(jugador_del_turno) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
 
