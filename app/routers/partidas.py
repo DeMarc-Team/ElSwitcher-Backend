@@ -73,7 +73,7 @@ async def get_jugadores(partida_id: int, controller: PartidaController = Depends
              description="Crea un nuevo jugador, para el usuario, en la partida especificada por partida_id.",
              tags=["Jugadores"])
 async def join_to_partida(partida_id: int, jugador: JugadorData, controller: PartidaController = Depends(get_partida_controller)):
-    return await controller.join_to_partida(partida_id, jugador.name)
+    return await controller.join_to_partida(partida_id, jugador.nombre)
 
 
 # FIXME: Esto si quizas deberia ir en otro archivo
