@@ -61,7 +61,7 @@ def teardown_db():
         print(f"Error al eliminar el archivo de base de datos: {e}")
 
 @pytest.fixture(scope='function')
-def test_ws(): # TODO: cambiar nombre a test_ws_counts
+def test_ws_counts():
     def assert_mock_counts(test_ws, mocks):
         # Realizar asserts dinámicos
         for message_type, mock in mocks.items():

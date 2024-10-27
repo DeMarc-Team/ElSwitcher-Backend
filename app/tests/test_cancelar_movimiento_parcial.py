@@ -5,9 +5,9 @@ from test_endpoint_jugar_carta_movimiento import agregar_m1_a_los_inventarios, j
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_TURNO, ACTUALIZAR_TABLERO, ACTUALIZAR_CARTAS_MOVIMIENTO, ACTUALIZAR_SALA_ESPERA
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS # Hace falta porque un jugador abandona
 
-def test_cancelar_movimiento_parcial(client, test_db, test_ws):
-    test_ws[ACTUALIZAR_TABLERO] = 2
-    test_ws[ACTUALIZAR_CARTAS_MOVIMIENTO] = 2
+def test_cancelar_movimiento_parcial(client, test_db, test_ws_counts):
+    test_ws_counts[ACTUALIZAR_TABLERO] = 2
+    test_ws_counts[ACTUALIZAR_CARTAS_MOVIMIENTO] = 2
 
     partida, creador = crear_partida(db=test_db, nombre_partida="partida_con_2_jugadores", nombre_creador="Creador")
     tablero_original = copy.copy(partida.tablero)
@@ -44,8 +44,8 @@ def test_cancelar_movimiento_parcial(client, test_db, test_ws):
     assert partida.tablero == tablero_original, "Fallo: El tablero no debería haber cambiado"
                                                             
 
-def test_no_se_puede_cancelar_movimiento_parcial_si_no_hay_movimientos_parciales(client, test_db, test_ws):
-    test_ws[ACTUALIZAR_TABLERO] = 0
+def test_no_se_puede_cancelar_movimiento_parcial_si_no_hay_movimientos_parciales(client, test_db, test_ws_counts):
+    test_ws_counts[ACTUALIZAR_TABLERO] = 0
     partida, creador = crear_partida(db=test_db, nombre_partida="partida_con_2_jugadores", nombre_creador="Creador")
 
     tablero_original = copy.copy(partida.tablero)
@@ -100,12 +100,12 @@ def test_se_limpian_los_movs_parciales_pasando_turno(client, test_db):
     assert partida.movimientos_parciales == [], "Fallo: Debería haberse limpiado la lista de movimientos parciales"
 
 
-def test_se_limpian_los_movs_parciales_abandonando(client, test_db, test_ws):
-    test_ws[ACTUALIZAR_CARTAS_MOVIMIENTO] = 1 # Se actualizan las cartas de movimiento, pero despues abandona y no hace falta
-    test_ws[ACTUALIZAR_TABLERO] = 2 # El tablero se cambia, pero despues se restaura
-    test_ws[ACTUALIZAR_TURNO] = 1 # Un jugador abandona y se pasa su turno
-    test_ws[ACTUALIZAR_PARTIDAS] = 1 # Un jugador abandona y las partidas se actualizan incondicionalmente
-    test_ws[ACTUALIZAR_SALA_ESPERA] = 1 # Igual que arriba
+def test_se_limpian_los_movs_parciales_abandonando(client, test_db, test_ws_counts):
+    test_ws_counts[ACTUALIZAR_CARTAS_MOVIMIENTO] = 1 # Se actualizan las cartas de movimiento, pero despues abandona y no hace falta
+    test_ws_counts[ACTUALIZAR_TABLERO] = 2 # El tablero se cambia, pero despues se restaura
+    test_ws_counts[ACTUALIZAR_TURNO] = 1 # Un jugador abandona y se pasa su turno
+    test_ws_counts[ACTUALIZAR_PARTIDAS] = 1 # Un jugador abandona y las partidas se actualizan incondicionalmente
+    test_ws_counts[ACTUALIZAR_SALA_ESPERA] = 1 # Igual que arriba
     partida, creador = crear_partida(db=test_db, nombre_partida="partida_con_2_jugadores", nombre_creador="Creador")
     tablero_original = copy.copy(partida.tablero)
     tablero_esperado = '[[3, 1, 3, 4, 2, 3], [4, 2, 1, 1, 3, 3], [2, 1, 2, 2, 3, 4], [4, 1, 1, 2, 2, 4], [1, 3, 1, 2, 1, 3], [2, 3, 4, 4, 4, 4]]'

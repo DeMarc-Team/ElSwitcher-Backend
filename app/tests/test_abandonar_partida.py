@@ -66,13 +66,13 @@ def test_abandonar_partida_no_iniciada_creador_200(client, test_db, test_ws_mess
 
 
 @pytest.mark.parametrize("numero_de_jugadores", [2, 3, 4])
-def test_abandonar_partida_no_iniciada_no_creador_200(client, test_db, test_ws, numero_de_jugadores):
+def test_abandonar_partida_no_iniciada_no_creador_200(client, test_db, test_ws_counts, numero_de_jugadores):
     '''Test de jugador no creador abandonando una partida no iniciada'''
     # Ponemos cuantas veces se espera que se envie cada ws
-    test_ws[ACTUALIZAR_SALA_ESPERA] = 1
-    test_ws[ACTUALIZAR_TURNO] = 1
-    test_ws[ACTUALIZAR_PARTIDAS] = 1
-    test_ws[ACTUALIZAR_TABLERO] = 1
+    test_ws_counts[ACTUALIZAR_SALA_ESPERA] = 1
+    test_ws_counts[ACTUALIZAR_TURNO] = 1
+    test_ws_counts[ACTUALIZAR_PARTIDAS] = 1
+    test_ws_counts[ACTUALIZAR_TABLERO] = 1
 
     # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
