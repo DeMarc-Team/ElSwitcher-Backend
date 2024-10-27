@@ -2,9 +2,14 @@ from tests_setup import client
 from models import Partida
 from factory import crear_partida, unir_jugadores, iniciar_partida
 from constantes_juego import N_CARTAS_FIGURA_TOTALES, N_FIGURAS_REVELADAS
+from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
+from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA
 
-def test_iniciar_partida_200(test_db):
+def test_iniciar_partida_200(test_db, test_ws_messages):
     '''Test para iniciar una partida con suficientes jugadores'''
+    test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
+    test_ws_messages[ACTUALIZAR_SALA_ESPERA] = [{'partida_id': 1}]
+    
     partida, _ = crear_partida(db=test_db, nombre_partida="partida_con_2_jugadores", nombre_creador="Creador")
     unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=2)
 

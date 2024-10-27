@@ -6,13 +6,13 @@ import pytest
 from tools import get_all_tables, capturar_metadata as capturar, comparar_capturas, verificar_diccionarios, seleccionar_parametros, verificar_tuplas
 
 @pytest.mark.parametrize("numero_de_jugadores, numero_de_reveadas, numero_de_movimientos", seleccionar_parametros([(2, 3, 4),(0, 1, 2),(0, 1, 2)],3))
-def test_terminar_turno_reponer_cartas(test_db, test_ws, numero_de_jugadores, numero_de_reveadas,numero_de_movimientos):
+def test_terminar_turno_reponer_cartas(test_db, test_ws_messages, numero_de_jugadores, numero_de_reveadas,numero_de_movimientos):
     '''
     Test que chequea que al terminar el turno de un jugador, se reponen los movimeintos y las figuras reveladas que se descartaron.
     '''
     # Ponemos cuantas veces se espera que se envie cada ws
-    test_ws[ACTUALIZAR_TURNO] = 1
-    test_ws[ACTUALIZAR_TABLERO] = 1
+    test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
+    test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}]
 
     # Inicializamos la precondicion
     partida, _ = crear_partida(test_db)

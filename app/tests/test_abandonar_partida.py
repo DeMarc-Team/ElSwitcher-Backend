@@ -8,14 +8,14 @@ from verifications import check_jugador_abandoned, check_partida_deletion, check
 
 
 @pytest.mark.parametrize("numero_de_jugadores", [3, 4])
-def test_abandonar_partida_en_el_turno_200(test_db, test_ws, numero_de_jugadores):
+def test_abandonar_partida_en_el_turno_200(test_db, test_ws_messages, numero_de_jugadores):
     '''Test de jugador abandonando una partida en su turno'''
 
     # Ponemos cuantas veces se espera que se envie cada ws
-    test_ws[ACTUALIZAR_SALA_ESPERA] = 1
-    test_ws[ACTUALIZAR_TURNO] = 1
-    test_ws[ACTUALIZAR_PARTIDAS] = 1
-    test_ws[ACTUALIZAR_TABLERO] = 1
+    test_ws_messages[ACTUALIZAR_SALA_ESPERA] = [{'partida_id': 1}]
+    test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
+    test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
+    test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}]
 
     # Inicializamos la precondicion
     partida, _ = crear_partida(db=test_db)
@@ -40,11 +40,11 @@ def test_abandonar_partida_en_el_turno_200(test_db, test_ws, numero_de_jugadores
 
 
 @pytest.mark.parametrize("numero_de_jugadores", [1, 2, 3, 4])
-def test_abandonar_partida_no_iniciada_creador_200(test_db, test_ws, numero_de_jugadores):
+def test_abandonar_partida_no_iniciada_creador_200(test_db, test_ws_messages, numero_de_jugadores):
     '''Test de creador abandonando su partida no iniciada'''
     # Ponemos cuantas veces se espera que se envie cada ws
-    test_ws[ACTUALIZAR_PARTIDAS] = 1
-    test_ws[PARTIDA_CANCELADA] = 1
+    test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
+    test_ws_messages[PARTIDA_CANCELADA] = [{'partida_id': 1}]
 
     # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
@@ -96,13 +96,13 @@ def test_abandonar_partida_no_iniciada_no_creador_200(test_db, test_ws, numero_d
 
 
 @pytest.mark.parametrize("numero_de_jugadores", [3, 4])
-def test_abandonar_partida_iniciada_creador_200(test_db, test_ws, numero_de_jugadores):
+def test_abandonar_partida_iniciada_creador_200(test_db, test_ws_messages, numero_de_jugadores):
     '''Test de creador abandonando su partida iniciada'''
     # Ponemos cuantas veces se espera que se envie cada ws
-    test_ws[ACTUALIZAR_SALA_ESPERA] = 1
-    test_ws[ACTUALIZAR_TURNO] = 1
-    test_ws[ACTUALIZAR_PARTIDAS] = 1
-    test_ws[ACTUALIZAR_TABLERO] = 1
+    test_ws_messages[ACTUALIZAR_SALA_ESPERA] = [{'partida_id': 1}]
+    test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
+    test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
+    test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}]
 
     # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
@@ -130,10 +130,10 @@ def test_abandonar_partida_iniciada_creador_200(test_db, test_ws, numero_de_juga
 def test_abandonar_partida_iniciada_no_creador_200(test_db, test_ws_messages, numero_de_jugadores):
     '''Test de jugador no creador abandonando una partida iniciada'''
     # Ponemos cuantas veces se espera que se envie cada ws
-    test_ws_messages[ACTUALIZAR_SALA_ESPERA] = [(1,)]
-    test_ws_messages[ACTUALIZAR_TURNO] = [(1,)]
-    test_ws_messages[ACTUALIZAR_PARTIDAS] = [()]
-    test_ws_messages[ACTUALIZAR_TABLERO] = [(1,)]
+    test_ws_messages[ACTUALIZAR_SALA_ESPERA] = [{'partida_id': 1}]
+    test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
+    test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
+    test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}]
 
     # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
@@ -194,7 +194,7 @@ def test_abandonar_partida_jugador_no_existente_404(test_db, test_ws_messages):
 def test_abandonar_partida_iniciada_ultimo_jugador_200(test_db, test_ws_messages):
     '''Test de jugador abandonando una partida iniciada y queda solo un jugador'''
     # Ponemos cuantas veces se espera que se envie cada ws
-    test_ws_messages[HAY_GANADOR] = [(1, 1, 'Creador')]
+    test_ws_messages[HAY_GANADOR] = [{'partida_id': 1, 'jugador_id': 1, 'nombre': 'Creador'}]
 
     # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)

@@ -1,8 +1,10 @@
 from tests_setup import client
 from models import Partida, Jugador
+from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
 
-def test_create_partida(test_db):
+def test_create_partida(test_db, test_ws_messages):
     '''Test para crear una partida'''
+    test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
     nueva_partida = {
         "nombre_partida": "Partida_nueva",
         "nombre_creador": "Jugador_nuevo"
