@@ -1,38 +1,9 @@
 import pytest
 from tests_setup import TestingSessionLocal, engine
 from models import Base
-import mock
-from unittest.mock import patch
-from contextlib import ExitStack
 from collections import Counter
+from tools import WSManagerTester; tester = WSManagerTester()
 
-from websockets_manager.ws_home_manager import MessageType as MThome, ws_home_manager, WsMessage as WsHomeMessage
-from websockets_manager.ws_partidas_manager import MessageType as MTpartidas, ws_partidas_manager, WsMessage as WsPartidasMessage
-# FIXME: Mover a otro archivo?
-def test_ws_factory(default_value, assert_func):
-    ws_home_manager_path = 'websockets_manager.ws_home_manager.ws_home_manager'
-    ws_partidas_manager_path = 'websockets_manager.ws_partidas_manager.ws_partidas_manager'
-    
-    # Generar diccionario automáticamente
-    home_ws = {message_type.value: default_value for message_type in MThome}
-    partidas_ws = {message_type.value: default_value for message_type in MTpartidas}
-    assert len(set(home_ws.keys()).intersection(partidas_ws.keys())) == 0, \
-        "Los diccionarios de mensajes de home y partidas no deben tener claves en común."
-    test_ws = {**home_ws, **partidas_ws}
-    
-    with ExitStack() as stack:
-        mocks = {}
-        for message_type in MThome:
-            mocks[message_type.value] = stack.enter_context(patch(f'{ws_home_manager_path}.send_{message_type.value}'))
-        for message_type in MTpartidas:
-            mocks[message_type.value] = stack.enter_context(patch(f'{ws_partidas_manager_path}.send_{message_type.value}'))
-
-        yield test_ws
-        print(test_ws)
-        
-        assert_func(test_ws, mocks)
-        
-# FIXME: eliminar esta fixture?
 @pytest.fixture(scope='function')
 def test_ws(): # TODO: cambiar nombre a test_ws_counts
     def assert_mock_counts(test_ws, mocks):
@@ -42,20 +13,24 @@ def test_ws(): # TODO: cambiar nombre a test_ws_counts
             assert mock.call_count == test_ws[message_type], \
                     f"Se esperaba que se llame función send_{message_type} {test_ws[message_type]} veces y se la llamo {mock.call_count}."
     
-    yield from test_ws_factory(0, assert_mock_counts)
-
+    yield from tester.test_ws_factory(0, assert_mock_counts)
 
 @pytest.fixture(scope='function')
 def test_ws_messages():
+    # Función de aserción para comparar las llamadas reales con los mensajes esperados
     def assert_message_calls(test_ws, mocks):
         for message_type, mock in mocks.items():
-            actual_calls = [call_arg[0] for call_arg in mock.call_args_list]
+            # Obtener los llamados actuales en forma de diccionarios
+            actual_calls = tester.inspect_mock_calls(mock)
             expected_messages = test_ws[message_type]
-                # NOTE: Usamos Counter para comparar listas sin importar el orden
-            assert Counter(actual_calls) == Counter(expected_messages), \
-                    f"send_{message_type} recibio: {actual_calls} pero esperaba {expected_messages}."
+            
+            print(f"Llamadas actuales para '{message_type}': {actual_calls}")
+            
+            # Usamos Counter para comparar las listas de diccionarios sin importar el orden
+            assert Counter(map(frozenset, actual_calls)) == Counter(map(frozenset, expected_messages)), \
+                f"send_{message_type} recibió: {actual_calls} pero esperaba {expected_messages}."
 
-    yield from test_ws_factory([], assert_message_calls)
+    yield from tester.test_ws_factory([], assert_message_calls)
 
 @pytest.fixture(scope='function')
 def test_db():
@@ -84,62 +59,3 @@ def teardown_db():
             print(f"El archivo de base de datos {db_path} no existe.")
     except Exception as e:
         print(f"Error al eliminar el archivo de base de datos: {e}")
-
-
-@pytest.fixture(scope='function')
-def expected_msgs_home_ws():
-    # Se crean conexiones falsas
-    fake_active_connections = {i: mock.AsyncMock() for i in range(0, 10)}
-    ws_home_manager.active_connections = fake_active_connections
-
-    expected_msgs_home_ws: WsHomeMessage = []
-
-    yield expected_msgs_home_ws
-
-    assert expected_msgs_home_ws != [
-    ], "FATAL ERROR: expected_msgs_home_ws esta vacio. (error de programacion)"
-
-    # Revisamos si se llamaron todos los falsos websockets con el mensaje adecuado, una unica vez.
-    for fake_connection in ws_home_manager.active_connections.items():
-        connection_id, fake_ws = fake_connection
-        
-        numero_mensajes = len(expected_msgs_home_ws)
-        assert fake_ws.send_text.call_count == numero_mensajes, f"Fallo: Se esperaba que el websocket de id {connection_id} recibiera {numero_mensajes} mensajes."
-        
-        # Revisamos que el mensaje sea el que se corresponde con la especificacion de la api.
-        fake_ws.send_text.assert_has_calls(
-            [mock.call(message.json()) for message in expected_msgs_home_ws], any_order=True
-        )
-
-    # Vaciamos el diccionario de conexiones para no interferir con otros tests
-    ws_home_manager.active_connections = {}
-
-
-@pytest.fixture(scope='function')
-def expected_msgs_partidas_ws():
-    # Se crean conexiones falsas para una supuesta partida de id 1
-    fake_active_connections = {i: mock.AsyncMock() for i in range(0, 10)}
-    fake_partida_id = 1
-    ws_partidas_manager.active_connections[fake_partida_id] = fake_active_connections
-
-    expected_msgs_partidas_ws: WsPartidasMessage = []
-
-    yield expected_msgs_partidas_ws
-
-    assert expected_msgs_partidas_ws != [
-    ], "FATAL ERROR: expected_msgs_partidas_ws esta vacio. (error de programacion)"
-
-    # Revisamos si se llamaron todos los falsos websockets con el mensaje adecuado, una unica vez.
-    for fake_connection in ws_partidas_manager.active_connections[fake_partida_id].items():
-        connection_id, fake_ws = fake_connection
-
-        numero_mensajes = len(expected_msgs_partidas_ws)
-        assert fake_ws.send_text.call_count == numero_mensajes, f"Fallo: Se esperaba que el websocket de id {connection_id} recibiera {numero_mensajes} mensajes."
-
-        # Revisamos que el mensaje sea el que se corresponde con la especificacion de la api.
-        fake_ws.send_text.assert_has_calls(
-            [mock.call(message.json()) for message in expected_msgs_partidas_ws], any_order=True
-        )
-
-    # Vaciamos el diccionario de conexiones para no interferir con otros tests
-    ws_partidas_manager.active_connections = {}
