@@ -62,21 +62,6 @@ def iniciar_partida(db: Session, id: int):
         jugador.orden = partida.jugadores.index(jugador)
     db.commit()
 
-def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
-    
-    partida = get_partida_details(db, partida_id) # raises ResourceNotFoundError if not found
-    
-    if (not partida):
-        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
-    
-    jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
-    if (not jugador):
-        raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
-    
-    mano_del_jugador = [figura_revelada for figura_revelada in jugador.mazo_cartas_de_figura if figura_revelada.revelada]
-
-    return mano_del_jugador
-
 def _repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=22, n_cartas_reveladas=N_FIGURAS_REVELADAS):
     for jugador in partida.jugadores:
         for i in range(n_cartas_por_jugador-n_cartas_reveladas):

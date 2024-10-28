@@ -1,4 +1,4 @@
-import crud as juego_service
+import crud.juego as juego_service
 from websockets_manager.ws_partidas_manager import ws_partidas_manager
 from figuras import hallar_todas_las_figuras_en_tablero
 import json
@@ -8,22 +8,22 @@ class JuegoController:
         self.db = db
 
     async def get_cartas_figura_jugador(self, partida_id, jugador_id):
-        return juego_service.partidas.get_cartas_figura_jugador(self.db, partida_id, jugador_id)
+        return juego_service.get_cartas_figura_jugador(self.db, partida_id, jugador_id)
 
     async def get_movimientos_jugador(self, id_partida, id_jugador):
-        return juego_service.juego.get_movimientos_jugador(self.db, id_partida, id_jugador)
+        return juego_service.get_movimientos_jugador(self.db, id_partida, id_jugador)
 
     async def get_turno_details(self, partida_id):
-        return juego_service.juego.get_turno_details(self.db, partida_id)
+        return juego_service.get_turno_details(self.db, partida_id)
 
     async def terminar_turno(self, id_partida, id_jugador):
-        juego_service.juego.terminar_turno(self.db, id_partida, id_jugador)
+        juego_service.terminar_turno(self.db, id_partida, id_jugador)
         await ws_partidas_manager.send_actualizar_turno(id_partida)
         await ws_partidas_manager.send_actualizar_tablero(id_partida)
 
     async def get_tablero(self, id_partida):
         """Obtiene el tablero de una partida."""
-        tablero = juego_service.juego.get_tablero(self.db, id_partida)
+        tablero = juego_service.get_tablero(self.db, id_partida)
         tablero_deserializado = json.loads(tablero)
         response = {
             'tablero': tablero_deserializado,
@@ -32,20 +32,20 @@ class JuegoController:
         return response
 
     async def modificar_casillas(self, id_partida, id_jugador, coordenadas):
-        juego_service.juego.modificar_casillas(id_partida, id_jugador, coordenadas, self.db)
+        juego_service.modificar_casillas(id_partida, id_jugador, coordenadas, self.db)
         await ws_partidas_manager.send_actualizar_tablero(id_partida)
         await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
 
     async def deshacer_movimiento(self, id_partida):
-        juego_service.juego.deshacer_movimiento(self.db, id_partida)
+        juego_service.deshacer_movimiento(self.db, id_partida)
         await ws_partidas_manager.send_actualizar_tablero(id_partida)
         await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
 
     async def get_movimientos_parciales(self, id_partida):
-        return juego_service.juego.get_movimientos_parciales(self.db, id_partida)
+        return juego_service.get_movimientos_parciales(self.db, id_partida)
 
     async def completar_figura_propia(self, id_partida, id_jugador, figura_data):
-        eventos = juego_service.juego.completar_figura_propia(self.db, id_partida, id_jugador, figura_data)
+        eventos = juego_service.completar_figura_propia(self.db, id_partida, id_jugador, figura_data)
         hay_ganador = eventos.get("hay_ganador")
         if (hay_ganador):
             id_ganador = hay_ganador.get("id_ganador")
