@@ -6,13 +6,13 @@ from websockets_manager.ws_partidas_manager import ACTUALIZAR_TURNO, ACTUALIZAR_
 from tools import get_all_tables, capturar_metadata as capturar, comparar_capturas, verificar_diccionarios, seleccionar_parametros, verificar_tuplas
 
 @pytest.mark.parametrize("numero_de_jugadores, numero_de_reveadas, numero_de_movimientos", seleccionar_parametros([(2, 3, 4),(0, 1, 2),(0, 1, 2)],3))
-def test_terminar_turno_reponer_cartas(client, test_db, test_ws, numero_de_jugadores, numero_de_reveadas,numero_de_movimientos):
+def test_terminar_turno_reponer_cartas(client, test_db, test_ws_messages, numero_de_jugadores, numero_de_reveadas,numero_de_movimientos):
     '''
     Test que chequea que al terminar el turno de un jugador, se reponen los movimeintos y las figuras reveladas que se descartaron.
     '''
     # Ponemos cuantas veces se espera que se envie cada ws
-    test_ws[ACTUALIZAR_TURNO] = 1
-    test_ws[ACTUALIZAR_TABLERO] = 1
+    test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
+    test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}]
 
     # Inicializamos la precondicion
     partida, _ = crear_partida(test_db)
@@ -41,7 +41,7 @@ def test_terminar_turno_reponer_cartas(client, test_db, test_ws, numero_de_jugad
     assert verificar_diccionarios(modificaciones, modificaciones_esperadas_en), f"Fallo: Las modificaciones no fueron las esperadas."
     assert verificar_tuplas(creadas, ['cartas_de_movimiento']), f"Fallo: Se esperaba que se crearan cartas de movimiento, pero no se crearon."
 
-def test_terminar_turno(client, test_db, test_ws):
+def test_terminar_turno(client, test_db, test_ws_counts):
     '''Test que chequea el funcionamiento en el escenario exitoso del endpoint para terminar_turno.'''
 
     partida, _ = crear_partida(test_db)
@@ -88,10 +88,10 @@ def test_terminar_turno(client, test_db, test_ws):
     assert len(partida.jugadores) == 4, f"Fallo: Se esperaba que la cantidad de jugadores fuera la misma, pero no es así."
 
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
-    test_ws[ACTUALIZAR_TURNO] = 1
-    test_ws[ACTUALIZAR_TABLERO] = 1
+    test_ws_counts[ACTUALIZAR_TURNO] = 1
+    test_ws_counts[ACTUALIZAR_TABLERO] = 1
 
-def test_vuelta_completa(client, test_db, test_ws):
+def test_vuelta_completa(client, test_db, test_ws_counts):
     '''Test que chequea el funcionamiento de una vuelta completa de turnos.'''
 
     partida, _ = crear_partida(test_db)
@@ -110,10 +110,10 @@ def test_vuelta_completa(client, test_db, test_ws):
     assert len(partida.jugadores) == 4, f"Fallo: Se esperaba que la cantidad de jugadores fuera la misma, pero no es así."
 
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
-    test_ws[ACTUALIZAR_TURNO] = len(partida.jugadores)
-    test_ws[ACTUALIZAR_TABLERO] = len(partida.jugadores)
+    test_ws_counts[ACTUALIZAR_TURNO] = len(partida.jugadores)
+    test_ws_counts[ACTUALIZAR_TABLERO] = len(partida.jugadores)
 
-def test_varias_rondas(client, test_db, test_ws):
+def test_varias_rondas(client, test_db, test_ws_counts):
     '''Test sobre la confiabilidad de los turnos a lo largo de varias rondas.'''
     partida, _ = crear_partida(test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores=3)
@@ -136,8 +136,8 @@ def test_varias_rondas(client, test_db, test_ws):
     assert len(partida.jugadores) == 4, f"Fallo: Se esperaba que la cantidad de jugadores fuera la misma, pero no es así."
 
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
-    test_ws[ACTUALIZAR_TURNO] = 5 * len(partida.jugadores)
-    test_ws[ACTUALIZAR_TABLERO] = 5 * len(partida.jugadores)
+    test_ws_counts[ACTUALIZAR_TURNO] = 5 * len(partida.jugadores)
+    test_ws_counts[ACTUALIZAR_TABLERO] = 5 * len(partida.jugadores)
 
 def test_reponer_cartas_movimiento(client, test_db):
     '''Test sobre la reposición de las cartas de movimiento al finalizar el turno del jugador.'''
@@ -162,14 +162,14 @@ def test_reponer_cartas_movimiento(client, test_db):
         "m1", "m2", "m3"
     ], "Fallo: Las cartas de movimiento del jugador no se repusieron como se esperaba."
 
-def test_partida_inexistente_404(client, test_db, test_ws):
+def test_partida_inexistente_404(client, test_db, test_ws_counts):
     '''Test sobre los mensajes de error ante el envío de terminar turno a una partida inexistente.'''
 
     # Intentamos terminar el turno de una partida inexistente.
     response = client.put(f'juego/{999999}/jugadores/{999999}/turno')
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
 
-def test_partida_no_iniciada_403(client, test_db, test_ws):
+def test_partida_no_iniciada_403(client, test_db, test_ws_counts):
     '''Test sobre los mensajes de error ante el envío de terminar turno a una partida no iniciada.'''
 
     partida, _ = crear_partida(test_db)
@@ -178,7 +178,7 @@ def test_partida_no_iniciada_403(client, test_db, test_ws):
     response = client.put(f'juego/{partida.id}/jugadores/{1}/turno')
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
 
-def test_jugador_sin_turno_403(client, test_db, test_ws):
+def test_jugador_sin_turno_403(client, test_db, test_ws_counts):
     '''Test sobre los mensajes de error ante el envío de terminar turno de un jugador que no posee el turno.'''
 
     partida, _ = crear_partida(test_db)

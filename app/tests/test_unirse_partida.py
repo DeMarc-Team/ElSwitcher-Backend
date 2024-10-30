@@ -1,8 +1,13 @@
 from models import Jugador, Partida
 from factory import crear_partida, unir_jugadores, iniciar_partida
+from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
+from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, PARTIDA_CANCELADA, ACTUALIZAR_TABLERO
 
-def test_unirse_partida_200(client, test_db):
+def test_unirse_partida_200(client, test_db, test_ws_messages):
     '''Test al unirse a una partida existente no llena'''
+    test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
+    test_ws_messages[ACTUALIZAR_SALA_ESPERA] = [{'partida_id': 1}]
+    
     # Creamos una partida con 2 jugadores
     partida, _ = crear_partida(db=test_db, nombre_partida="partida_para_unirse", nombre_creador="Creador1")
     unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=2)

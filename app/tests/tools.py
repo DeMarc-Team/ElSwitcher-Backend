@@ -300,3 +300,55 @@ def verificar_diccionarios(entrada:dict, validos:dict)->bool:
             return False
     return True
 
+
+from websockets_manager.ws_home_manager import MessageType as MThome, ws_home_manager, WsMessage as WsHomeMessage
+from websockets_manager.ws_partidas_manager import MessageType as MTpartidas, ws_partidas_manager, WsMessage as WsPartidasMessage
+from inspect import signature
+from unittest.mock import patch, AsyncMock
+from contextlib import ExitStack
+class WSManagerTester:
+    def __init__(self):
+        self.ws_home_manager_path = 'websockets_manager.ws_home_manager.ws_home_manager'
+        self.ws_partidas_manager_path = 'websockets_manager.ws_partidas_manager.ws_partidas_manager'
+
+    def inspect_mock_calls(self, mock):
+        # Obtener la firma original de la función mockeada
+        sig = signature(mock._mock_wraps) if mock._mock_wraps else None
+        llamadas = []
+        for call in mock.call_args_list:
+            parametros_llamada = {}
+            
+            # Mapear args y kwargs
+            if sig:
+                bound_args = sig.bind(*call.args, **call.kwargs)
+                bound_args.apply_defaults()  # Completa con valores predeterminados si los hay
+                parametros_llamada = {k: v for k, v in bound_args.arguments.items()}
+            else:
+                # Si no hay firma, se usan las posiciones y kwargs
+                parametros_llamada = {f"arg_{i}": arg for i, arg in enumerate(call.args)}
+                parametros_llamada.update(call.kwargs)
+            llamadas.append(parametros_llamada)
+        return llamadas
+
+    def test_ws_factory(self, default_value, assert_func):
+        # Generar diccionario automáticamente
+        home_ws = {message_type.value: default_value for message_type in MThome}
+        partidas_ws = {message_type.value: default_value for message_type in MTpartidas}
+        assert len(set(home_ws.keys()).intersection(partidas_ws.keys())) == 0, \
+            "Los diccionarios de mensajes de home y partidas no deben tener claves en común."
+        test_ws = {**home_ws, **partidas_ws}
+        
+        with ExitStack() as stack:
+            mocks = {}
+            for message_type in MThome:
+                original_func = getattr(ws_home_manager, f'send_{message_type.value}', AsyncMock)
+                mocks[message_type.value] = stack.enter_context(patch(f'{self.ws_home_manager_path}.send_{message_type.value}', wraps=original_func))
+            
+            for message_type in MTpartidas:
+                original_func = getattr(ws_partidas_manager, f'send_{message_type.value}', AsyncMock)
+                mocks[message_type.value] = stack.enter_context(patch(f'{self.ws_partidas_manager_path}.send_{message_type.value}', wraps=original_func))
+
+            yield test_ws
+            print(test_ws)
+            
+            assert_func(test_ws, mocks)

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from routers import partidas, jugadores, juego
+from routers import partidas, juego
 from fastapi.middleware.cors import CORSMiddleware
 from exceptions import ResourceNotFoundError, ForbiddenError, resource_not_found_handler, forbidden_error_handler
 
@@ -15,7 +15,6 @@ app.add_middleware(
 )
 
 app.include_router(partidas.router)
-app.include_router(jugadores.router)
 app.include_router(juego.router)
 
 # Excepciones
