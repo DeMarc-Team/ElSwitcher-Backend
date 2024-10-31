@@ -4,7 +4,8 @@ from database import Base
 from sqlalchemy.orm import Session
 import random
 from itertools import product
-#TODO: Separar en clases los diferentes tipos de tools (si lo hacemos con capturar,... el import seria mas lindo)
+#TODO: Separar en clases ESTATICAS los diferentes tipos de tools (si lo hacemos con capturar,... el import seria mas lindo)
+# Ya hay una clase creada pero deberia ser estatica
 
 #TODO: Que se fijen todos los valores menos dos al azar y que esos varien solamente n veces?
 # (pseudoTesting de a pares)
