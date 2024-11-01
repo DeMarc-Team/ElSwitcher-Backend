@@ -65,17 +65,17 @@ def iniciar_partida(db: Session, id: int):
 def _repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=22, n_cartas_reveladas=N_FIGURAS_REVELADAS):
     for jugador in partida.jugadores:
         for i in range(n_cartas_por_jugador-n_cartas_reveladas):
-            new_carta = CartaFigura(jugador_id=jugador.id_jugador, revelada=False)
+            new_carta = CartaFigura(jugador_id=jugador.id, revelada=False)
             db.add(new_carta)
 
         for i in range(n_cartas_reveladas):
-            new_carta = CartaFigura(jugador_id=jugador.id_jugador, revelada=True)
+            new_carta = CartaFigura(jugador_id=jugador.id, revelada=True)
             db.add(new_carta)
     
 def _repartir_cartas_movimiento(db: Session, partida, n_cartas_por_jugador=3):
     for jugador in partida.jugadores:
         for i in range(n_cartas_por_jugador):
-            new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
+            new_carta = CartaMovimiento(jugador_id=jugador.id)
             db.add(new_carta)
 
 def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
@@ -98,7 +98,7 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
         raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
     id_creador = partida.id_creador
     
-    jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
+    jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id == jugador_id)).first()
     if (not jugador):
         raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
     
@@ -112,7 +112,7 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
     return {**hay_ganador(db, partida), **__partida_cancelada(db, partida, jugador, id_creador)}
 
 def __partida_cancelada(db: Session, partida: Partida, jugador: Jugador, id_creador: int):
-    if (not partida.iniciada and jugador.id_jugador == id_creador):
+    if (not partida.iniciada and jugador.id == id_creador):
         db.delete(partida)
         db.commit()
         return {"partida_cancelada" : {"id" : partida.id}}
@@ -140,10 +140,10 @@ def hay_ganador(db: Session, partida: Partida = None):
     nombre_ganador = None
     if (partida.iniciada):
         if (partida.jugador_del_turno.numero_de_cartas_figura == 0):
-            id_ganador = partida.jugador_del_turno.id_jugador
+            id_ganador = partida.jugador_del_turno.id
             nombre_ganador = partida.jugador_del_turno.nombre
         elif (len(partida.jugadores) == 1):
-            id_ganador = partida.jugadores[0].id_jugador
+            id_ganador = partida.jugadores[0].id
             nombre_ganador = partida.jugadores[0].nombre
     
     # Aca pueden ir mas verificaciones para determinar si hay un ganador

@@ -23,7 +23,7 @@ def test_cancelar_movimiento_parcial(client, test_db, test_ws_counts):
     response = client.get(f"/juego/{partida.id}/turno")
 
     id_jugador_del_turno = response.json()['id_jugador']
-    jugador_del_turno = [jugador for jugador in jugadores if jugador.id_jugador == id_jugador_del_turno][0]
+    jugador_del_turno = [jugador for jugador in jugadores if jugador.id == id_jugador_del_turno][0]
 
     assert len(jugador_del_turno.mano_movimientos) == 3, "Fallo: El jugador debería haber jugado su carta de movimiento"
 
@@ -61,7 +61,7 @@ def test_no_se_puede_cancelar_movimiento_parcial_si_no_hay_movimientos_parciales
     response = client.get(f"/juego/{partida.id}/turno")
 
     id_jugador_del_turno = response.json()['id_jugador']
-    jugador_del_turno = [jugador for jugador in jugadores if jugador.id_jugador == id_jugador_del_turno][0]
+    jugador_del_turno = [jugador for jugador in jugadores if jugador.id == id_jugador_del_turno][0]
 
     response = client.delete(f"/juego/{partida.id}/jugadores/{id_jugador_del_turno}/mov-parciales")
     test_db.refresh(partida) # Sin esto el tablero queda viejo  
@@ -85,7 +85,7 @@ def test_se_limpian_los_movs_parciales_pasando_turno(client, test_db):
     response = client.get(f"/juego/{partida.id}/turno")
 
     id_jugador_del_turno = response.json()['id_jugador']
-    jugador_del_turno = [jugador for jugador in jugadores if jugador.id_jugador == id_jugador_del_turno][0]
+    jugador_del_turno = [jugador for jugador in jugadores if jugador.id == id_jugador_del_turno][0]
 
     assert len(jugador_del_turno.mano_movimientos) == 3, "Fallo: El jugador debería haber jugado su carta de movimiento"
 
@@ -120,7 +120,7 @@ def test_se_limpian_los_movs_parciales_abandonando(client, test_db, test_ws_coun
     response = client.get(f"/juego/{partida.id}/turno")
 
     id_jugador_del_turno = response.json()['id_jugador']
-    jugador_del_turno = [jugador for jugador in jugadores if jugador.id_jugador == id_jugador_del_turno][0]
+    jugador_del_turno = [jugador for jugador in jugadores if jugador.id == id_jugador_del_turno][0]
 
     assert len(jugador_del_turno.mano_movimientos) == 3, "Fallo: El jugador debería haber jugado su carta de movimiento"
 

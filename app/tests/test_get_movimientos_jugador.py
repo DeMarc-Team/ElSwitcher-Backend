@@ -18,7 +18,7 @@ def test_get_cartas_de_movimiento_happy_path(client, test_db):
 
     for j in jugadores:
         response = client.get(
-            f"/juego/{partida.id}/jugadores/{j.id_jugador}/cartas_movimiento"
+            f"/juego/{partida.id}/jugadores/{j.id}/cartas_movimiento"
         )
         assert (
             response.status_code == 200
@@ -42,7 +42,7 @@ def test_get_cartas_movimiento_jugador_no_iniciada(client, test_db):
 
     for jugador in jugadores:
         response = client.get(
-            f"/juego/{partida.id}/jugadores/{jugador.id_jugador}/cartas_figura"
+            f"/juego/{partida.id}/jugadores/{jugador.id}/cartas_figura"
         )
         assert (
             response.status_code == 200

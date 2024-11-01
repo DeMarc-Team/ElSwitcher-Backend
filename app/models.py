@@ -10,7 +10,7 @@ from figuras import SET_DE_CARTAS
 # JUGADOR ------------------------------------------------------
 class Jugador(Base):
     __tablename__ = 'jugadores'
-    id_jugador: Mapped[int] = mapped_column(
+    id: Mapped[int] = mapped_column(
         Integer, primary_key=True, index=True, autoincrement=True)
     nombre: Mapped[str] = mapped_column(String(255), nullable=False)
     es_creador: Mapped[Boolean] = mapped_column(Boolean, default=False)
@@ -29,12 +29,9 @@ class Jugador(Base):
     def numero_de_cartas_figura(self) -> int:
         return len(self.mazo_cartas_de_figura)
 
-    @hybrid_property
-    def id(self) -> int:
-        return self.id_jugador
         
     def __str__(self):  # pragma: no cover
-        return (f"<Jugador(id_jugador={self.id_jugador}, nombre={self.nombre}, "
+        return (f"<Jugador(id_jugador={self.id}, nombre={self.nombre}, "
                 f"es_creador={self.es_creador}, partida_id={self.partida_id}, orden={self.orden}, "
                 f"numero_de_cartas_figura={len(self.mazo_cartas_de_figura)}, "
                 f"numero_de_cartas_movimiento={len(self.mano_movimientos)})>")
@@ -76,7 +73,7 @@ class Partida(Base):
     @hybrid_property
     def id_creador(self) -> int:
         id_jugador_creador = next(
-            (jugador.id_jugador for jugador in self.jugadores if jugador.es_creador), None)
+            (jugador.id for jugador in self.jugadores if jugador.es_creador), None)
         if id_jugador_creador is not None or self.iniciada:
             return id_jugador_creador
         if self.iniciada == False:
@@ -89,9 +86,9 @@ class Partida(Base):
         return self.jugadores[0]
 
     @hybrid_property
-    def jugador_id(self) -> int: # FIXME: Sacar y usar partida.jugador_del_turno.id_jugador
+    def jugador_id(self) -> int:
         # Retorna el jugador en la primera posición
-        return self.jugadores[0].id_jugador
+        return self.jugador_del_turno.id
 
 
     tablero = mapped_column(String, nullable=False, default=random_tablero)
@@ -123,7 +120,7 @@ class CartaFigura(Base):
     # Las relaciones necesitan que exista además una foreign key
     poseida_por = relationship(
         'Jugador', back_populates='mazo_cartas_de_figura')
-    jugador_id = mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
+    jugador_id = mapped_column(Integer, ForeignKey('jugadores.id'))
 
     def __str__(self):  # pragma: no cover
         return (f"<CartaFigura(id={self.id}, figura='{self.figura}', "
@@ -148,7 +145,7 @@ class CartaMovimiento(Base):
 
     # Las relaciones necesitan que exista además una foreign key
     movimientos_de = relationship('Jugador', back_populates='mano_movimientos')
-    jugador_id = mapped_column(Integer, ForeignKey('jugadores.id_jugador'))
+    jugador_id = mapped_column(Integer, ForeignKey('jugadores.id'))
 
     movimiento_parcial_en = relationship('MovimientoParcial', uselist=False, back_populates='carta', cascade="all, delete-orphan")
 

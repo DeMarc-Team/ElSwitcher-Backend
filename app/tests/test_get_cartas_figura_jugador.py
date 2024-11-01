@@ -16,7 +16,7 @@ def test_get_cartas_figura_happy_path(client, test_db):
 
     for j in jugadores:
         response = client.get(
-            f"/juego/{partida.id}/jugadores/{j.id_jugador}/cartas_figura"
+            f"/juego/{partida.id}/jugadores/{j.id}/cartas_figura"
         )
         assert (
             response.status_code == 200
@@ -36,7 +36,7 @@ def test_get_cartas_figura_jugador_no_iniciada(client, test_db):
     )
     jugadores = unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=2)
 
-    j1_id = jugadores[0].id_jugador
+    j1_id = jugadores[0].id
 
     response = client.get(f"/juego/{partida.id}/jugadores/{j1_id}/cartas_figura")
     assert (
@@ -63,7 +63,7 @@ def test_get_cartas_figura_jugador_partida_llena_no_iniciada(client, test_db):
 
     for j in jugadores:
         response = client.get(
-            f"/juego/{partida.id}/jugadores/{j.id_jugador}/cartas_figura"
+            f"/juego/{partida.id}/jugadores/{j.id}/cartas_figura"
         )
         assert (
             response.status_code == 200

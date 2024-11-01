@@ -7,7 +7,7 @@ from figuras import hallar_todas_las_figuras_en_tablero
 from constantes_juego import N_FIGURAS_REVELADAS
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (
-        Jugador.id_jugador == jugador_id)).first()
+        Jugador.id == jugador_id)).first()
 
     if (not jugador):
         raise ResourceNotFoundError(
@@ -68,7 +68,7 @@ def reponer_cartas_movimiento(db: Session, partida: Partida, jugador: Jugador, n
 
     # Reponemos las cartas de movimiento del jugador
     for i in range(0, n_cartas_por_jugador - cantidad_movimientos):
-        new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
+        new_carta = CartaMovimiento(jugador_id=jugador.id)
         db.add(new_carta)
         
     if atomic:
@@ -107,7 +107,7 @@ def terminar_turno(db: Session, partida_id, jugador_id):
 
     actual_jugador = partida.jugador_del_turno
 
-    if (actual_jugador.id_jugador != jugador_id):
+    if (actual_jugador.id != jugador_id):
         raise ForbiddenError(f"El ID del jugador que posee el turno no es {jugador_id}.")
     
     limpiar_stack_movimientos_parciales(db, partida_id, atomic=False)
@@ -152,7 +152,7 @@ def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: Ca
     if (juego == None): # Esto no habria que comporbarlo si crud tuviera un buen metodo get_juego
         raise ResourceNotFoundError(f"Partida no encontrada")
     
-    if (juego.jugador_del_turno.id_jugador != id_jugador):
+    if (juego.jugador_del_turno.id != id_jugador):
         raise ForbiddenError("No es el turno del jugador")
     
 
@@ -314,9 +314,9 @@ def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figur
         raise ResourceNotFoundError(
             f"Jugador con ID {id_jugador} no encontrado en la partida con ID {id_jugador}.")
     
-    if (jugador.id_jugador != partida.jugador_id):
+    if (jugador.id != partida.jugador_id):
         raise ForbiddenError(
-            f"El jugador con ID {jugador.id_jugador} no posee el turno."
+            f"El jugador con ID {jugador.id} no posee el turno."
         )
     
     hay_ganador = unatomic_usar_figura(db, partida, jugador, figura_data)
@@ -393,7 +393,7 @@ def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
     if (not partida):
         raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
     
-    jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
+    jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id == jugador_id)).first()
     if (not jugador):
         raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
     

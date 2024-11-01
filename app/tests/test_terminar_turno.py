@@ -25,7 +25,7 @@ def test_terminar_turno_reponer_cartas(client, test_db, test_ws_messages, numero
     # Realizamos la petición
     captura_inicial = capturar(get_all_tables(test_db))
     
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_inicial.id}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
     
     test_db.refresh(partida) # Para actualizar localmente la info de la partida
@@ -62,7 +62,7 @@ def test_terminar_turno(client, test_db, test_ws_counts):
     }
 
     # Pasamos el turno
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_inicial.id}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
     test_db.refresh(partida) # Para actualizar localmente la info de la partida
 
@@ -82,8 +82,8 @@ def test_terminar_turno(client, test_db, test_ws_counts):
 
     # Comprobamos que el turno sea del jugador correspondiente
     assert (
-        partida.jugador_del_turno.id_jugador == segundo_jugador.id_jugador
-    ), f"Fallo: Se esperaba que el nuevo jugador del turno fuera el de id {segundo_jugador.id_jugador}, pero tiene id {partida.jugador_del_turno.id_jugador}."
+        partida.jugador_del_turno.id == segundo_jugador.id
+    ), f"Fallo: Se esperaba que el nuevo jugador del turno fuera el de id {segundo_jugador.id}, pero tiene id {partida.jugador_del_turno.id}."
     
     assert len(partida.jugadores) == 4, f"Fallo: Se esperaba que la cantidad de jugadores fuera la misma, pero no es así."
 
@@ -151,7 +151,7 @@ def test_reponer_cartas_movimiento(client, test_db):
     consumir_carta_movimiento(test_db, jugador_del_turno, "m1", cantidad=2)
     
     with mock.patch("models.CartaMovimiento.random_movimiento", mock.Mock(side_effect=["m2", "m3"])):
-        response = client.put(f'juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/turno')
+        response = client.put(f'juego/{partida.id}/jugadores/{jugador_del_turno.id}/turno')
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
     
     test_db.refresh(partida) # Para actualizar localmente la info de la partida

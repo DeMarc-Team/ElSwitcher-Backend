@@ -21,7 +21,7 @@ def test_hacer_movimiento_200(client, test_db):
     response = client.get(f"/juego/{partida.id}/turno")
 
     id_jugador_del_turno = response.json()['id_jugador']
-    jugador_del_turno = [jugador for jugador in jugadores if jugador.id_jugador == id_jugador_del_turno][0]
+    jugador_del_turno = [jugador for jugador in jugadores if jugador.id == id_jugador_del_turno][0]
 
     assert len(jugador_del_turno.mano_movimientos) == 3, "Fallo: El jugador debería haber jugado su carta de movimiento"
 
@@ -53,7 +53,7 @@ def test_movimiento_invalido(client, test_db):
     response = client.get(f"/juego/{partida.id}/turno")
 
     id_jugador_del_turno = response.json()['id_jugador']
-    jugador_del_turno = [jugador for jugador in jugadores if jugador.id_jugador == id_jugador_del_turno][0]
+    jugador_del_turno = [jugador for jugador in jugadores if jugador.id == id_jugador_del_turno][0]
 
     assert len(jugador_del_turno.mano_movimientos) == 3, "Fallo: El jugador debería haber jugado su carta de movimiento"
 

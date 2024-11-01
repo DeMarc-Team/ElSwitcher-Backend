@@ -37,7 +37,7 @@ def test_usar_figura_propia(client, test_db, test_ws_messages):
     # Capturamos la BDD antes de los cambios
     captura_inicial = capturar_metadata(get_all_tables(test_db))
 
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id}/tablero/figura', json=request_body)
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
 
     # Capturamos la BDD luego de los cambios
@@ -100,7 +100,7 @@ def test_usar_figura_propia_yganar(client, test_db, test_ws_messages):
 
     eliminar_cartas_figura_del_maso(test_db, jugador_del_turno, 1)
 
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id}/tablero/figura', json=request_body)
     test_db.commit()
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
 
@@ -142,7 +142,7 @@ def test_usar_figura_propia_varias_figuras(client, test_db, test_ws_counts):
     # Capturamos la BDD antes de los cambios
     captura_inicial = capturar_metadata(get_all_tables(test_db))
     
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id}/tablero/figura', json=request_body)
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
     
     # Capturamos la BDD luego de los cambios
@@ -200,7 +200,7 @@ def test_usar_figura_propia_varias_cartas(client, test_db, test_ws_counts):
     # Capturamos la BDD antes de los cambios
     captura_inicial = capturar_metadata(get_all_tables(test_db))
     
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id}/tablero/figura', json=request_body)
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
 
     # Capturamos la BDD luego de los cambios
@@ -308,8 +308,8 @@ def test_usar_figura_propia_jugador_no_turno_403(client, test_db, test_ws_counts
         "figura": casillas_figura,
         "carta_fig": "f1"
     }
-    response = client.put(f'/juego/{partida.id}/jugadores/{otro_jugador.id_jugador}/tablero/figura', json=request_body)
-    respuesta_esperada = {'detail': f"El jugador con ID {otro_jugador.id_jugador} no posee el turno."}
+    response = client.put(f'/juego/{partida.id}/jugadores/{otro_jugador.id}/tablero/figura', json=request_body)
+    respuesta_esperada = {'detail': f"El jugador con ID {otro_jugador.id} no posee el turno."}
     check_response(response, status_code_esperado=403, respuesta_esperada=respuesta_esperada)
 
     # Verificamos que no se haya realizado ningun cambio en la base de datos
@@ -351,7 +351,7 @@ def test_usar_figura_propia_partida_no_iniciada_403(client, test_db, test_ws_cou
         "figura": [{"row": 0, "col": 0}],
         "carta_fig": "f1"
     }
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador.id}/tablero/figura', json=request_body)
     respuesta_esperada = {'detail': f"La partida con ID {partida.id} todavía no comenzó."}
     check_response(response, status_code_esperado=403, respuesta_esperada=respuesta_esperada)
 
@@ -400,7 +400,7 @@ def test_usar_figura_propia_mano_sin_figura_404(client, test_db, test_ws_counts)
         "figura": [{"row": 0, "col": 0}],
         "carta_fig": "f1"
     }
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id}/tablero/figura', json=request_body)
     respuesta_esperada = {'detail': f"El jugador no tiene en la mano ninguna carta de figura revelada del formato {request_body.get('carta_fig')}."}
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
@@ -441,7 +441,7 @@ def test_usar_figura_propia_no_en_tablero_404(client, test_db, test_ws_counts):
         "figura": [{"row": 0, "col": 0}],
         "carta_fig": figura
     }
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id}/tablero/figura', json=request_body)
     respuesta_esperada = {'detail': f"No existe (en el tablero) ninguna figura del tipo que se intenta utilizar."}
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
@@ -482,7 +482,7 @@ def test_usar_figura_propia_casilla_incorrecta_404(client, test_db, test_ws_coun
         "figura": [{"row": 0, "col": 0}],
         "carta_fig": figura
     }
-    response = client.put(f'/juego/{partida.id}/jugadores/{creador.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(f'/juego/{partida.id}/jugadores/{creador.id}/tablero/figura', json=request_body)
     respuesta_esperada = {'detail': f"No existe (en el tablero) la figura que se intenta utilizar en las coordenadas enviadas."}
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 

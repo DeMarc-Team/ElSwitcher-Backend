@@ -65,7 +65,10 @@ async def abandonar_partida(partida_id: int, jugador_id: int, controller: Partid
             description="Devuelve la lista de jugadores que pertenecen a la partida especificada por partida_id.",
             tags=["Jugadores"])
 async def get_jugadores(partida_id: int, controller: PartidaController = Depends(get_partida_controller)):
-    return await controller.get_jugadores(partida_id)
+    raw_jugadores = await controller.get_jugadores(partida_id)
+    formatted_jugadores = [JugadorOnCreateResponse(nombre=jugador.nombre, id_jugador=jugador.id) for jugador in raw_jugadores]
+    
+    return formatted_jugadores
 
 @router.post('/{partida_id:int}/jugadores',
              response_model=JugadorOnCreateResponse,
@@ -73,7 +76,10 @@ async def get_jugadores(partida_id: int, controller: PartidaController = Depends
              description="Crea un nuevo jugador, para el usuario, en la partida especificada por partida_id.",
              tags=["Jugadores"])
 async def join_to_partida(partida_id: int, jugador: JugadorData, controller: PartidaController = Depends(get_partida_controller)):
-    return await controller.join_to_partida(partida_id, jugador.nombre)
+    jugador_unido = await controller.join_to_partida(partida_id, jugador.nombre)
+    formatted_jugador = JugadorOnCreateResponse(nombre=jugador_unido.nombre,id_jugador=jugador_unido.id)
+    
+    return formatted_jugador
 
 
 # FIXME: Esto si quizas deberia ir en otro archivo

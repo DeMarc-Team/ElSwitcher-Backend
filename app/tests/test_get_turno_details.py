@@ -14,7 +14,7 @@ def test_get_turno_details(client, test_db):
     
     # Verificamos que se hayan recibido los datos correctos.
     assert turno_details == {
-        "id_jugador": creador.id_jugador,
+        "id_jugador": creador.id,
         "nombre_jugador": creador.nombre
     }, f"Fallo: Se esperaba los datos fueran {{'id_jugador': 1, 'nombre_jugador': Creador 1}}, pero son {turno_details}."
 
@@ -48,7 +48,7 @@ def test_cambio_en_el_turno(client, test_db):
     
     # Nos aseguramos cual es el valor que se obtiene primero
     assert turno_details == {
-        "id_jugador": creador.id_jugador,
+        "id_jugador": creador.id,
         "nombre_jugador": creador.nombre
     }, f"Fallo: Se esperaba los datos fueran {{'id_jugador': 1, 'nombre_jugador': Creador 1}}, pero son {turno_details}."
     
