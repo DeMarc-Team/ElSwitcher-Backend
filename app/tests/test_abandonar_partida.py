@@ -20,12 +20,12 @@ def test_abandonar_partida_en_el_turno_200(client, test_db, test_ws_messages, nu
     partida, _ = crear_partida(db=test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores-1)
     jugador_del_turno = partida.jugador_del_turno
-    id_jugador = jugador_del_turno.id
+    jugador_id =jugador_del_turno.id
     id_partida = partida.id
     partida = iniciar_partida(db=test_db, partida=partida)
 
     # Realizamos la petición
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
+    response = client.delete(f"/partidas/{id_partida}/jugadores/{jugador_id}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
@@ -33,7 +33,7 @@ def test_abandonar_partida_en_el_turno_200(client, test_db, test_ws_messages, nu
     check_response(response, 200, respuesta_esperada)
 
     # Verificamos que la base de datos se haya actualizado correctamente
-    check_jugador_abandoned(test_db, numero_de_jugadores-1, id_jugador, id_partida)
+    check_jugador_abandoned(test_db, numero_de_jugadores-1, jugador_id, id_partida)
 
 # ----------------------------------------------------------------
 
@@ -77,11 +77,11 @@ def test_abandonar_partida_no_iniciada_no_creador_200(client, test_db, test_ws_c
     # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
     nuevo_jugador = unir_jugadores(test_db, partida, numero_de_jugadores-1)[0]
-    id_jugador = nuevo_jugador.id
+    jugador_id = nuevo_jugador.id
     id_partida = partida.id
 
     # Realizamos la petición
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
+    response = client.delete(f"/partidas/{id_partida}/jugadores/{jugador_id}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
@@ -89,7 +89,7 @@ def test_abandonar_partida_no_iniciada_no_creador_200(client, test_db, test_ws_c
     check_response(response, 200, respuesta_esperada)
 
     # Verificamos que la base de datos se haya actualizado correctamente
-    check_jugador_abandoned(test_db, numero_de_jugadores-1, id_jugador, id_partida)
+    check_jugador_abandoned(test_db, numero_de_jugadores-1, jugador_id, id_partida)
 
 # ----------------------------------------------------------------
 
@@ -138,13 +138,13 @@ def test_abandonar_partida_iniciada_no_creador_200(client, test_db, test_ws_mess
     partida, creador = crear_partida(test_db)
     nuevo_jugador = unir_jugadores(test_db, partida, numero_de_jugadores-1)[0]
 
-    id_jugador = nuevo_jugador.id
+    jugador_id =nuevo_jugador.id
     id_partida = partida.id
 
     partida = iniciar_partida(test_db, partida)
 
     # Realizamos la petición
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
+    response = client.delete(f"/partidas/{id_partida}/jugadores/{jugador_id}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
@@ -152,17 +152,17 @@ def test_abandonar_partida_iniciada_no_creador_200(client, test_db, test_ws_mess
     check_response(response, 200, respuesta_esperada)
 
     # Verificamos que la base de datos se haya actualizado correctamente
-    check_jugador_abandoned(test_db, numero_de_jugadores-1, id_jugador, id_partida)
+    check_jugador_abandoned(test_db, numero_de_jugadores-1, jugador_id, id_partida)
 
 # ----------------------------------------------------------------
 
 def test_abandonar_partida_no_existente_404(client, test_db, test_ws_messages):
     '''Test de jugador abandonando una partida que no existe'''
     id_partida = 1
-    id_jugador = 1
+    jugador_id =1
 
     # Realizamos la petición
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
+    response = client.delete(f"/partidas/{id_partida}/jugadores/{jugador_id}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
@@ -175,14 +175,14 @@ def test_abandonar_partida_jugador_no_existente_404(client, test_db, test_ws_mes
     '''Test de jugador no existente abandonando una partida'''
     partida, creador = crear_partida(test_db)
     id_partida = partida.id
-    id_jugador = 2
+    jugador_id =2
 
     # Realizamos la petición
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
+    response = client.delete(f"/partidas/{id_partida}/jugadores/{jugador_id}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
-    respuesta_esperada = {'detail': f'Jugador con ID {id_jugador} no encontrado en la partida con ID {id_partida}.'}
+    respuesta_esperada = {'detail': f'Jugador con ID {jugador_id} no encontrado en la partida con ID {id_partida}.'}
     check_response(response, 404, respuesta_esperada)
 
 # ----------------------------------------------------------------
@@ -195,13 +195,13 @@ def test_abandonar_partida_iniciada_ultimo_jugador_200(client, test_db, test_ws_
     # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
     jugador = unir_jugadores(test_db, partida)[0]
-    id_jugador = jugador.id
+    jugador_id =jugador.id
     id_creador = creador.id
     id_partida = partida.id
     partida = iniciar_partida(test_db, partida)
 
     # Realizamos la petición
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
+    response = client.delete(f"/partidas/{id_partida}/jugadores/{jugador_id}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada

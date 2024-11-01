@@ -326,12 +326,12 @@ def test_usar_figura_propia_partida_no_existe_404(client, test_db, test_ws_count
     '''Test de jugador que no es del turno intentando usar una figura propia'''
     # Realizamos la petición
     id_partida = 1
-    id_jugador = 1
+    jugador_id =1
     request_body = {
         "figura": [{"row": 0, "col": 0}],
         "carta_fig": "f1"
     }
-    response = client.put(f'/juego/{id_partida}/jugadores/{id_jugador}/tablero/figura', json=request_body)
+    response = client.put(f'/juego/{id_partida}/jugadores/{jugador_id}/tablero/figura', json=request_body)
     respuesta_esperada = {'detail': f'Partida con ID {id_partida} no encontrada.'}
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
@@ -371,15 +371,15 @@ def test_usar_figura_propia_jugador_no_existe_404(client, test_db, test_ws_count
     unir_jugadores(test_db, partida, numero_de_jugadores=1)
     iniciar_partida(test_db, partida)
     
-    id_jugador = 3
+    jugador_id =3
 
     # Realizamos la petición
     request_body = {
         "figura": [{"row": 0, "col": 0}],
         "carta_fig": "f1"
     }
-    response = client.put(f'/juego/{partida.id}/jugadores/{id_jugador}/tablero/figura', json=request_body)
-    respuesta_esperada = {'detail': f"Jugador con ID {id_jugador} no encontrado en la partida con ID {id_jugador}."}
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_id}/tablero/figura', json=request_body)
+    respuesta_esperada = {'detail': f"Jugador con ID {jugador_id} no encontrado en la partida con ID {jugador_id}."}
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
 # ----------------------------------------------------------------

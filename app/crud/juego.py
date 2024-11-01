@@ -143,7 +143,7 @@ def get_tablero(db: Session, partida_id: int):
     return juego.tablero
 
 
-def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: CasillasMov, db: Session):
+def modificar_casillas(id_partida: int, jugador_id: int, coordenadas_y_carta: CasillasMov, db: Session):
     from movimientos import swapear_en_tablero, is_valid_move
     import json
 
@@ -152,7 +152,7 @@ def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: Ca
     if (juego == None): # Esto no habria que comporbarlo si crud tuviera un buen metodo get_juego
         raise ResourceNotFoundError(f"Partida no encontrada")
     
-    if (juego.jugador_del_turno.id != id_jugador):
+    if (juego.jugador_del_turno.id != jugador_id):
         raise ForbiddenError("No es el turno del jugador")
     
 
@@ -174,7 +174,7 @@ def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: Ca
             break
 
     if not carta:
-        raise ResourceNotFoundError(f"Carta de movimiento no encontrada o ya usada por el jugador con ID {id_jugador}.")
+        raise ResourceNotFoundError(f"Carta de movimiento no encontrada o ya usada por el jugador con ID {jugador_id}.")
 
     carta_id = carta.id
 
@@ -299,7 +299,7 @@ def get_figuras_en_tablero(partida: Partida):
 
     return hallar_todas_las_figuras_en_tablero(tablero_decodificado)
 
-def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figura_data: CompletarFiguraData):
+def completar_figura_propia(db: Session, id_partida: int, jugador_id: int, figura_data: CompletarFiguraData):
     partida = db.get(Partida, id_partida)
     if (not partida):
         raise ResourceNotFoundError(
@@ -309,10 +309,10 @@ def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figur
         raise ForbiddenError(
             f"La partida con ID {id_partida} todavía no comenzó.")
     
-    jugador = db.get(Jugador, id_jugador)
+    jugador = db.get(Jugador, jugador_id)
     if (not jugador):
         raise ResourceNotFoundError(
-            f"Jugador con ID {id_jugador} no encontrado en la partida con ID {id_jugador}.")
+            f"Jugador con ID {jugador_id} no encontrado en la partida con ID {jugador_id}.")
     
     if (jugador.id != partida.jugador_id):
         raise ForbiddenError(

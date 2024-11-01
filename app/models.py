@@ -31,7 +31,7 @@ class Jugador(Base):
 
         
     def __str__(self):  # pragma: no cover
-        return (f"<Jugador(id_jugador={self.id}, nombre={self.nombre}, "
+        return (f"<Jugador(id={self.id}, nombre={self.nombre}, "
                 f"es_creador={self.es_creador}, partida_id={self.partida_id}, orden={self.orden}, "
                 f"numero_de_cartas_figura={len(self.mazo_cartas_de_figura)}, "
                 f"numero_de_cartas_movimiento={len(self.mano_movimientos)})>")
