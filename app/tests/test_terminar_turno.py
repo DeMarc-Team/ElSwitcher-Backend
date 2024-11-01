@@ -4,10 +4,10 @@ import pytest
 from factory import crear_partida, unir_jugadores, iniciar_partida, consumir_carta_movimiento, consumir_cantidad_cartas_figura_reveladas, consumir_cantidad_cartas_movimiento
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_TURNO, ACTUALIZAR_TABLERO, SINCRONIZAR_TURNO
 from tools import get_all_tables, capturar_metadata as capturar, comparar_capturas, verificar_diccionarios, seleccionar_parametros, verificar_tuplas
-from conftest import MOCK_TIME_GMT, MOCK_DURACION
+from constantes_juego import SEGUNDOS_TEMPORIZADOR_TURNO
 
 @pytest.mark.parametrize("numero_de_jugadores, numero_de_reveadas, numero_de_movimientos", seleccionar_parametros([(2, 3, 4),(0, 1, 2),(0, 1, 2)],3))
-def test_terminar_turno_reponer_cartas(client, test_db, test_ws_messages, numero_de_jugadores, numero_de_reveadas,numero_de_movimientos):
+def test_terminar_turno_reponer_cartas(client, test_db, test_ws_messages, mock_timeGmt, numero_de_jugadores, numero_de_reveadas,numero_de_movimientos):
     '''
     Test que chequea que al terminar el turno de un jugador, se reponen los movimeintos y las figuras reveladas que se descartaron.
     '''
@@ -15,7 +15,7 @@ def test_terminar_turno_reponer_cartas(client, test_db, test_ws_messages, numero
     test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
     test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}]
     test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
-    test_ws_messages[SINCRONIZAR_TURNO] = [{'partida_id': 1, 'inicio': MOCK_TIME_GMT, 'duracion': MOCK_DURACION}]
+    test_ws_messages[SINCRONIZAR_TURNO] = [{'partida_id': 1, 'inicio': mock_timeGmt, 'duracion': SEGUNDOS_TEMPORIZADOR_TURNO}]
 
     # Inicializamos la precondicion
     partida, _ = crear_partida(test_db)

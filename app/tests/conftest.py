@@ -13,10 +13,9 @@ from websockets_manager.ws_partidas_manager import MessageType as MTpartidas, ws
 from database import Base, get_db
 from main import app
 from tools import WSManagerTester; tester = WSManagerTester()
-from factory import test_temporizador_turno
+from crud.TemporizadorTurno import TemporizadorTurno; test_temporizador_turno = TemporizadorTurno()
 from unittest.mock import patch
-import time; MOCK_TIME_GMT = lambda: time.struct_time([2021, 1, 1, 0, 0, 0, 0, 0, 0])
-MOCK_DURACION = 0.0001
+import time;
 
 # Setup de la base de datos de prueba
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), "test.db")
@@ -48,13 +47,22 @@ def test_db(): # TODO: Cambiar nombre a test_setup o separar en dos fixtures?
     Base.metadata.create_all(bind=engine)
     # Creamos una nueva sesión de base de datos para cada test
     db = TestingSessionLocal()
-    # Mockeamos el diccionario del temporizador de turno
-    with patch("crud.TemporizadorTurno.temporizador_turno", test_temporizador_turno), \
-         patch("time.gmtime", MOCK_TIME_GMT), \
-         patch('constantes_juego.SEGUNDOS_TEMPORIZADOR_TURNO', return_value=MOCK_DURACION):
-        test_temporizador_turno.limpiar_temporizadores()
-        yield db
+    yield db
     db.close()
+
+@pytest.fixture(scope='function', autouse=True)
+def mock_dict_temporizadores_turno():
+    # Mockeamos el diccionario del temporizador de turno
+    with patch("crud.TemporizadorTurno.temporizador_turno", test_temporizador_turno):
+        yield
+        test_temporizador_turno.limpiar_temporizadores()
+
+@pytest.fixture(scope='function')
+def mock_timeGmt():
+    time_struct_to_mock = time.struct_time([2021, 1, 1, 0, 0, 0, 0, 0, 0])
+    with patch("time.gmtime", return_value=time_struct_to_mock):
+        yield time_struct_to_mock
+        
 
 @pytest.fixture(autouse=True, scope='session')
 def teardown_db():
@@ -92,7 +100,7 @@ def test_ws_messages():
             print(f"Llamadas actuales para '{message_type}': {actual_calls}")
             
             # Usamos Counter para comparar las listas de diccionarios sin importar el orden
-            assert Counter(map(frozenset, actual_calls)) == Counter(map(frozenset, expected_messages)), \
+            assert Counter(map(lambda x : str(x), actual_calls)) == Counter(map(lambda x : str(x), expected_messages)), \
                 f"send_{message_type} recibió: {actual_calls} pero esperaba {expected_messages}."
 
     yield from tester.test_ws_factory([], assert_message_calls)
