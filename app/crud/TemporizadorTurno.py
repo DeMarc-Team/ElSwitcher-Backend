@@ -1,5 +1,6 @@
 import asyncio
 import time
+import warnings
 
 from constantes_juego import SEGUNDOS_TEMPORIZADOR_TURNO
 
@@ -20,6 +21,7 @@ class TemporizadorTurno:
     def iniciar_temporizador_del_turno(self, partida_id: int, func: callable, args: tuple, duracion: int = SEGUNDOS_TEMPORIZADOR_TURNO) -> tuple:
         """
         Inicia el temporizador del turno actual de una partida.
+        Si ya existe el temporizador, lo cancela, elimina y reemplaza lanzando un warning.
         Al finalizar el temporizador, se pasará el turno al siguiente jugador.
 
         :PRE: La partida con ID partida_id existe y está iniciada.
@@ -31,11 +33,11 @@ class TemporizadorTurno:
 
         :return: Tupla (tiempo de inicio, duración) del temporizador.
         """
-        assert partida_id not in self.temporizadores, \
-            f"Ya hay un temporizador activo para la partida con ID {partida_id}."
+        if partida_id in self.temporizadores:
+            self.cancelar_temporizador_del_turno(partida_id)
+            warnings.warn(f"El temporizador para la partida con ID {partida_id} ya estaba activo!, se lo cancelo y reemplazo.", Warning)
 
         loop = asyncio.get_event_loop()
-        assert loop.is_running(), "El event loop no está corriendo."
 
         tarea = loop.create_task(self.__iniciar_temporizador(partida_id, func, args, duracion))
         self.temporizadores[partida_id] = tarea
@@ -55,13 +57,14 @@ class TemporizadorTurno:
         else:
             print(f"No hay temporizador para cancelar activo para la partida con ID {partida_id}.")
 
-    def limpiar_temporizadores(self):
+    def tiene_temporizador_del_turno(self, partida_id: int) -> bool:
         """
-        Cancela todos los temporizadores activos.
+        Devuelve True si la partida tiene un temporizador del turno activo, False en caso contrario.
+
+        :param partida_id: ID de la partida.
+
+        :return: True si la partida tiene un temporizador del turno activo, False en caso contrario.
         """
-        for partida_id, tarea in list(self.temporizadores.items()):
-            tarea.cancel()
-        self.temporizadores.clear()
-        print("Todos los temporizadores han sido cancelados.")
+        return partida_id in self.temporizadores
             
-temporizador_turno = TemporizadorTurno()
+temporizadores_turno = TemporizadorTurno()

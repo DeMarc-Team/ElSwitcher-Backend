@@ -5,7 +5,7 @@ from models import Partida, Jugador, CartaMovimiento, MovimientoParcial
 from schemas import TurnoDetails, CasillasMov, CompletarFiguraData
 from figuras import hallar_todas_las_figuras_en_tablero
 from constantes_juego import N_FIGURAS_REVELADAS
-from crud.TemporizadorTurno import temporizador_turno
+from crud.TemporizadorTurno import temporizadores_turno
 
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (
@@ -112,7 +112,7 @@ def terminar_turno(db: Session, partida_id, jugador_id):
     if (jugador_id is not None and actual_jugador.id_jugador != jugador_id):
         raise ForbiddenError(f"El ID del jugador que posee el turno no es {jugador_id}.")
     
-    temporizador_turno.cancelar_temporizador_del_turno(partida_id)
+    temporizadores_turno.cancelar_temporizador_del_turno(partida_id)
     
     limpiar_stack_movimientos_parciales(db, partida_id, atomic=False)
     

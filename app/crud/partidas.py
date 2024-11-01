@@ -7,7 +7,7 @@ from schemas import PartidaData
 from models import Jugador, CartaFigura, CartaMovimiento, Partida
 from crud.juego import terminar_turno
 from constantes_juego import N_CARTAS_FIGURA_TOTALES, N_FIGURAS_REVELADAS
-from crud.TemporizadorTurno import temporizador_turno
+from crud.TemporizadorTurno import temporizadores_turno
 
 def get_id_creador(db: Session, partida_id):
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
@@ -158,7 +158,7 @@ def hay_ganador(db: Session, partida: Partida = None):
 
 
 def eliminar_partida(db: Session, partida: Partida):
-    temporizador_turno.cancelar_temporizador_del_turno(partida.id)
+    temporizadores_turno.cancelar_temporizador_del_turno(partida.id)
     db.delete(partida)
     db.commit()
     

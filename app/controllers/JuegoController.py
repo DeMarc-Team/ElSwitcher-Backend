@@ -3,7 +3,7 @@ from websockets_manager.ws_partidas_manager import ws_partidas_manager
 from figuras import hallar_todas_las_figuras_en_tablero
 import json
 
-from crud.TemporizadorTurno import temporizador_turno
+from crud.TemporizadorTurno import temporizadores_turno
 
 class JuegoController:
     def __init__(self, db):
@@ -60,5 +60,5 @@ async def terminar_turno(db, id_partida, id_jugador = None):
         juego_service.terminar_turno(db, id_partida, id_jugador)
         await ws_partidas_manager.send_actualizar_turno(id_partida)
         await ws_partidas_manager.send_actualizar_tablero(id_partida)
-        inicio, duracion = temporizador_turno.iniciar_temporizador_del_turno(id_partida, terminar_turno, (db, id_partida, None))
+        inicio, duracion = temporizadores_turno.iniciar_temporizador_del_turno(id_partida, terminar_turno, (db, id_partida, None))
         await ws_partidas_manager.send_sincronizar_turno(id_partida, inicio, duracion)
