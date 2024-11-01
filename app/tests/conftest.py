@@ -13,6 +13,10 @@ from websockets_manager.ws_partidas_manager import MessageType as MTpartidas, ws
 from database import Base, get_db
 from main import app
 from tools import WSManagerTester; tester = WSManagerTester()
+from factory import test_temporizador_turno
+from unittest.mock import patch
+import time; MOCK_TIME_GMT = lambda: time.struct_time([2021, 1, 1, 0, 0, 0, 0, 0, 0])
+MOCK_DURACION = 0.0001
 
 # Setup de la base de datos de prueba
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), "test.db")
@@ -38,13 +42,18 @@ def client():
     return TestClient(app)
 
 @pytest.fixture(scope='function')
-def test_db():
+def test_db(): # TODO: Cambiar nombre a test_setup o separar en dos fixtures?
     # Limpiamos la base de datos antes de cada test
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     # Creamos una nueva sesión de base de datos para cada test
     db = TestingSessionLocal()
-    yield db
+    # Mockeamos el diccionario del temporizador de turno
+    with patch("crud.TemporizadorTurno.temporizador_turno", test_temporizador_turno), \
+         patch("time.gmtime", MOCK_TIME_GMT), \
+         patch('constantes_juego.SEGUNDOS_TEMPORIZADOR_TURNO', return_value=MOCK_DURACION):
+        test_temporizador_turno.limpiar_temporizadores()
+        yield db
     db.close()
 
 @pytest.fixture(autouse=True, scope='session')

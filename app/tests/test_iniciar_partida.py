@@ -3,12 +3,14 @@ from models import Partida
 from factory import crear_partida, unir_jugadores, iniciar_partida
 from constantes_juego import N_CARTAS_FIGURA_TOTALES, N_FIGURAS_REVELADAS
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
-from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA
+from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, SINCRONIZAR_TURNO
+from conftest import MOCK_TIME_GMT, MOCK_DURACION
 
 def test_iniciar_partida_200(client, test_db, test_ws_messages):
     '''Test para iniciar una partida con suficientes jugadores'''
     test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
     test_ws_messages[ACTUALIZAR_SALA_ESPERA] = [{'partida_id': 1}]
+    test_ws_messages[SINCRONIZAR_TURNO] = [{'partida_id': 1, 'inicio': MOCK_TIME_GMT, 'duracion': MOCK_DURACION}]
     
     partida, _ = crear_partida(db=test_db, nombre_partida="partida_con_2_jugadores", nombre_creador="Creador")
     unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=2)

@@ -2,8 +2,9 @@ import mock
 import pytest
 
 from factory import crear_partida, unir_jugadores, iniciar_partida, consumir_carta_movimiento, consumir_cantidad_cartas_figura_reveladas, consumir_cantidad_cartas_movimiento
-from websockets_manager.ws_partidas_manager import ACTUALIZAR_TURNO, ACTUALIZAR_TABLERO
+from websockets_manager.ws_partidas_manager import ACTUALIZAR_TURNO, ACTUALIZAR_TABLERO, SINCRONIZAR_TURNO
 from tools import get_all_tables, capturar_metadata as capturar, comparar_capturas, verificar_diccionarios, seleccionar_parametros, verificar_tuplas
+from conftest import MOCK_TIME_GMT, MOCK_DURACION
 
 @pytest.mark.parametrize("numero_de_jugadores, numero_de_reveadas, numero_de_movimientos", seleccionar_parametros([(2, 3, 4),(0, 1, 2),(0, 1, 2)],3))
 def test_terminar_turno_reponer_cartas(client, test_db, test_ws_messages, numero_de_jugadores, numero_de_reveadas,numero_de_movimientos):
@@ -13,6 +14,8 @@ def test_terminar_turno_reponer_cartas(client, test_db, test_ws_messages, numero
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
     test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}]
+    test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
+    test_ws_messages[SINCRONIZAR_TURNO] = [{'partida_id': 1, 'inicio': MOCK_TIME_GMT, 'duracion': MOCK_DURACION}]
 
     # Inicializamos la precondicion
     partida, _ = crear_partida(test_db)
@@ -24,6 +27,7 @@ def test_terminar_turno_reponer_cartas(client, test_db, test_ws_messages, numero
     
     # Realizamos la petición
     captura_inicial = capturar(get_all_tables(test_db))
+    
     
     response = client.put(f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
@@ -90,6 +94,7 @@ def test_terminar_turno(client, test_db, test_ws_counts):
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws_counts[ACTUALIZAR_TURNO] = 1
     test_ws_counts[ACTUALIZAR_TABLERO] = 1
+    test_ws_counts[SINCRONIZAR_TURNO] = 1
 
 def test_vuelta_completa(client, test_db, test_ws_counts):
     '''Test que chequea el funcionamiento de una vuelta completa de turnos.'''
@@ -112,6 +117,7 @@ def test_vuelta_completa(client, test_db, test_ws_counts):
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws_counts[ACTUALIZAR_TURNO] = len(partida.jugadores)
     test_ws_counts[ACTUALIZAR_TABLERO] = len(partida.jugadores)
+    test_ws_counts[SINCRONIZAR_TURNO] = len(partida.jugadores)
 
 def test_varias_rondas(client, test_db, test_ws_counts):
     '''Test sobre la confiabilidad de los turnos a lo largo de varias rondas.'''
@@ -138,6 +144,7 @@ def test_varias_rondas(client, test_db, test_ws_counts):
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws_counts[ACTUALIZAR_TURNO] = 5 * len(partida.jugadores)
     test_ws_counts[ACTUALIZAR_TABLERO] = 5 * len(partida.jugadores)
+    test_ws_counts[SINCRONIZAR_TURNO] = 5 * len(partida.jugadores)
 
 def test_reponer_cartas_movimiento(client, test_db):
     '''Test sobre la reposición de las cartas de movimiento al finalizar el turno del jugador.'''
