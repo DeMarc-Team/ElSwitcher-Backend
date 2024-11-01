@@ -8,12 +8,10 @@ import os
 import sys # Estas dos lineas modifican las importanciones de los modulos en los tests
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 
-from websockets_manager.ws_home_manager import MessageType as MThome, ws_home_manager, WsMessage as WsHomeMessage
-from websockets_manager.ws_partidas_manager import MessageType as MTpartidas, ws_partidas_manager, WsMessage as WsPartidasMessage
 from database import Base, get_db
 from main import app
 from tools import WSManagerTester; tester = WSManagerTester()
-from crud.TemporizadorTurno import TemporizadorTurno; test_temporizador_turno = TemporizadorTurno()
+from factory import test_temporizadores_turno
 from unittest.mock import patch
 import time;
 
@@ -53,9 +51,9 @@ def test_db(): # TODO: Cambiar nombre a test_setup o separar en dos fixtures?
 @pytest.fixture(scope='function', autouse=True)
 def mock_dict_temporizadores_turno():
     # Mockeamos el diccionario del temporizador de turno
-    with patch("crud.TemporizadorTurno.temporizador_turno", test_temporizador_turno):
+    with patch("crud.TemporizadorTurno.temporizadores_turno", test_temporizadores_turno):
         yield
-        test_temporizador_turno.limpiar_temporizadores()
+        test_temporizadores_turno.limpiar_temporizadores()
 
 @pytest.fixture(scope='function')
 def mock_timeGmt():
