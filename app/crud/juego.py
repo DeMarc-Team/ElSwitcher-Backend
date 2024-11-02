@@ -184,8 +184,27 @@ def unatomic_bloquear_figura(db: Session, partida: Partida, jugador: Jugador, bl
     Recibe una partida, un jugador y datos para bloquear a otro jugador y
     en caso de poder hacerlo según las reglas del juego, bloquea la carta de este último.
     """
-    # TODO: Terminar esta función.
-    pass
+    
+    if (jugador.id_jugador != partida.jugador_id):
+        raise ForbiddenError(
+            f"El jugador con ID {jugador.id_jugador} no posee el turno."
+        )
+    
+    fig_deseada = bloqueo_data.carta_fig
+    coordenadas_fig_deseada = bloqueo_data.figura
+    
+    jugador_a_bloquear = get_jugador(db, partida, bloqueo_data.id_jugador_bloqueado)
+    
+    if ( jugador_is_bloqueado(jugador) ):
+        raise ForbiddenError(
+            f"El jugador con ID {jugador_a_bloquear.id} ya posee una carta bloqueada."    
+        )
+    
+    carta_a_bloquear = get_carta_revelada_from_jugador(jugador_a_bloquear, fig_deseada)
+    check_figura_en_tablero(partida, coordenadas_fig_deseada, fig_deseada)
+    
+    carta_a_bloquear.bloqueada = True
+    db.flush()
 
 def unatomic_aplicar_parciales(db: Session, partida: Partida):
     '''
@@ -243,6 +262,10 @@ def check_figura_en_tablero(partida: Partida, coordenadas_fig_deseada: list[Casi
         raise ResourceNotFoundError(
             f"No existe (en el tablero) la figura que se intenta utilizar en las coordenadas enviadas."
         )
+
+def jugador_is_bloqueado(jugador: Jugador):
+    mano_reveladas = [carta for carta in jugador.mazo_cartas_de_figura if carta.revelada]
+    return any(carta.bloqueada for carta in mano_reveladas)
 
 def get_carta_revelada_from_jugador(jugador: Jugador, fig_deseada: str):
     carta_a_usar = next((carta for carta in jugador.mazo_cartas_de_figura if (carta.revelada and carta.figura == fig_deseada)), None)
