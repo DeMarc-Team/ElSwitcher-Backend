@@ -64,5 +64,5 @@ async def terminar_turno(db, id_partida, id_jugador):
 
 async def iniciar_temporizador_turno(db, id_partida):
     id_jugador = juego_service.get_id_jugador_turno(db, id_partida)
-    inicio, duracion = temporizadores_turno.iniciar_temporizador_del_turno(id_partida, terminar_turno, (db, id_partida, id_jugador))
+    inicio, duracion = await temporizadores_turno.iniciar_temporizador_del_turno(id_partida, terminar_turno, (db, id_partida, id_jugador))
     await ws_partidas_manager.send_sincronizar_turno(id_partida, inicio, duracion)

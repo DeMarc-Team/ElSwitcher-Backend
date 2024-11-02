@@ -9,6 +9,7 @@ class TemporizadorTurno:
 
     def __init__(self):
         self.temporizadores = {}
+        self.lock = asyncio.Lock()
     
     async def __pasar_el_turno_por_temporizador(self, partida_id: int, func: callable, args: tuple):
         try:
@@ -24,7 +25,7 @@ class TemporizadorTurno:
         await asyncio.sleep(duracion)
         await self.__pasar_el_turno_por_temporizador(partida_id, func, args)
 
-    def iniciar_temporizador_del_turno(self, partida_id: int, func: callable, args: tuple, duracion: int = SEGUNDOS_TEMPORIZADOR_TURNO) -> tuple:
+    async def iniciar_temporizador_del_turno(self, partida_id: int, func: callable, args: tuple, duracion: int = SEGUNDOS_TEMPORIZADOR_TURNO) -> tuple:
         """
         Inicia el temporizador del turno actual de una partida.
         Si ya existe el temporizador, lo cancela, elimina y reemplaza lanzando un warning.
@@ -39,16 +40,17 @@ class TemporizadorTurno:
 
         :return: Tupla (tiempo de inicio, duración) del temporizador.
         """
-        if partida_id in self.temporizadores:
-            self.cancelar_temporizador_del_turno(partida_id)
-            warnings.warn(f"El temporizador para la partida con ID {partida_id} ya estaba activo!, se lo cancelo y reemplazo.", Warning)
+        async with self.lock:
+            if partida_id in self.temporizadores:
+                self.cancelar_temporizador_del_turno(partida_id)
+                warnings.warn(f"El temporizador para la partida con ID {partida_id} ya estaba activo!, se lo cancelo y reemplazo.", Warning)
 
-        loop = asyncio.get_event_loop()
+            loop = asyncio.get_event_loop()
 
-        tarea = loop.create_task(self.__iniciar_temporizador(partida_id, func, args, duracion))
-        self.temporizadores[partida_id] = tarea
-        
-        return time.gmtime(), duracion
+            tarea = loop.create_task(self.__iniciar_temporizador(partida_id, func, args, duracion))
+            self.temporizadores[partida_id] = tarea
+            
+            return time.gmtime(), duracion
      
     def cancelar_temporizador_del_turno(self, partida_id: int) -> None:
         """
