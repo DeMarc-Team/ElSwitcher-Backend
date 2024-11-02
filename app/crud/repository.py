@@ -68,7 +68,11 @@ class PartidaRepo(BaseRepository):
             Obtener el jugador del turno actual
             de una partida
         """
-        partida = self.get_by_id(partida_id)
+        try:
+            partida = self.get_by_id(partida_id)
+        except ResourceNotFoundError:
+            raise ResourceNotFoundError(f"No se encontro ninguna partida con ID {partida_id} al buscar el jugador del turno.")
+        
         return partida.jugador_del_turno
 
 class JugadoresRepo(BaseRepository):
@@ -78,14 +82,22 @@ class JugadoresRepo(BaseRepository):
         """
             Obtener las cartas de figura de un jugador
         """
-        jugador = self.get_by_id(jugador_id)
+        try:
+            jugador = self.get_by_id(jugador_id)
+        except ResourceNotFoundError:
+            raise ResourceNotFoundError(f"No se encontro ningun jugador con ID {jugador_id} al buscar sus cartas de figura.")
+        
         return jugador.mazo_cartas_de_figura
     
     def get_cartas_movimiento(self, jugador_id):
         """
             Obtener las cartas de movimiento de un jugador
         """
-        jugador = self.get_by_id(jugador_id)
+
+        try:
+            jugador = self.get_by_id(jugador_id)
+        except ResourceNotFoundError:
+            raise ResourceNotFoundError(f"No se encontro ningun jugador con ID {jugador_id} al buscar sus cartas de movimiento.")
         return jugador.mano_movimientos
 
 class CartasFiguraRepo(BaseRepository):
