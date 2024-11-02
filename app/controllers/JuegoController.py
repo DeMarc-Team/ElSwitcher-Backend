@@ -18,7 +18,7 @@ class JuegoController:
     async def get_turno_details(self, partida_id):
         return juego_service.get_turno_details(self.db, partida_id)
 
-    async def terminar_turno(self, id_partida, id_jugador = None):
+    async def terminar_turno(self, id_partida, id_jugador):
         await terminar_turno(self.db, id_partida, id_jugador)
         
 
@@ -56,9 +56,13 @@ class JuegoController:
             await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
             await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
             
-async def terminar_turno(db, id_partida, id_jugador = None):
+async def terminar_turno(db, id_partida, id_jugador):
         juego_service.terminar_turno(db, id_partida, id_jugador)
         await ws_partidas_manager.send_actualizar_turno(id_partida)
         await ws_partidas_manager.send_actualizar_tablero(id_partida)
-        inicio, duracion = temporizadores_turno.iniciar_temporizador_del_turno(id_partida, terminar_turno, (db, id_partida, None))
-        await ws_partidas_manager.send_sincronizar_turno(id_partida, inicio, duracion)
+        await iniciar_temporizador_turno(db, id_partida)
+
+async def iniciar_temporizador_turno(db, id_partida):
+    id_jugador = juego_service.get_id_jugador_turno(db, id_partida)
+    inicio, duracion = temporizadores_turno.iniciar_temporizador_del_turno(id_partida, terminar_turno, (db, id_partida, id_jugador))
+    await ws_partidas_manager.send_sincronizar_turno(id_partida, inicio, duracion)

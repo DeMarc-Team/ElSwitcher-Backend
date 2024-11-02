@@ -109,7 +109,7 @@ def terminar_turno(db: Session, partida_id, jugador_id):
 
     actual_jugador = partida.jugador_del_turno
 
-    if (jugador_id is not None and actual_jugador.id_jugador != jugador_id):
+    if (actual_jugador.id_jugador != jugador_id):
         raise ForbiddenError(f"El ID del jugador que posee el turno no es {jugador_id}.")
     
     temporizadores_turno.cancelar_temporizador_del_turno(partida_id)
@@ -404,3 +404,10 @@ def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
     mano_del_jugador = [figura_revelada for figura_revelada in jugador.mazo_cartas_de_figura if figura_revelada.revelada]
 
     return mano_del_jugador
+
+def get_id_jugador_turno(db: Session, partida_id):
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+    if (not partida):
+        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
+    
+    return partida.jugador_id

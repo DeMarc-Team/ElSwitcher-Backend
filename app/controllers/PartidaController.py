@@ -4,7 +4,7 @@ from websockets_manager.ws_home_manager import ws_home_manager
 from websockets_manager.ws_partidas_manager import ws_partidas_manager
 
 from crud.TemporizadorTurno import temporizadores_turno
-from controllers.JuegoController import terminar_turno
+from controllers.JuegoController import iniciar_temporizador_turno
 class PartidaController:
     def __init__(self, db):
         self.db = db
@@ -34,8 +34,7 @@ class PartidaController:
         partida_service.iniciar_partida(self.db, partida_id)
         await ws_home_manager.send_actualizar_partidas()
         await ws_partidas_manager.send_actualizar_sala_espera(partida_id)
-        inicio, duracion = temporizadores_turno.iniciar_temporizador_del_turno(partida_id, terminar_turno, (self.db, partida_id, None))
-        await ws_partidas_manager.send_sincronizar_turno(partida_id, inicio, duracion)
+        await iniciar_temporizador_turno(self.db, partida_id)
         return {"details": "Partida iniciada correctamente", "partida_id": partida_id}
 
     async def abandonar_partida(self, partida_id, jugador_id):
