@@ -2,7 +2,7 @@ import pytest
 
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
 from websockets_manager.ws_partidas_manager import SINCRONIZAR_TURNO, ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, PARTIDA_CANCELADA, ACTUALIZAR_TABLERO
-from factory import crear_partida, unir_jugadores, iniciar_partida
+from factory import crear_partida, unir_jugadores, iniciar_partida, test_temporizadores_turno
 from verifications import check_jugador_abandoned, check_partida_deletion, check_response
 from constantes_juego import SEGUNDOS_TEMPORIZADOR_TURNO
 from tools import get_all_tables
@@ -215,7 +215,8 @@ def test_abandonar_partida_iniciada_ultimo_jugador_200(client, test_db, test_ws_
 
 # ----------------------------------------------------------------
 
-def test_integracion_abandonar_partida_iniciada_ultimo_jugador_200(client, test_db, test_ws_messages, mock_timeGmt):
+@pytest.mark.asyncio
+async def test_integracion_abandonar_partida_iniciada_ultimo_jugador_200(client, test_db, test_ws_messages, mock_timeGmt):
     '''Test de jugador abandonando una partida iniciada y queda solo un jugador'''
     # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
@@ -232,6 +233,8 @@ def test_integracion_abandonar_partida_iniciada_ultimo_jugador_200(client, test_
     response = client.put("partidas/1")
     check_response(response, 200, {'details': 'Partida iniciada correctamente', 'partida_id': 1})
 
+    await test_temporizadores_turno.wait_for_all_tasks()
+    
     # Pasamos un turno a traves de la ruta
     test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
     test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}]
@@ -239,6 +242,8 @@ def test_integracion_abandonar_partida_iniciada_ultimo_jugador_200(client, test_
 
     response = client.put(f'/juego/{partida.id}/jugadores/{partida.jugador_del_turno.id}/turno')
     check_response(response, 200, None)
+    
+    await test_temporizadores_turno.wait_for_all_tasks()
     
     # Hacemos que un jugador abandone la partida
     test_ws_messages[HAY_GANADOR] = [{'partida_id': 1, 'jugador_id': 1, 'nombre': 'Creador'}]
@@ -248,3 +253,5 @@ def test_integracion_abandonar_partida_iniciada_ultimo_jugador_200(client, test_
 
     # Verificamos que la base de datos se haya actualizado correctamente
     assert get_all_tables(test_db) == [], f"Fallo: Se esperaba que la base de datos estuviera vacia, pero se obtuvo {get_all_tables()}"
+
+    await test_temporizadores_turno.wait_for_all_tasks()
