@@ -5,11 +5,9 @@ from sqlalchemy.orm import Session
 from models import Partida, Jugador, CartaFigura, CartaMovimiento
 import os
 
-# Si el motor y la session storage estan creados por database.py, usarlos
 _engine = engine
 session = localSession()
 
-# BaseRepository class
 class BaseRepository():
     """
         Todos los metodos que deberian ser generales entre
