@@ -103,14 +103,7 @@ def terminar_turno(db: Session, partida_id, jugador_id):
         raise ResourceNotFoundError(
             f"Partida con ID {partida_id} no encontrada.")
 
-    if (not partida.iniciada):
-        raise ForbiddenError(
-            f"La partida con ID {partida_id} todavía no comenzó.")
-
-    actual_jugador = partida.jugador_del_turno
-
-    if (actual_jugador.id_jugador != jugador_id):
-        raise ForbiddenError(f"El ID del jugador que posee el turno no es {jugador_id}.")
+    validar_turno_jugador(db, partida_id, jugador_id)
     
     temporizadores_turno.cancelar_temporizador_del_turno(partida_id)
     
@@ -122,6 +115,20 @@ def terminar_turno(db: Session, partida_id, jugador_id):
     siguiente_turno(db, partida_id, atomic=False)
 
     db.commit()
+
+def validar_turno_jugador(db: Session, partida_id, jugador_id):
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+    if (not partida):
+        raise ResourceNotFoundError(
+            f"Partida con ID {partida_id} no encontrada.")
+    if (not partida.iniciada):
+        raise ForbiddenError(
+            f"La partida con ID {partida_id} todavía no comenzó.")
+
+    actual_jugador = partida.jugador_del_turno
+
+    if (actual_jugador.id_jugador != jugador_id):
+        raise ForbiddenError(f"El ID del jugador que posee el turno no es {jugador_id}.")
 
 def limpiar_stack_movimientos_parciales(db, partida_id, atomic=True):
     partida = db.query(Partida).filter(Partida.id == partida_id).first()

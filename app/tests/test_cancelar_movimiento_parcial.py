@@ -1,6 +1,7 @@
 import copy
+import pytest
 
-from factory import crear_partida, unir_jugadores, iniciar_partida
+from factory import crear_partida, unir_jugadores, iniciar_partida, test_temporizadores_turno
 from test_endpoint_jugar_carta_movimiento import agregar_m1_a_los_inventarios, jugar_carta_m1
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_TURNO, ACTUALIZAR_TABLERO, ACTUALIZAR_CARTAS_MOVIMIENTO, ACTUALIZAR_SALA_ESPERA
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS # Hace falta porque un jugador abandona
@@ -70,7 +71,8 @@ def test_no_se_puede_cancelar_movimiento_parcial_si_no_hay_movimientos_parciales
     assert partida.movimientos_parciales == [], "Fallo: Debería haberse limpiado la lista de movimientos parciales"
     assert partida.tablero == tablero_original, "Fallo: El tablero no debería haber cambiado"
 
-def test_se_limpian_los_movs_parciales_pasando_turno(client, test_db):
+@pytest.mark.asyncio
+async def test_se_limpian_los_movs_parciales_pasando_turno(client, test_db):
     partida, creador = crear_partida(db=test_db, nombre_partida="partida_con_2_jugadores", nombre_creador="Creador")
     tablero_original = copy.copy(partida.tablero)
     tablero_esperado = '[[3, 1, 3, 4, 2, 3], [4, 2, 1, 1, 3, 3], [2, 1, 2, 2, 3, 4], [4, 1, 1, 2, 2, 4], [1, 3, 1, 2, 1, 3], [2, 3, 4, 4, 4, 4]]'
@@ -92,9 +94,9 @@ def test_se_limpian_los_movs_parciales_pasando_turno(client, test_db):
     response = jugar_carta_m1(client, partida, id_jugador_del_turno)
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     test_db.refresh(jugador_del_turno) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
-
     response = client.put(f"/juego/{partida.id}/jugadores/{id_jugador_del_turno}/turno")
-
+    await test_temporizadores_turno.wait_for_all_tasks()
+    
     test_db.refresh(partida) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
     assert partida.tablero == tablero_original, "Fallo: El tablero no debería haber cambiado"
     assert partida.movimientos_parciales == [], "Fallo: Debería haberse limpiado la lista de movimientos parciales"
