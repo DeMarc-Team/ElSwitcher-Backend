@@ -12,7 +12,7 @@ class TemporizadorTurno:
     async def __pasar_el_turno_por_temporizador(self, partida_id: int, func: callable, args: tuple):
         await func(*args)
         del self.temporizadores[partida_id]
-        print(f"Se pasó el turno de la partida con ID {partida_id} por temporizador.")
+        #print(f"Se pasó el turno de la partida con ID {partida_id} por temporizador.")
 
     async def __iniciar_temporizador(self, partida_id: int, func: callable, args: tuple, duracion: int):
         await asyncio.sleep(duracion)
@@ -53,9 +53,6 @@ class TemporizadorTurno:
         if partida_id in self.temporizadores:
             self.temporizadores[partida_id].cancel()
             del self.temporizadores[partida_id]
-            print(f"Temporizador para la partida con ID {partida_id} cancelado.")
-        else:
-            print(f"No hay temporizador para cancelar activo para la partida con ID {partida_id}.")
 
     def tiene_temporizador_del_turno(self, partida_id: int) -> bool:
         """
