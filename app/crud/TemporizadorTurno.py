@@ -3,6 +3,7 @@ import time
 import warnings
 
 from constantes_juego import SEGUNDOS_TEMPORIZADOR_TURNO
+from exceptions import ResourceNotFoundError, ForbiddenError
 
 class TemporizadorTurno:
 
@@ -10,8 +11,13 @@ class TemporizadorTurno:
         self.temporizadores = {}
     
     async def __pasar_el_turno_por_temporizador(self, partida_id: int, func: callable, args: tuple):
-        await func(*args)
-        del self.temporizadores[partida_id]
+        try:
+            await func(*args)
+            del self.temporizadores[partida_id]
+        except ResourceNotFoundError as e:
+            warnings.warn(f"ResourceNotFoundError al pasar el turno por temporizador de la partida con ID {partida_id}: {e}", Warning)
+        except ForbiddenError as e:
+            warnings.warn(f"ForbiddenError al pasar el turno por temporizador de la partida con ID {partida_id}: {e}", Warning)
         #print(f"Se pasó el turno de la partida con ID {partida_id} por temporizador.")
 
     async def __iniciar_temporizador(self, partida_id: int, func: callable, args: tuple, duracion: int):
