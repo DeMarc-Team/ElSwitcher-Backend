@@ -27,6 +27,7 @@ def test_get_cartas_figura_happy_path(client, test_db):
                 carta["figura"] == "fig01"
             ), f"Fallo: Se esperaba la figura 'fig01', pero se obtuvo {carta['figura']}"
             assert carta["revelada"] == True
+            assert carta["bloqueada"] == False, f"Fallo: Se esperaba que no hubieran figuras bloqueadas."
 
 
 def test_get_cartas_figura_jugador_no_iniciada(client, test_db):

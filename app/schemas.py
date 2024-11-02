@@ -55,6 +55,7 @@ class TurnoDetails(BaseModel):
 class CartaFiguraData(BaseModel):
     figura: str
     revelada: bool
+    bloqueada: bool
 
 class CartaMovimientoData(BaseModel):
     movimiento: str
