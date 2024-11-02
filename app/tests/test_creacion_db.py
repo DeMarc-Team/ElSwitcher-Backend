@@ -67,6 +67,6 @@ def test_db_creation(): #test_db):
     verificar_columnas(inspector, "partidas", ['id', 'nombre_partida', 'nombre_creador', 'iniciada', 'tablero'])
     verificar_columnas(inspector, "jugadores", ['id_jugador', 'nombre', 'es_creador', 'partida_id', 'orden'])
     verificar_columnas(inspector, "cartas_de_movimiento", ['id', 'movimiento', 'jugador_id'])
-    verificar_columnas(inspector, "cartas_de_figura", ['id', 'figura', 'revelada', 'jugador_id'])
+    verificar_columnas(inspector, "cartas_de_figura", ['id', 'figura', 'revelada', 'bloqueada', 'jugador_id'])
 
     # test_db.close()
