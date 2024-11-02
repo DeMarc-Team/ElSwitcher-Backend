@@ -39,7 +39,7 @@ def client():
     return TestClient(app)
 
 @pytest.fixture(scope='function')
-def test_db(): # TODO: Cambiar nombre a test_setup o separar en dos fixtures?
+def test_db():
     # Limpiamos la base de datos antes de cada test
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
