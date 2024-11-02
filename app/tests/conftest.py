@@ -8,8 +8,6 @@ import os
 import sys # Estas dos lineas modifican las importanciones de los modulos en los tests
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 
-from websockets_manager.ws_home_manager import MessageType as MThome, ws_home_manager, WsMessage as WsHomeMessage
-from websockets_manager.ws_partidas_manager import MessageType as MTpartidas, ws_partidas_manager, WsMessage as WsPartidasMessage
 from database import Base, get_db
 from main import app
 from tools import WSManagerTester; tester = WSManagerTester()
@@ -83,7 +81,7 @@ def test_ws_messages():
             print(f"Llamadas actuales para '{message_type}': {actual_calls}")
             
             # Usamos Counter para comparar las listas de diccionarios sin importar el orden
-            assert Counter(map(frozenset, actual_calls)) == Counter(map(frozenset, expected_messages)), \
+            assert Counter(map(lambda x : str(x), actual_calls)) == Counter(map(lambda x : str(x), expected_messages)), \
                 f"send_{message_type} recibió: {actual_calls} pero esperaba {expected_messages}."
 
     yield from tester.test_ws_factory([], assert_message_calls)
