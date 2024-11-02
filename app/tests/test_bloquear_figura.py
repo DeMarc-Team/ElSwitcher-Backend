@@ -20,7 +20,7 @@ def test_bloquear_happy_path(client, test_db, test_ws_messages):
     test_ws_messages[ACTUALIZAR_CARTAS_MOVIMIENTO] = [{"partida_id": 1}]
 
     modificaciones, eliminadas, creadas = bloqueo_generico_test(client, test_db,
-        mano_del_jugador_a_bloquear=["f1"],
+        mano_del_jugador_a_bloquear=["f1", "f2"],
         n_movimientos_a_consumir=2,
         request_carta_fig="f1",
         jugador_a_bloquear_bloqueado=False,
@@ -43,7 +43,7 @@ def test_bloquear_happy_path(client, test_db, test_ws_messages):
 def test_jugador_ya_bloqueado_403(client, test_db, test_ws_messages):
 
     modificaciones, eliminadas, creadas = bloqueo_generico_test(client, test_db,
-        mano_del_jugador_a_bloquear=["f1"],
+        mano_del_jugador_a_bloquear=["f1", "f2"],
         n_movimientos_a_consumir=2,
         request_carta_fig="f1",
         jugador_a_bloquear_bloqueado=True,
@@ -79,12 +79,31 @@ def test_bloquear_jugador_sin_carta_404(client, test_db, test_ws_messages):
     """
     
     modificaciones, eliminadas, creadas = bloqueo_generico_test(client, test_db,
-        mano_del_jugador_a_bloquear=["f3"],
+        mano_del_jugador_a_bloquear=["f2", "f3"],
         n_movimientos_a_consumir=1,
         request_carta_fig="f1",
         jugador_a_bloquear_bloqueado=False,
         status_code_esperado=404,
         respuesta_esperada={'detail': f'El jugador no tiene en la mano ninguna carta de figura revelada del formato f1.'},
+    )
+
+    # 51 es, por construcción, el id de la carta carteada.
+    assert set(modificaciones) == set(), "Fallo: Se esperaba que no hubieran modificaciones."
+    assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
+    assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
+    
+def test_bloquear_jugador_una_carta_403(client, test_db, test_ws_messages):
+    """
+    Test sobre el correcto comportamiento cuando el jugador a bloquear tiene una única carta en su mano.
+    """
+    
+    modificaciones, eliminadas, creadas = bloqueo_generico_test(client, test_db,
+        mano_del_jugador_a_bloquear=["f1"],
+        n_movimientos_a_consumir=1,
+        request_carta_fig="f1",
+        jugador_a_bloquear_bloqueado=False,
+        status_code_esperado=403,
+        respuesta_esperada={'detail': 'El jugador con ID 2 tiene una única carta de figura en su mano.'},
     )
 
     # 51 es, por construcción, el id de la carta carteada.

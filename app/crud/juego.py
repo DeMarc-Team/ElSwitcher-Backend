@@ -318,6 +318,11 @@ def unatomic_bloquear_figura(db: Session, partida: Partida, jugador: Jugador, bl
             f"El jugador con ID {jugador_a_bloquear.id} ya posee una carta bloqueada."    
         )
     
+    if ( len(jugador_a_bloquear.mano_figuras) == 1 ):
+        raise ForbiddenError(
+            f"El jugador con ID {jugador_a_bloquear.id} tiene una única carta de figura en su mano."    
+        )
+    
     carta_a_bloquear = get_carta_revelada_from_jugador(jugador_a_bloquear, fig_deseada)
     check_figura_en_tablero(partida, coordenadas_fig_deseada, fig_deseada)
     
