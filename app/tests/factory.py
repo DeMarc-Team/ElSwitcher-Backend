@@ -6,6 +6,18 @@ from models import (Partida,
                     MovimientoParcial
                     )
 from constantes_juego import N_CARTAS_FIGURA_TOTALES
+from crud.TemporizadorTurno import TemporizadorTurno
+
+class TemporizadorTurnoToTest(TemporizadorTurno):
+    def limpiar_temporizadores(self):
+        """
+        Cancela todos los temporizadores activos.
+        """
+        for partida_id, tarea in list(self.temporizadores.items()):
+            tarea.cancel()
+        self.temporizadores.clear()
+        print("Todos los temporizadores han sido cancelados.")
+test_temporizadores_turno = TemporizadorTurnoToTest()
 
 def crear_partida(db: Session, nombre_partida: str = "Partida", nombre_creador: str = "Creador") -> Partida:
     '''

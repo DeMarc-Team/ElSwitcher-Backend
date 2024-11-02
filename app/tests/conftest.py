@@ -11,6 +11,9 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from database import Base, get_db
 from main import app
 from tools import WSManagerTester; tester = WSManagerTester()
+from factory import test_temporizadores_turno
+from unittest.mock import patch
+import time;
 
 # Setup de la base de datos de prueba
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), "test.db")
@@ -45,6 +48,19 @@ def test_db():
     yield db
     db.close()
 
+@pytest.fixture(scope='function', autouse=True)
+def mock_dict_temporizadores_turno():
+    # Mockeamos el diccionario del temporizador de turno
+    with patch("crud.TemporizadorTurno.temporizadores_turno", test_temporizadores_turno):
+        yield
+        test_temporizadores_turno.limpiar_temporizadores()
+
+@pytest.fixture(scope='function')
+def mock_timeGmt():
+    time_struct_to_mock = time.struct_time([2021, 1, 1, 0, 0, 0, 0, 0, 0])
+    with patch("time.gmtime", return_value=time_struct_to_mock):
+        yield time_struct_to_mock
+        
 @pytest.fixture(autouse=True, scope='session')
 def teardown_db():
     yield
