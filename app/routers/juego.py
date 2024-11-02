@@ -90,9 +90,10 @@ async def get_movimientos_parciales(id_partida: int, id_jugador: int, controller
 async def completar_figura_propia(id_partida: int, id_jugador: int, figura_data: CompletarFiguraData, controller: JuegoController = Depends(get_game_controller)):
     await controller.completar_figura_propia(id_partida, id_jugador, figura_data)
 
-@router.put('/{id_partida}/jugadores/{jugador_id}/bloquear-carta',
+@router.put('/{id_partida}/jugadores/{id_jugador}/bloquear-carta',
             summary="Bloquear una figura ajena",
             description="Utiliza la carta de figura especificada para bloquear el jugador del id que se pasó. La figura y su color deben estar disponibles y el otro jugador debe tener su respectiva carta.",
             tags=["Juego"])
-async def bloquear_carta_ajena(id_partida: int, jugador_id: int, bloqueo_data: BloquearFiguraData):
-    pass
+async def bloquear_carta_ajena(id_partida: int, id_jugador: int, bloqueo_data: BloquearFiguraData, controller: JuegoController = Depends(get_game_controller)):
+    await controller.bloquear_carta_ajena(id_partida, id_jugador, bloqueo_data)
+

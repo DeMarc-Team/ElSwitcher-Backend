@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 
 from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida, Jugador, CartaMovimiento, MovimientoParcial
-from schemas import CasillasMov, CompletarFiguraData
+from schemas import CasillasMov, CompletarFiguraData, BloquearFiguraData
 from figuras import hallar_todas_las_figuras_en_tablero
 
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
@@ -145,19 +145,8 @@ def get_figuras_en_tablero(partida: Partida):
     return hallar_todas_las_figuras_en_tablero(tablero_decodificado)
 
 def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figura_data: CompletarFiguraData):
-    partida = db.get(Partida, id_partida)
-    if (not partida):
-        raise ResourceNotFoundError(
-            f"Partida con ID {id_partida} no encontrada.")
-
-    if (not partida.iniciada):
-        raise ForbiddenError(
-            f"La partida con ID {id_partida} todavía no comenzó.")
-    
-    jugador = db.get(Jugador, id_jugador)
-    if (not jugador):
-        raise ResourceNotFoundError(
-            f"Jugador con ID {id_jugador} no encontrado en la partida con ID {id_jugador}.")
+    partida = get_partida(db, id_partida)
+    jugador = get_jugador(db, partida, id_jugador)
     
     if (jugador.id_jugador != partida.jugador_id):
         raise ForbiddenError(
@@ -173,34 +162,29 @@ def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figur
 def unatomic_usar_figura(db: Session, partida: Partida, jugador: Jugador, figura_data: CompletarFiguraData):    
 
     carta_fig_deseada = figura_data.carta_fig
-    cartas_a_usar = next((carta for carta in jugador.mazo_cartas_de_figura if (carta.revelada and carta.figura == carta_fig_deseada)), None)
+    carta_a_usar = get_carta_from_jugador(jugador, carta_fig_deseada)
+    check_figura_en_tablero(partida, figura_data, carta_fig_deseada)
     
-    if (not cartas_a_usar):
-        raise ResourceNotFoundError(
-            f"El jugador no tiene en la mano ninguna carta de figura revelada del formato {carta_fig_deseada}."
-        )
-    
-    figuras_en_tablero = get_figuras_en_tablero(partida)
-    
-    if (carta_fig_deseada not in figuras_en_tablero.keys()):
-        raise ResourceNotFoundError(
-            f"No existe (en el tablero) ninguna figura del tipo que se intenta utilizar."
-        )
-    
-    coords_figuras_del_tipo = figuras_en_tablero[carta_fig_deseada]
-    coords_figura = casillas_to_coords_figura_set(figura_data.figura)
-    
-    if (coords_figura not in coords_figuras_del_tipo):
-        raise ResourceNotFoundError(
-            f"No existe (en el tablero) la figura que se intenta utilizar en las coordenadas enviadas."
-        )
-    
-    db.delete(cartas_a_usar)
+    db.delete(carta_a_usar)
     db.flush()
     from crud.partidas import hay_ganador
     return hay_ganador(db, partida.id)
-    
-    
+
+def bloquear_carta_ajena(db: Session, id_partida: int, id_jugador: int, bloqueo_data: BloquearFiguraData):
+    partida = get_partida(db, id_partida)
+    jugador = get_jugador(db, partida, id_jugador)
+        
+    unatomic_bloquear_figura(db, partida, jugador, bloqueo_data)
+    unatomic_aplicar_parciales(db, partida)
+    db.commit()
+        
+def unatomic_bloquear_figura(db: Session, partida: Partida, jugador: Jugador, bloqueo_data: BloquearFiguraData):
+    """
+    Recibe una partida, un jugador y datos para bloquear a otro jugador y
+    en caso de poder hacerlo según las reglas del juego, bloquea la carta de este último.
+    """
+    # TODO: Terminar esta función.
+    pass
 
 def unatomic_aplicar_parciales(db: Session, partida: Partida):
     '''
@@ -218,6 +202,51 @@ def unatomic_aplicar_parciales(db: Session, partida: Partida):
         
     db.flush()
 
+def get_partida(db: Session, id_partida: int):
+    partida = db.get(Partida, id_partida)
+    if (not partida):
+        raise ResourceNotFoundError(
+            f"Partida con ID {id_partida} no encontrada.")
+
+    if (not partida.iniciada):
+        raise ForbiddenError(
+            f"La partida con ID {id_partida} todavía no comenzó.")
+            
+    return partida
+
+def get_jugador(db: Session, partida: Partida, id_jugador: int):
+    jugador = db.get(Jugador, id_jugador)
+    if (not jugador):
+        raise ResourceNotFoundError(
+            f"Jugador con ID {id_jugador} no encontrado en la partida con ID {id_jugador}.")
+        
+    return jugador
+
+def check_figura_en_tablero(partida, figura_data, carta_fig_deseada):
+    figuras_en_tablero = get_figuras_en_tablero(partida)
+    
+    if (carta_fig_deseada not in figuras_en_tablero.keys()):
+        raise ResourceNotFoundError(
+            f"No existe (en el tablero) ninguna figura del tipo que se intenta utilizar."
+        )
+    
+    coords_figuras_del_tipo = figuras_en_tablero[carta_fig_deseada]
+    coords_figura = casillas_to_coords_figura_set(figura_data.figura)
+    
+    if (coords_figura not in coords_figuras_del_tipo):
+        raise ResourceNotFoundError(
+            f"No existe (en el tablero) la figura que se intenta utilizar en las coordenadas enviadas."
+        )
+
+def get_carta_from_jugador(jugador: Jugador, carta_fig_deseada: str):
+    carta_a_usar = next((carta for carta in jugador.mazo_cartas_de_figura if (carta.revelada and carta.figura == carta_fig_deseada)), None)
+    
+    if (not carta_a_usar):
+        raise ResourceNotFoundError(
+            f"El jugador no tiene en la mano ninguna carta de figura revelada del formato {carta_fig_deseada}."
+        )
+        
+    return carta_a_usar
 
 def casillas_to_coords_figura_set(casillas_figura):
     '''
