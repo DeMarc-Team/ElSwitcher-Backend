@@ -7,6 +7,7 @@ from schemas import PartidaData
 from models import Jugador, CartaFigura, CartaMovimiento, Partida
 from crud.juego import terminar_turno
 from constantes_juego import N_CARTAS_FIGURA_TOTALES, N_FIGURAS_REVELADAS
+from crud.TemporizadorTurno import temporizadores_turno
 
 def get_id_creador(db: Session, partida_id):
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
@@ -113,7 +114,7 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
 
 def __partida_cancelada(db: Session, partida: Partida, jugador: Jugador, id_creador: int):
     if (not partida.iniciada and jugador.id_jugador == id_creador):
-        db.delete(partida)
+        eliminar_partida(db, partida)
         db.commit()
         return {"partida_cancelada" : {"id" : partida.id}}
     return {"partida_cancelada" : None}
@@ -149,8 +150,15 @@ def hay_ganador(db: Session, partida: Partida = None):
     # Aca pueden ir mas verificaciones para determinar si hay un ganador
 
     if (id_ganador is not None):
-        db.delete(partida)  
+        eliminar_partida(db, partida)
         db.commit()
         return {"hay_ganador" : {"id_ganador" : id_ganador, "nombre_ganador" : nombre_ganador}}
 
     return {"hay_ganador" : None}
+
+
+def eliminar_partida(db: Session, partida: Partida):
+    temporizadores_turno.cancelar_temporizador_del_turno(partida.id)
+    db.delete(partida)
+    db.commit()
+    

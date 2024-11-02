@@ -3,6 +3,8 @@ from websockets_manager.ws_partidas_manager import ws_partidas_manager
 from figuras import hallar_todas_las_figuras_en_tablero
 import json
 
+from crud.TemporizadorTurno import temporizadores_turno
+
 class JuegoController:
     def __init__(self, db):
         self.db = db
@@ -16,10 +18,9 @@ class JuegoController:
     async def get_turno_details(self, partida_id):
         return juego_service.get_turno_details(self.db, partida_id)
 
-    async def terminar_turno(self, id_partida, id_jugador):
-        juego_service.terminar_turno(self.db, id_partida, id_jugador)
-        await ws_partidas_manager.send_actualizar_turno(id_partida)
-        await ws_partidas_manager.send_actualizar_tablero(id_partida)
+    async def terminar_turno(self, id_partida, id_jugador = None):
+        await terminar_turno(self.db, id_partida, id_jugador)
+        
 
     async def get_tablero(self, id_partida):
         """Obtiene el tablero de una partida."""
@@ -54,3 +55,10 @@ class JuegoController:
         else:
             await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
             await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
+            
+async def terminar_turno(db, id_partida, id_jugador = None):
+        juego_service.terminar_turno(db, id_partida, id_jugador)
+        await ws_partidas_manager.send_actualizar_turno(id_partida)
+        await ws_partidas_manager.send_actualizar_tablero(id_partida)
+        inicio, duracion = temporizadores_turno.iniciar_temporizador_del_turno(id_partida, terminar_turno, (db, id_partida, None))
+        await ws_partidas_manager.send_sincronizar_turno(id_partida, inicio, duracion)
