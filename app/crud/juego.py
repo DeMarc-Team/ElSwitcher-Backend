@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 
 from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida, Jugador, CartaMovimiento, MovimientoParcial
-from schemas import CasillasMov, CompletarFiguraData, BloquearFiguraData
+from schemas import Casilla, CasillasMov, CompletarFiguraData, BloquearFiguraData
 from figuras import hallar_todas_las_figuras_en_tablero
 
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
@@ -162,8 +162,9 @@ def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figur
 def unatomic_usar_figura(db: Session, partida: Partida, jugador: Jugador, figura_data: CompletarFiguraData):    
 
     carta_fig_deseada = figura_data.carta_fig
-    carta_a_usar = get_carta_from_jugador(jugador, carta_fig_deseada)
-    check_figura_en_tablero(partida, figura_data, carta_fig_deseada)
+    coordenadas_fig_deseada = figura_data.figura
+    carta_a_usar = get_carta_revelada_from_jugador(jugador, carta_fig_deseada)
+    check_figura_en_tablero(partida, coordenadas_fig_deseada, carta_fig_deseada)
     
     db.delete(carta_a_usar)
     db.flush()
@@ -222,28 +223,33 @@ def get_jugador(db: Session, partida: Partida, id_jugador: int):
         
     return jugador
 
-def check_figura_en_tablero(partida, figura_data, carta_fig_deseada):
+def check_figura_en_tablero(partida: Partida, coordenadas_fig_deseada: list[Casilla], fig_deseada: str):
+    """
+    Verifica que la figura con código fig_deseada esté en las coordenadas del tablero coordenadas_fig_deseada.
+    En caso de no estarlo, arroja la excepción ResourceNotFoundError.
+    """
+    
     figuras_en_tablero = get_figuras_en_tablero(partida)
     
-    if (carta_fig_deseada not in figuras_en_tablero.keys()):
+    if (fig_deseada not in figuras_en_tablero.keys()):
         raise ResourceNotFoundError(
             f"No existe (en el tablero) ninguna figura del tipo que se intenta utilizar."
         )
     
-    coords_figuras_del_tipo = figuras_en_tablero[carta_fig_deseada]
-    coords_figura = casillas_to_coords_figura_set(figura_data.figura)
+    coords_figuras_del_tipo = figuras_en_tablero[fig_deseada]
+    coords_figura = casillas_to_coords_figura_set(coordenadas_fig_deseada)
     
     if (coords_figura not in coords_figuras_del_tipo):
         raise ResourceNotFoundError(
             f"No existe (en el tablero) la figura que se intenta utilizar en las coordenadas enviadas."
         )
 
-def get_carta_from_jugador(jugador: Jugador, carta_fig_deseada: str):
-    carta_a_usar = next((carta for carta in jugador.mazo_cartas_de_figura if (carta.revelada and carta.figura == carta_fig_deseada)), None)
+def get_carta_revelada_from_jugador(jugador: Jugador, fig_deseada: str):
+    carta_a_usar = next((carta for carta in jugador.mazo_cartas_de_figura if (carta.revelada and carta.figura == fig_deseada)), None)
     
     if (not carta_a_usar):
         raise ResourceNotFoundError(
-            f"El jugador no tiene en la mano ninguna carta de figura revelada del formato {carta_fig_deseada}."
+            f"El jugador no tiene en la mano ninguna carta de figura revelada del formato {fig_deseada}."
         )
         
     return carta_a_usar
