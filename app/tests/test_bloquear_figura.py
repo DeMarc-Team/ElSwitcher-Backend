@@ -70,7 +70,8 @@ def test_bloquear_happy_path(client, test_db, test_ws_messages):
     ), "Fallo: Se esperaba que se eliminara otro conjunto de elementos."
     assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
 
-def test_bloquear_figura_inexistente_404(client, test_db):
+def test_bloquear_figura_inexistente_404(client, test_db, test_ws_messages):
+    
     # Tablero que deseamos que se utilice
     tablero_mock = [
         [2, 2, 2, 4, 1, 2],
