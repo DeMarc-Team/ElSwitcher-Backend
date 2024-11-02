@@ -16,6 +16,124 @@ def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
     movimientos_del_jugador = jugador.mano_movimientos
     return movimientos_del_jugador
 
+
+def get_turno_details(db: Session, partida_id):
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+    if (not partida):
+        raise ResourceNotFoundError(
+            f"Partida con ID {partida_id} no encontrada.")
+
+    if (not partida.iniciada):
+        raise ForbiddenError(
+            f"La partida con ID {partida_id} todavía no comenzó.")
+
+    nombre_jugador_del_turno = partida.jugador_del_turno.nombre
+
+    turno_details = TurnoDetails(
+        id_jugador=partida.jugador_id,
+        nombre_jugador=nombre_jugador_del_turno
+    )
+
+    return turno_details
+
+
+def siguiente_turno(db: Session, partida_id, atomic=True):
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+    if (not partida):
+        raise ResourceNotFoundError(
+            f"Partida con ID {partida_id} no encontrada.")
+
+    if (not partida.iniciada):
+        raise ForbiddenError(
+            f"La partida con ID {partida_id} todavía no comenzó.")
+
+    partida.jugadores.append(partida.jugadores.pop(0))
+    db.flush()
+    for jugador in partida.jugadores:
+        jugador.orden = partida.jugadores.index(jugador)
+
+    if atomic:
+        db.commit()
+    else:
+        db.flush()
+
+def reponer_cartas_movimiento(db: Session, partida: Partida, jugador: Jugador, n_cartas_por_jugador=3, atomic=True):
+    '''
+    Procedimiento para reponer las cartas movimiento de un jugador.
+    
+    Repone hasta que el jugador tenga n_cartas_por_jugador en la mano.
+    '''
+    
+    cantidad_movimientos = len(jugador.mano_movimientos)
+
+    # Reponemos las cartas de movimiento del jugador
+    for i in range(0, n_cartas_por_jugador - cantidad_movimientos):
+        new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
+        db.add(new_carta)
+        
+    if atomic:
+        db.commit()
+    else:
+        db.flush()
+
+def reponer_cartas_figura(db: Session, partida: Partida, jugador: Jugador, n_reveladas=N_FIGURAS_REVELADAS, atomic=True):
+    '''
+    Procedimiento para reponer las cartas figura de un jugador.
+    
+    Repone hasta que el jugador tenga n_reveladas en la mano.
+    '''
+    
+    cartas_no_reveladas = [carta for carta in jugador.mazo_cartas_de_figura if not carta.revelada]
+    cantidad_reveladas = len([carta for carta in jugador.mazo_cartas_de_figura if carta.revelada])
+    cartas_a_revelar = min(len(cartas_no_reveladas), n_reveladas - cantidad_reveladas)
+
+    for i in range(cartas_a_revelar):
+        cartas_no_reveladas[i].revelada = True
+    
+    if atomic:
+        db.commit()
+    else:
+        db.flush()
+
+def terminar_turno(db: Session, partida_id, jugador_id):
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+    if (not partida):
+        raise ResourceNotFoundError(
+            f"Partida con ID {partida_id} no encontrada.")
+
+    if (not partida.iniciada):
+        raise ForbiddenError(
+            f"La partida con ID {partida_id} todavía no comenzó.")
+
+    actual_jugador = partida.jugador_del_turno
+
+    if (actual_jugador.id_jugador != jugador_id):
+        raise ForbiddenError(f"El ID del jugador que posee el turno no es {jugador_id}.")
+    
+    limpiar_stack_movimientos_parciales(db, partida_id, atomic=False)
+    
+    reponer_cartas_movimiento(db, partida, partida.jugador_del_turno, atomic=False)
+    reponer_cartas_figura(db, partida, partida.jugador_del_turno, atomic=False)
+    db.flush()
+    siguiente_turno(db, partida_id, atomic=False)
+
+    db.commit()
+
+def limpiar_stack_movimientos_parciales(db, partida_id, atomic=True):
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+    if (not partida):
+        raise ResourceNotFoundError(
+            f"Partida con ID {partida_id} no encontrada.")
+    
+    while partida.movimientos_parciales:
+        deshacer_movimiento(db, partida_id, atomic=False)
+    
+    if atomic:
+        db.commit()
+    else:
+        db.flush()
+
+
 def get_tablero(db: Session, partida_id: int):
     juego = db.query(Partida).filter(Partida.id == partida_id).first()
 
@@ -195,7 +313,7 @@ def unatomic_bloquear_figura(db: Session, partida: Partida, jugador: Jugador, bl
     
     jugador_a_bloquear = get_jugador(db, partida, bloqueo_data.id_jugador_bloqueado)
     
-    if ( jugador_is_bloqueado(jugador_a_bloquear) ):
+    if ( jugador_a_bloquear.bloqueado ):
         raise ForbiddenError(
             f"El jugador con ID {jugador_a_bloquear.id} ya posee una carta bloqueada."    
         )
@@ -204,6 +322,7 @@ def unatomic_bloquear_figura(db: Session, partida: Partida, jugador: Jugador, bl
     check_figura_en_tablero(partida, coordenadas_fig_deseada, fig_deseada)
     
     carta_a_bloquear.bloqueada = True
+    jugador_a_bloquear.bloqueado = True
     db.flush()
 
 def unatomic_aplicar_parciales(db: Session, partida: Partida):
@@ -262,10 +381,6 @@ def check_figura_en_tablero(partida: Partida, coordenadas_fig_deseada: list[Casi
         raise ResourceNotFoundError(
             f"No existe (en el tablero) la figura que se intenta utilizar en las coordenadas enviadas."
         )
-
-def jugador_is_bloqueado(jugador: Jugador):
-    mano_reveladas = [carta for carta in jugador.mazo_cartas_de_figura if carta.revelada]
-    return any(carta.bloqueada for carta in mano_reveladas)
 
 def get_carta_revelada_from_jugador(jugador: Jugador, fig_deseada: str):
     carta_a_usar = next((carta for carta in jugador.mazo_cartas_de_figura if (carta.revelada and carta.figura == fig_deseada)), None)

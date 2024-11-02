@@ -24,6 +24,7 @@ class Jugador(Base):
         'CartaFigura', back_populates='poseida_por', cascade="all, delete-orphan")
     mano_movimientos: Mapped[list['CartaMovimiento']] = relationship(
         'CartaMovimiento', back_populates='movimientos_de', cascade="all, delete-orphan")
+    bloqueado: Mapped[Boolean] = mapped_column(Boolean, default=False)
     
     @hybrid_property
     def numero_de_cartas_figura(self) -> int:
@@ -32,6 +33,10 @@ class Jugador(Base):
     @hybrid_property
     def id(self) -> int:
         return self.id_jugador
+    
+    @hybrid_property
+    def mano_figuras(self) -> list['CartaFigura']:
+        return [carta for carta in self.mazo_cartas_de_figura if carta.revelada]
         
     def __str__(self):  # pragma: no cover
         return (f"<Jugador(id_jugador={self.id_jugador}, nombre={self.nombre}, "

@@ -256,7 +256,7 @@ def establecer_tablero(db: Session, partida: Partida, tablero: list[list[int]]):
     db.commit()
     
 def cartear_figuras(db: Session, jugador: Jugador, figs: list[str], primera_figura_bloqueada=False):
-    assert len(figs) > 0, "Se requiere al menos una carta."
+    assert len(figs) >= 0, "Se requiere una cantidad positiva de cartas."
     assert len(figs) <= 3, "Se puede cartar una única mano de figuras (3 cartas)."
     
     figuras_reveladas = [figura for figura in jugador.mazo_cartas_de_figura if figura.revelada]
@@ -267,7 +267,9 @@ def cartear_figuras(db: Session, jugador: Jugador, figs: list[str], primera_figu
     
     nuevas_figuras = [CartaFigura(figura=fig) for fig in figs]
     
-    nuevas_figuras[0].bloqueada = primera_figura_bloqueada
+    if (len(figs) != 0 and primera_figura_bloqueada):
+        nuevas_figuras[0].bloqueada = True
+        jugador.bloqueado = True
     
     jugador.mazo_cartas_de_figura.extend(nuevas_figuras)
     
