@@ -195,7 +195,7 @@ def unatomic_bloquear_figura(db: Session, partida: Partida, jugador: Jugador, bl
     
     jugador_a_bloquear = get_jugador(db, partida, bloqueo_data.id_jugador_bloqueado)
     
-    if ( jugador_is_bloqueado(jugador) ):
+    if ( jugador_is_bloqueado(jugador_a_bloquear) ):
         raise ForbiddenError(
             f"El jugador con ID {jugador_a_bloquear.id} ya posee una carta bloqueada."    
         )
