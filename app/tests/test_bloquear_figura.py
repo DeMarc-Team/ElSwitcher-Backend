@@ -84,7 +84,7 @@ def test_bloquear_jugador_sin_carta_404(client, test_db, test_ws_messages):
         request_carta_fig="f1",
         jugador_a_bloquear_bloqueado=False,
         status_code_esperado=404,
-        respuesta_esperada={'detail': f'El jugador no tiene en la mano ninguna carta de figura revelada del formato f1.'},
+        respuesta_esperada={'detail': 'El jugador de ID 2 no tiene en la mano ninguna carta de figura revelada del formato f1.'},
     )
 
     # 51 es, por construcción, el id de la carta carteada.

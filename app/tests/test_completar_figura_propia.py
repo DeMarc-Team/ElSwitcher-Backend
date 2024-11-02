@@ -231,7 +231,7 @@ def test_usar_figura_propia_varias_cartas(client, test_db, test_ws_counts):
 
 # ----------------------------------------------------------------
 
-def configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas, n_movimientos_a_consumir):
+def configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas, n_movimientos_a_consumir, primera_carta_bloqueada=False):
     '''
     Configura un escenario medianamente general para los tests de completar figuras.
     
@@ -260,6 +260,68 @@ def configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas, n_mo
     falsear_movimientos_parciales(test_db, partida, movimientos_a_consumir)
 
     return partida, jugador_del_turno
+
+# ----------------------------------------------------------------
+
+def test_usar_figura_con_bloqueada_y_libre(client, test_db, test_ws_counts):
+    '''Test sobre el correcto funcionamiento al haber 2 figuras del mismo tipo en la mano, una bloqueada y la otra libre.'''
+    
+    # Tablero que deseamos que se utilice
+    tablero_mock = [
+        [2, 2, 2, 4, 1, 2],
+        [1, 2, 1, 4, 1, 2],
+        [1, 2, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2]
+    ]
+
+    # Diccionario con las casillas de las figuras formadas en el tablero del mock
+    figuras_formadas_en_mock = {
+        "figuras_a_resaltar": {
+            "f1": [[[0, 1], [2, 1], [0, 0], [1, 1], [0, 2]]]
+        }
+    }
+    
+    casillas_figura = listas_to_casillas_figura(figuras_formadas_en_mock["figuras_a_resaltar"]["f1"])[0]
+    request_body = {
+        "figura": casillas_figura,
+        "carta_fig": "f1"
+    }
+    
+    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1", "f1"], n_movimientos_a_consumir=3, primera_carta_bloqueada=True)
+    
+    # Capturamos la BDD antes de los cambios
+    captura_inicial = capturar_metadata(get_all_tables(test_db))
+    
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    check_response(response, status_code_esperado=200, respuesta_esperada=None)
+
+    # Capturamos la BDD luego de los cambios
+    captura_final = capturar_metadata(get_all_tables(test_db))
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
+
+    # Comparamos que los conjuntos (PORQUE EL ORDEN DE LAS CAPTURAS NO ES DETERMINISTA) de objetos sean los correctos
+    assert set(modificaciones) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
+    assert set(eliminadas) == set(
+        [
+            ("cartas_de_movimiento", 1),    # Cartas de movimiento falseadas
+            ("cartas_de_movimiento", 2),
+            ("cartas_de_movimiento", 3),
+            ("movimientos_parciales", 1),   # Movimientos parciales asociados a las cartas falseadas/consumidas
+            ("movimientos_parciales", 2),
+            ("movimientos_parciales", 3),
+            ("cartas_de_figura", 51),        # Carta de figura usada
+        ]
+    ), "Fallo: Se esperaba otro conjunto de objetos eliminados."
+    assert set(creadas) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
+
+    # Chequeamos que se haya consumido una unica carta correctamente
+    check_cartas_figura_reveladas(jugador_del_turno, expected_codigos_figura=["f1"])
+    
+    # Ponemos cuantas veces se espera que se envie cada mensaje de ws
+    test_ws_counts[ACTUALIZAR_CARTAS_FIGURA] = 1
+    test_ws_counts[ACTUALIZAR_CARTAS_MOVIMIENTO] = 1
 
 # ----------------------------------------------------------------
 
@@ -401,7 +463,7 @@ def test_usar_figura_propia_mano_sin_figura_404(client, test_db, test_ws_counts)
         "carta_fig": "f1"
     }
     response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
-    respuesta_esperada = {'detail': f"El jugador no tiene en la mano ninguna carta de figura revelada del formato {request_body.get('carta_fig')}."}
+    respuesta_esperada = {'detail': f"El jugador de ID {jugador_del_turno.id} no tiene en la mano ninguna carta de figura revelada del formato {request_body.get('carta_fig')}."}
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
     # Verificamos que no se haya realizado ningun cambio en la base de datos
@@ -485,6 +547,47 @@ def test_usar_figura_propia_casilla_incorrecta_404(client, test_db, test_ws_coun
     response = client.put(f'/juego/{partida.id}/jugadores/{creador.id_jugador}/tablero/figura', json=request_body)
     respuesta_esperada = {'detail': f"No existe (en el tablero) la figura que se intenta utilizar en las coordenadas enviadas."}
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
+
+    # Verificamos que no se haya realizado ningun cambio en la base de datos
+    test_db.refresh(partida)
+    captura_final = capturar_metadata([partida, *partida.jugadores, *jugador_del_turno.mazo_cartas_de_figura])
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
+
+    assert not modificaciones, f"Se encontraron modificaciones en tablas en la db: {modificaciones}"
+    assert not eliminadas, f"Se encontraron tablas eliminadas en la db: {eliminadas}"
+    assert not creadas, f"Se encontraron tablas creadas en la db: {creadas}"
+
+def test_usar_figura_bloqueada_403(client, test_db, test_ws_counts):
+    '''Test de jugador del turno intentando usar una figura propia que está bloqueada.'''
+    
+    partida, creador = crear_partida(test_db)
+    unir_jugadores(test_db, partida, numero_de_jugadores=1)
+    iniciar_partida(test_db, partida)
+
+    jugador_del_turno = partida.jugador_del_turno
+
+    tablero_mock = [
+        [2, 2, 2, 4, 1, 2],
+        [1, 2, 1, 4, 1, 2],
+        [1, 2, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2]
+    ]
+
+    establecer_tablero(test_db, partida, tablero_mock)
+    figura = "f2"
+    cartear_figuras(test_db, jugador_del_turno, [figura], primera_figura_bloqueada=True)
+
+    captura_inicial = capturar_metadata([partida, *partida.jugadores, *jugador_del_turno.mazo_cartas_de_figura])
+    # Realizamos la petición
+    request_body = {
+        "figura": [{"row": 0, "col": 0}],
+        "carta_fig": figura
+    }
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    respuesta_esperada = {'detail': 'El jugador de ID 1 no tiene ninguna carta del formato f2 desbloqueada en su mano.'}
+    check_response(response, status_code_esperado=403, respuesta_esperada=respuesta_esperada)
 
     # Verificamos que no se haya realizado ningun cambio en la base de datos
     test_db.refresh(partida)

@@ -388,13 +388,22 @@ def check_figura_en_tablero(partida: Partida, coordenadas_fig_deseada: list[Casi
         )
 
 def get_carta_revelada_from_jugador(jugador: Jugador, fig_deseada: str):
-    carta_a_usar = next((carta for carta in jugador.mazo_cartas_de_figura if (carta.revelada and carta.figura == fig_deseada)), None)
+    cartas_del_tipo_en_mano = [carta for carta in jugador.mano_figuras if carta.figura == fig_deseada]
     
-    if (not carta_a_usar):
+    if (cartas_del_tipo_en_mano == []):
         raise ResourceNotFoundError(
-            f"El jugador no tiene en la mano ninguna carta de figura revelada del formato {fig_deseada}."
+            f"El jugador de ID {jugador.id} no tiene en la mano ninguna carta de figura revelada del formato {fig_deseada}."
         )
-        
+    
+    cartas_del_tipo_libres = [carta for carta in cartas_del_tipo_en_mano if not carta.bloqueada]
+    
+    if (cartas_del_tipo_libres == []):
+        raise ForbiddenError(
+            f"El jugador de ID {jugador.id} no tiene ninguna carta del formato {fig_deseada} desbloqueada en su mano."
+        )
+    
+    carta_a_usar = cartas_del_tipo_libres[0]
+    
     return carta_a_usar
 
 def casillas_to_coords_figura_set(casillas_figura):
