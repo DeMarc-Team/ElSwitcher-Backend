@@ -1,10 +1,11 @@
 import pytest
 
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
-from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, PARTIDA_CANCELADA, ACTUALIZAR_TABLERO
+from websockets_manager.ws_partidas_manager import SINCRONIZAR_TURNO, ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, PARTIDA_CANCELADA, ACTUALIZAR_TABLERO
 from factory import crear_partida, unir_jugadores, iniciar_partida
 from verifications import check_jugador_abandoned, check_partida_deletion, check_response
-
+from constantes_juego import SEGUNDOS_TEMPORIZADOR_TURNO
+from tools import get_all_tables
 
 @pytest.mark.parametrize("numero_de_jugadores", [3, 4])
 def test_abandonar_partida_en_el_turno_200(client, test_db, test_ws_messages, numero_de_jugadores):
@@ -211,3 +212,39 @@ def test_abandonar_partida_iniciada_ultimo_jugador_200(client, test_db, test_ws_
 
     # Verificamos que la base de datos se haya actualizado correctamente
     check_partida_deletion(test_db, id_partida)
+
+# ----------------------------------------------------------------
+
+def test_integracion_abandonar_partida_iniciada_ultimo_jugador_200(client, test_db, test_ws_messages, mock_timeGmt):
+    '''Test de jugador abandonando una partida iniciada y queda solo un jugador'''
+    # Inicializamos la precondicion
+    partida, creador = crear_partida(test_db)
+    jugador = unir_jugadores(test_db, partida)[0]
+    id_jugador = jugador.id_jugador
+    id_creador = creador.id_jugador
+    id_partida = partida.id
+    
+    # Iniciamos la partida a traves de la ruta
+    test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
+    test_ws_messages[ACTUALIZAR_SALA_ESPERA] = [{'partida_id': 1}]
+    test_ws_messages[SINCRONIZAR_TURNO] = [{'partida_id': 1, 'inicio': mock_timeGmt, 'duracion': SEGUNDOS_TEMPORIZADOR_TURNO}]
+    
+    response = client.put("partidas/1")
+    check_response(response, 200, {'details': 'Partida iniciada correctamente', 'partida_id': 1})
+
+    # Pasamos un turno a traves de la ruta
+    test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
+    test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}]
+    test_ws_messages[SINCRONIZAR_TURNO].extend([{'partida_id': 1, 'inicio': mock_timeGmt, 'duracion': SEGUNDOS_TEMPORIZADOR_TURNO}])
+
+    response = client.put(f'/juego/{partida.id}/jugadores/{partida.jugador_del_turno.id}/turno')
+    check_response(response, 200, None)
+    
+    # Hacemos que un jugador abandone la partida
+    test_ws_messages[HAY_GANADOR] = [{'partida_id': 1, 'jugador_id': 1, 'nombre': 'Creador'}]
+    
+    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
+    check_response(response, 200, {'detail': 'El jugador abandonó la partida exitosamente'})
+
+    # Verificamos que la base de datos se haya actualizado correctamente
+    assert get_all_tables(test_db) == [], f"Fallo: Se esperaba que la base de datos estuviera vacia, pero se obtuvo {get_all_tables()}"
