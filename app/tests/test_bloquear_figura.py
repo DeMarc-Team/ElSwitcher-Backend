@@ -23,7 +23,7 @@ def test_bloquear_happy_path(client, test_db, test_ws_messages):
         mano_del_jugador_a_bloquear=["f1"],
         n_movimientos_a_consumir=2,
         request_carta_fig="f1",
-        primera_figura_bloqueada=False,
+        jugador_a_bloquear_bloqueado=False,
         status_code_esperado=200,
         respuesta_esperada=None,
     )
@@ -40,6 +40,21 @@ def test_bloquear_happy_path(client, test_db, test_ws_messages):
     ), "Fallo: Se esperaba que se eliminara otro conjunto de elementos."
     assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
 
+def test_jugador_ya_bloqueado_403(client, test_db, test_ws_messages):
+
+    modificaciones, eliminadas, creadas = bloqueo_generico_test(client, test_db,
+        mano_del_jugador_a_bloquear=["f1"],
+        n_movimientos_a_consumir=2,
+        request_carta_fig="f1",
+        jugador_a_bloquear_bloqueado=True,
+        status_code_esperado=403,
+        respuesta_esperada={'detail': 'El jugador con ID 2 ya posee una carta bloqueada.'},
+    )
+
+    assert set(modificaciones) == set(), "Fallo: Se esperaba que no hubieran modificaciones."
+    assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
+    assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
+
 def test_bloquear_figura_inexistente_404(client, test_db, test_ws_messages):
     """
     Test sobre el correcto comportamiento ante una figura que no está en el tablero.
@@ -49,7 +64,7 @@ def test_bloquear_figura_inexistente_404(client, test_db, test_ws_messages):
         mano_del_jugador_a_bloquear=["f1", "f3"],
         n_movimientos_a_consumir=1,
         request_carta_fig="f3",
-        primera_figura_bloqueada=False,
+        jugador_a_bloquear_bloqueado=False,
         status_code_esperado=404,
         respuesta_esperada={'detail': 'No existe (en el tablero) ninguna figura del tipo que se intenta utilizar.'},
     )
@@ -67,7 +82,7 @@ def test_bloquear_jugador_sin_carta_404(client, test_db, test_ws_messages):
         mano_del_jugador_a_bloquear=["f3"],
         n_movimientos_a_consumir=1,
         request_carta_fig="f1",
-        primera_figura_bloqueada=False,
+        jugador_a_bloquear_bloqueado=False,
         status_code_esperado=404,
         respuesta_esperada={'detail': f'El jugador no tiene en la mano ninguna carta de figura revelada del formato f1.'},
     )
@@ -77,11 +92,11 @@ def test_bloquear_jugador_sin_carta_404(client, test_db, test_ws_messages):
     assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
     assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
 
-def bloqueo_generico_test(client, test_db, mano_del_jugador_a_bloquear, n_movimientos_a_consumir, request_carta_fig, primera_figura_bloqueada, status_code_esperado, respuesta_esperada):
+def bloqueo_generico_test(client, test_db, mano_del_jugador_a_bloquear, n_movimientos_a_consumir, request_carta_fig, jugador_a_bloquear_bloqueado, status_code_esperado, respuesta_esperada):
     """
     Procedimiento genérico que testea una llamada al endpoint del bloqueo bajo el contexto especificado por los parámetros.
     """
-    
+
     # Tablero que deseamos que se utilice
     tablero_mock = [
         [2, 2, 2, 4, 1, 2],
@@ -103,7 +118,12 @@ def bloqueo_generico_test(client, test_db, mano_del_jugador_a_bloquear, n_movimi
     casillas_figura = listas_to_casillas_figura(figuras_formadas_en_mock["figuras_a_resaltar"]["f1"])[0]
 
     # Configuramos el escenario
-    partida, jugador_del_turno, jugador_a_bloquear = configurar_test_bloqueos(test_db, tablero_mock, mano_del_jugador_a_bloquear, primera_figura_bloqueada, n_movimientos_a_consumir)
+    partida, jugador_del_turno, jugador_a_bloquear = configurar_test_bloqueos(test_db,
+        tablero_mock,
+        mano_del_jugador_a_bloquear,
+        jugador_a_bloquear_bloqueado,
+        n_movimientos_a_consumir,
+    )
 
     # Capturamos la BDD antes de los cambios
     captura_inicial = capturar_metadata(get_all_tables(test_db))
@@ -119,16 +139,16 @@ def bloqueo_generico_test(client, test_db, mano_del_jugador_a_bloquear, n_movimi
 
     # Capturamos la BDD luego de los cambios
     captura_final = capturar_metadata(get_all_tables(test_db))
-    
+
     return comparar_capturas(captura_inicial, captura_final)
 
-def configurar_test_bloqueos(test_db, tablero_mock, mano_del_jugador_a_bloquear, primera_figura_bloqueada=False, n_movimientos_a_consumir=0):
+def configurar_test_bloqueos(test_db, tablero_mock, mano_del_jugador_a_bloquear, jugador_a_bloquear_bloqueado=False, n_movimientos_a_consumir=0):
     '''
     Configura un escenario medianamente general para los tests de completar figuras.
     
     A la salida de este procedimiento, la base de datos test_db queda con:
     - Una nueva partida iniciada
-    - El jugador_a_bloquear tendrá en su mazo las cartas reveladas con los códigos de "cartas_figura_carteadas", con la primera carta bloqueada si y sólo si primera_figura_bloqueada así lo indica.
+    - El jugador_a_bloquear tendrá en su mazo las cartas reveladas con los códigos de "cartas_figura_carteadas", con la primera carta bloqueada si y sólo si jugador_a_bloquear_bloqueado así lo indica.
     - "n_movimientos_a_consumir" determina cuántas cartas de movimiento del jugador del turno estarán "parcialmente usadas"
     
     Retorna: 
@@ -145,8 +165,10 @@ def configurar_test_bloqueos(test_db, tablero_mock, mano_del_jugador_a_bloquear,
     
     jugador_del_turno = partida.jugador_del_turno   # Por construcción del factory, tiene que ser el creador
     
-    cartear_figuras(test_db, jugador_a_bloquear, mano_del_jugador_a_bloquear, primera_figura_bloqueada)
+    # Cartear figuras al jugador bloqueado
+    cartear_figuras(test_db, jugador_a_bloquear, mano_del_jugador_a_bloquear, primera_figura_bloqueada=jugador_a_bloquear_bloqueado)
     
+    # Preparar movimientos a consumir del jugador del turno
     if (n_movimientos_a_consumir != 0):
         movimientos_a_consumir = jugador_del_turno.mano_movimientos[0:n_movimientos_a_consumir]
         falsear_movimientos_parciales(test_db, partida, movimientos_a_consumir)
