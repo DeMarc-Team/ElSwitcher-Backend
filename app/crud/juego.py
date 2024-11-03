@@ -364,7 +364,7 @@ def unatomic_usar_figura(db: Session, partida: Partida, jugador: Jugador, figura
     db.delete(cartas_a_usar)
     db.flush()
     from crud.partidas import hay_ganador
-    return hay_ganador(db, partida)
+    return hay_ganador(db, partida.id)
     
     
 

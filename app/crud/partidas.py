@@ -79,20 +79,16 @@ def _repartir_cartas_movimiento(db: Session, partida, n_cartas_por_jugador=3):
             new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
             db.add(new_carta)
 
-def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
+def abandonar_partida(db: Session, partida_id: int, jugador_id: int)->bool:
     '''
     Pasa el turno y elimina al jugador de la partida.
     
-    Si hay un ganador,
-    - Elimina la partida.
-    - Devuelve {"hay_ganador" : {"id_ganador" : id_ganador, "nombre_ganador" : nombre_ganador}, "partida_cancelada" : None}
-    
     Si el creador abandona la partida antes de iniciarla,
     - Elimina la partida.
-    - Devuelve {"partida_cancelada" : { "id" : id_partida }, "hay_ganador" : None}
+    - Devuelve True
     
     Si no,
-    - Devuelve {"hay_ganador" : None, "partida_cancelada" : None}
+    - Devuelve False
     '''
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
     if (not partida):
@@ -107,7 +103,7 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
     db.delete(jugador)
     db.commit()
 
-    return {**hay_ganador(db, partida), **__partida_cancelada(db, partida, jugador, id_creador)}
+    return __partida_cancelada(db, partida, jugador, id_creador)
 
 def es_su_turno(db: Session, partida_id: int, jugador_id: int)->bool:
     """
@@ -127,10 +123,10 @@ def __partida_cancelada(db: Session, partida: Partida, jugador: Jugador, id_crea
     if (not partida.iniciada and jugador.id_jugador == id_creador):
         eliminar_partida(db, partida)
         db.commit()
-        return {"partida_cancelada" : {"id" : partida.id}}
-    return {"partida_cancelada" : None}
+        return True
+    return False
 
-def hay_ganador(db: Session, partida: Partida = None):
+def hay_ganador(db: Session, partida_id: int):
     '''
     En la partida pasada por parametro, verifica si hay un ganador y lo
     devuelve.
@@ -147,9 +143,13 @@ def hay_ganador(db: Session, partida: Partida = None):
     - Si no hay un ganador:
         {"hay_ganador" : None}
     '''
-    db.refresh(partida)
+    partida = db.get(Partida, partida_id)
+    if (not partida):
+        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
+    
     id_ganador = None
     nombre_ganador = None
+    db.refresh(partida)
     if (partida.iniciada):
         if (partida.jugador_del_turno.numero_de_cartas_figura == 0):
             id_ganador = partida.jugador_del_turno.id_jugador
