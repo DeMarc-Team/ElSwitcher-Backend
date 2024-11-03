@@ -47,7 +47,6 @@ class TemporizadorTurno:
                     # FIXME: GRAVE? En los test sucede este warning. Anda todo igual (no se si es bueno)
                     # pero se podria arreglar. En produccion no se da este warning, si se da
                     # definitivamente puede ser grave.
-                    
                 else:
                     func = tarea.get_coro().cr_frame.f_locals['func']
                     args = tarea.get_coro().cr_frame.f_locals['args']
@@ -58,7 +57,6 @@ class TemporizadorTurno:
                 # FIXME: No es grave. En los test sucede este warning. Anda todo igual
                 # pero se podria arreglar. En produccion no se da este warning pero si se da,
                 # no es grave.
-                
         await self.__ejecutar_funcion(func, args)
 
     async def __ejecutar_funcion(self, func: callable, args: tuple) -> None:
@@ -80,7 +78,7 @@ class TemporizadorTurno:
         :param args: Argumentos de la función.
         :param duracion: Duración del temporizador en segundos.
 
-        :return: Tupla (tiempo de inicio, duración) del temporizador.
+        :return: Tupla (tiempo de inicio en formato gmt zulu time, duración en segundos) del temporizador.
         """
         async with self.lock:
             if partida_id in self.temporizadores:
@@ -94,7 +92,11 @@ class TemporizadorTurno:
                 partida_id, func, args, duracion))
             self.temporizadores[partida_id] = tarea
 
-            return time.gmtime(), duracion
+            return self.__get_gmt_zulu_time(), duracion
+
+    def __get_gmt_zulu_time(self) -> str:
+        """Devuelve el tiempo actual en formato GMT/UTC Zulu como un string en la forma 'YYYY-MM-DDTHH:MM:SSZ'."""
+        return time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 
     def cancelar_temporizador_del_turno(self, partida_id: int) -> None:
         """

@@ -59,7 +59,7 @@ def mock_dict_temporizadores_turno():
 def mock_timeGmt():
     time_struct_to_mock = time.struct_time([2021, 1, 1, 0, 0, 0, 0, 0, 0])
     with patch("time.gmtime", return_value=time_struct_to_mock):
-        yield time_struct_to_mock
+        yield time.strftime('%Y-%m-%dT%H:%M:%SZ', time_struct_to_mock)
         
 @pytest.fixture(autouse=True, scope='session')
 def teardown_db():
