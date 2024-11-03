@@ -2,10 +2,8 @@ from sqlalchemy.orm import Session
 
 from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida, Jugador, CartaMovimiento, MovimientoParcial
-from schemas import TurnoDetails, CasillasMov, CompletarFiguraData
+from schemas import CasillasMov, CompletarFiguraData
 from figuras import hallar_todas_las_figuras_en_tablero
-from constantes_juego import N_FIGURAS_REVELADAS
-from crud.TemporizadorTurno import temporizadores_turno
 
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (
@@ -17,133 +15,6 @@ def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
 
     movimientos_del_jugador = jugador.mano_movimientos
     return movimientos_del_jugador
-
-
-def get_turno_details(db: Session, partida_id):
-    partida = db.query(Partida).filter(Partida.id == partida_id).first()
-    if (not partida):
-        raise ResourceNotFoundError(
-            f"Partida con ID {partida_id} no encontrada.")
-
-    if (not partida.iniciada):
-        raise ForbiddenError(
-            f"La partida con ID {partida_id} todavía no comenzó.")
-
-    nombre_jugador_del_turno = partida.jugador_del_turno.nombre
-
-    turno_details = TurnoDetails(
-        id_jugador=partida.jugador_id,
-        nombre_jugador=nombre_jugador_del_turno
-    )
-
-    return turno_details
-
-
-def siguiente_turno(db: Session, partida_id, atomic=True):
-    partida = db.query(Partida).filter(Partida.id == partida_id).first()
-    if (not partida):
-        raise ResourceNotFoundError(
-            f"Partida con ID {partida_id} no encontrada.")
-
-    if (not partida.iniciada):
-        raise ForbiddenError(
-            f"La partida con ID {partida_id} todavía no comenzó.")
-
-    partida.jugadores.append(partida.jugadores.pop(0))
-    db.flush()
-    for jugador in partida.jugadores:
-        jugador.orden = partida.jugadores.index(jugador)
-
-    if atomic:
-        db.commit()
-    else:
-        db.flush()
-
-def reponer_cartas_movimiento(db: Session, partida: Partida, jugador: Jugador, n_cartas_por_jugador=3, atomic=True):
-    '''
-    Procedimiento para reponer las cartas movimiento de un jugador.
-    
-    Repone hasta que el jugador tenga n_cartas_por_jugador en la mano.
-    '''
-    
-    cantidad_movimientos = len(jugador.mano_movimientos)
-
-    # Reponemos las cartas de movimiento del jugador
-    for i in range(0, n_cartas_por_jugador - cantidad_movimientos):
-        new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
-        db.add(new_carta)
-        
-    if atomic:
-        db.commit()
-    else:
-        db.flush()
-
-def reponer_cartas_figura(db: Session, partida: Partida, jugador: Jugador, n_reveladas=N_FIGURAS_REVELADAS, atomic=True):
-    '''
-    Procedimiento para reponer las cartas figura de un jugador.
-    
-    Repone hasta que el jugador tenga n_reveladas en la mano.
-    '''
-    
-    cartas_no_reveladas = [carta for carta in jugador.mazo_cartas_de_figura if not carta.revelada]
-    cantidad_reveladas = len([carta for carta in jugador.mazo_cartas_de_figura if carta.revelada])
-    cartas_a_revelar = min(len(cartas_no_reveladas), n_reveladas - cantidad_reveladas)
-
-    for i in range(cartas_a_revelar):
-        cartas_no_reveladas[i].revelada = True
-    
-    if atomic:
-        db.commit()
-    else:
-        db.flush()
-
-def terminar_turno(db: Session, partida_id, jugador_id):
-    partida = db.query(Partida).filter(Partida.id == partida_id).first()
-    if (not partida):
-        raise ResourceNotFoundError(
-            f"Partida con ID {partida_id} no encontrada.")
-
-    validar_turno_jugador(db, partida_id, jugador_id)
-    
-    temporizadores_turno.cancelar_temporizador_del_turno(partida_id)
-    
-    limpiar_stack_movimientos_parciales(db, partida_id, atomic=False)
-    
-    reponer_cartas_movimiento(db, partida, partida.jugador_del_turno, atomic=False)
-    reponer_cartas_figura(db, partida, partida.jugador_del_turno, atomic=False)
-    db.flush()
-    siguiente_turno(db, partida_id, atomic=False)
-
-    db.commit()
-
-def validar_turno_jugador(db: Session, partida_id, jugador_id):
-    partida = db.query(Partida).filter(Partida.id == partida_id).first()
-    if (not partida):
-        raise ResourceNotFoundError(
-            f"Partida con ID {partida_id} no encontrada.")
-    if (not partida.iniciada):
-        raise ForbiddenError(
-            f"La partida con ID {partida_id} todavía no comenzó.")
-
-    actual_jugador = partida.jugador_del_turno
-
-    if (actual_jugador.id_jugador != jugador_id):
-        raise ForbiddenError(f"El ID del jugador que posee el turno no es {jugador_id}.")
-
-def limpiar_stack_movimientos_parciales(db, partida_id, atomic=True):
-    partida = db.query(Partida).filter(Partida.id == partida_id).first()
-    if (not partida):
-        raise ResourceNotFoundError(
-            f"Partida con ID {partida_id} no encontrada.")
-    
-    while partida.movimientos_parciales:
-        deshacer_movimiento(db, partida_id, atomic=False)
-    
-    if atomic:
-        db.commit()
-    else:
-        db.flush()
-
 
 def get_tablero(db: Session, partida_id: int):
     juego = db.query(Partida).filter(Partida.id == partida_id).first()
@@ -248,43 +119,6 @@ def push_movimiento_parcial(db: Session, partida_id, carta_id, origen, destino, 
         db.commit()
     else:
         db.flush()
-
-def deshacer_movimiento(db: Session, id_partida, atomic=True):
-    partida = db.query(Partida).filter(Partida.id == id_partida).first()
-    if (not partida):
-        raise ResourceNotFoundError(
-            f"Partida con ID {id_partida} no encontrada.")
-
-    if (not partida.iniciada):
-        raise ForbiddenError(
-            f"La partida con ID {id_partida} todavía no comenzó.")
-
-    movimientos_parciales = partida.movimientos_parciales
-    if (len(movimientos_parciales) == 0):
-        raise ForbiddenError(
-            f"No hay movimientos parciales para deshacer en la partida con ID {id_partida}.")
-
-    ultimo_movimiento = movimientos_parciales.pop()
-
-    import ast
-    origen = ast.literal_eval(ultimo_movimiento.origen) # Estas tuplas se guardan como strings en la base de datos
-    destino = ast.literal_eval(ultimo_movimiento.destino)
-
-    from movimientos import swapear_en_tablero
-    import json
-
-    tablero = json.loads(partida.tablero)
-    swapear_en_tablero(tablero, origen, destino)
-    partida.tablero = json.dumps(tablero)
-
-    db.delete(ultimo_movimiento)
-
-    if atomic:
-        db.commit()
-    else:
-        db.flush()
-
-    return ultimo_movimiento
 
 def get_movimientos_parciales(db: Session, id_partida):
     partida = db.query(Partida).filter(Partida.id == id_partida).first()
@@ -412,9 +246,39 @@ def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
 
     return mano_del_jugador
 
-def get_id_jugador_turno(db: Session, partida_id):
-    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+def deshacer_movimiento(db: Session, id_partida, atomic=True):
+    partida = db.query(Partida).filter(Partida.id == id_partida).first()
     if (not partida):
-        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
-    
-    return partida.jugador_id
+        raise ResourceNotFoundError(
+            f"Partida con ID {id_partida} no encontrada.")
+
+    if (not partida.iniciada):
+        raise ForbiddenError(
+            f"La partida con ID {id_partida} todavía no comenzó.")
+
+    movimientos_parciales = partida.movimientos_parciales
+    if (len(movimientos_parciales) == 0):
+        raise ForbiddenError(
+            f"No hay movimientos parciales para deshacer en la partida con ID {id_partida}.")
+
+    ultimo_movimiento = movimientos_parciales.pop()
+
+    import ast
+    origen = ast.literal_eval(ultimo_movimiento.origen) # Estas tuplas se guardan como strings en la base de datos
+    destino = ast.literal_eval(ultimo_movimiento.destino)
+
+    from movimientos import swapear_en_tablero
+    import json
+
+    tablero = json.loads(partida.tablero)
+    swapear_en_tablero(tablero, origen, destino)
+    partida.tablero = json.dumps(tablero)
+
+    db.delete(ultimo_movimiento)
+
+    if atomic:
+        db.commit()
+    else:
+        db.flush()
+
+    return ultimo_movimiento
