@@ -87,7 +87,6 @@ def test_bloquear_jugador_sin_carta_404(client, test_db, test_ws_messages):
         respuesta_esperada={'detail': 'El jugador de ID 2 no tiene en la mano ninguna carta de figura revelada del formato f1.'},
     )
 
-    # 51 es, por construcción, el id de la carta carteada.
     assert set(modificaciones) == set(), "Fallo: Se esperaba que no hubieran modificaciones."
     assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
     assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
@@ -106,7 +105,6 @@ def test_bloquear_jugador_una_carta_403(client, test_db, test_ws_messages):
         respuesta_esperada={'detail': 'El jugador con ID 2 tiene una única carta de figura en su mano.'},
     )
 
-    # 51 es, por construcción, el id de la carta carteada.
     assert set(modificaciones) == set(), "Fallo: Se esperaba que no hubieran modificaciones."
     assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
     assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
