@@ -103,14 +103,25 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
     if (not jugador):
         raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
     
-    if (partida.iniciada and jugador == partida.jugador_del_turno):
-        terminar_turno(db, partida_id, jugador_id)
-    
     partida.jugadores.remove(jugador)
     db.delete(jugador)
     db.commit()
 
     return {**hay_ganador(db, partida), **__partida_cancelada(db, partida, jugador, id_creador)}
+
+def es_su_turno(db: Session, partida_id: int, jugador_id: int)->bool:
+    """
+    Devuelve True si es el turno del jugador en la partida, False en caso contrario.
+    """
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+    if (not partida):
+        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
+    
+    jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
+    if (not jugador):
+        raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
+    
+    return partida.iniciada and jugador.id == partida.jugador_del_turno.id
 
 def __partida_cancelada(db: Session, partida: Partida, jugador: Jugador, id_creador: int):
     if (not partida.iniciada and jugador.id_jugador == id_creador):

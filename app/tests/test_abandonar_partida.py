@@ -2,20 +2,21 @@ import pytest
 
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
 from websockets_manager.ws_partidas_manager import SINCRONIZAR_TURNO, ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, PARTIDA_CANCELADA, ACTUALIZAR_TABLERO
-from factory import crear_partida, unir_jugadores, iniciar_partida, test_temporizadores_turno
+from factory import crear_partida, unir_jugadores, iniciar_partida, siguiente_turno, test_temporizadores_turno, get_jugador_sin_turno
 from verifications import check_jugador_abandoned, check_partida_deletion, check_response
 from constantes_juego import SEGUNDOS_TEMPORIZADOR_TURNO
 from tools import get_all_tables
 
 @pytest.mark.parametrize("numero_de_jugadores", [3, 4])
-def test_abandonar_partida_en_el_turno_200(client, test_db, test_ws_messages, numero_de_jugadores):
+def test_abandonar_partida_en_el_turno_200(client, test_db, test_ws_messages, numero_de_jugadores, mock_timeGmt):
     '''Test de jugador abandonando una partida en su turno'''
 
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws_messages[ACTUALIZAR_SALA_ESPERA] = [{'partida_id': 1}]
     test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
     test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
-    test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}]
+    test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}, {'partida_id': 1}]
+    test_ws_messages[SINCRONIZAR_TURNO] = [{'partida_id': 1, 'inicio': mock_timeGmt, 'duracion': SEGUNDOS_TEMPORIZADOR_TURNO}]
 
     # Inicializamos la precondicion
     partida, _ = crear_partida(db=test_db)
@@ -71,7 +72,6 @@ def test_abandonar_partida_no_iniciada_no_creador_200(client, test_db, test_ws_c
     '''Test de jugador no creador abandonando una partida no iniciada'''
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws_counts[ACTUALIZAR_SALA_ESPERA] = 1
-    test_ws_counts[ACTUALIZAR_TURNO] = 1
     test_ws_counts[ACTUALIZAR_PARTIDAS] = 1
     test_ws_counts[ACTUALIZAR_TABLERO] = 1
 
@@ -100,7 +100,6 @@ def test_abandonar_partida_iniciada_creador_200(client, test_db, test_ws_message
     '''Test de creador abandonando su partida iniciada'''
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws_messages[ACTUALIZAR_SALA_ESPERA] = [{'partida_id': 1}]
-    test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
     test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
     test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}]
 
@@ -110,6 +109,7 @@ def test_abandonar_partida_iniciada_creador_200(client, test_db, test_ws_message
     id_creador = creador.id_jugador
     id_partida = partida.id
     partida = iniciar_partida(test_db, partida)
+    siguiente_turno(test_db, partida)
 
     # Realizamos la petición
     response = client.delete(f"/partidas/{id_partida}/jugadores/{id_creador}")
@@ -131,7 +131,6 @@ def test_abandonar_partida_iniciada_no_creador_200(client, test_db, test_ws_mess
     '''Test de jugador no creador abandonando una partida iniciada'''
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws_messages[ACTUALIZAR_SALA_ESPERA] = [{'partida_id': 1}]
-    test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
     test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
     test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}]
 
@@ -244,11 +243,13 @@ async def test_integracion_abandonar_partida_iniciada_ultimo_jugador_200(client,
     check_response(response, 200, None)
     
     await test_temporizadores_turno.wait_for_all_tasks()
+    test_db.refresh(partida)
     
     # Hacemos que un jugador abandone la partida
-    test_ws_messages[HAY_GANADOR] = [{'partida_id': 1, 'jugador_id': 1, 'nombre': 'Creador'}]
+    jugador_ganador = partida.jugador_del_turno
+    test_ws_messages[HAY_GANADOR] = [{'partida_id': 1, 'jugador_id': jugador_ganador.id, 'nombre': jugador_ganador.nombre}]
     
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
+    response = client.delete(f"/partidas/{id_partida}/jugadores/{get_jugador_sin_turno(test_db, partida).id}")
     check_response(response, 200, {'detail': 'El jugador abandonó la partida exitosamente'})
 
     # Verificamos que la base de datos se haya actualizado correctamente

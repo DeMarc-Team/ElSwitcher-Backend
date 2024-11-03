@@ -192,6 +192,19 @@ def siguiente_turno(db: Session, partida: Partida):
 
     db.commit()
 
+def get_jugador_sin_turno(db: Session, partida: Partida):
+    '''
+    Función para obtener el jugador sin turno de una partida.
+    '''
+    
+    assert partida.iniciada == True, "La partida no ha sido iniciada"
+    assert len(partida.jugadores) > 1, "La partida debe tener al menos 2 jugadores para poder obtener el jugador sin turno"
+    
+    id_jugador_del_turno = partida.jugador_del_turno.id
+    for jugador in partida.jugadores:
+        if jugador.id != id_jugador_del_turno:
+            return jugador
+
 def consumir_carta_movimiento(db: Session, jugador: Jugador, mov: str, cantidad=1):
     '''
     Procedimiento para eliminar los primeros "cantidad" de movimientos de la mano del jugador que son del tipo "mov".
