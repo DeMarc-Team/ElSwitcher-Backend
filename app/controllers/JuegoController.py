@@ -21,7 +21,7 @@ class JuegoController:
 
     async def terminar_turno(self, id_partida, id_jugador):
         turno_service.verificar_paso_de_turno(self.db, id_partida, id_jugador)
-        await temporizadores_turno.terminar_temporizador_del_turno(id_partida,terminar_turno,(self.db, id_partida, id_jugador))
+        await terminar_temporizador_del_turno(self.db, id_partida, id_jugador)
 
     async def get_tablero(self, id_partida):
         """Obtiene el tablero de una partida."""

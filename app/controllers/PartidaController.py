@@ -36,8 +36,6 @@ class PartidaController:
         return {"details": "Partida iniciada correctamente", "partida_id": partida_id}
 
     async def abandonar_partida(self, partida_id, jugador_id):
-        
-
         if (partida_service.es_su_turno(self.db, partida_id, jugador_id)):
             await terminar_temporizador_del_turno(self.db, partida_id, jugador_id)
         partida_cancelada = partida_service.abandonar_partida(self.db, partida_id, jugador_id)
