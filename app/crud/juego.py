@@ -360,9 +360,9 @@ def get_partida(db: Session, id_partida: int):
 
 def get_jugador(db: Session, partida: Partida, id_jugador: int):
     jugador = db.get(Jugador, id_jugador)
-    if (not jugador):
+    if ((not jugador) or (jugador not in partida.jugadores)):
         raise ResourceNotFoundError(
-            f"Jugador con ID {id_jugador} no encontrado en la partida con ID {id_jugador}.")
+            f"Jugador con ID {id_jugador} no encontrado en la partida con ID {partida.id}.")
         
     return jugador
 
