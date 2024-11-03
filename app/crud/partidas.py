@@ -5,7 +5,6 @@ from random import shuffle
 from exceptions import ResourceNotFoundError, ForbiddenError
 from schemas import PartidaData
 from models import Jugador, CartaFigura, CartaMovimiento, Partida
-from crud.juego import terminar_turno
 from constantes_juego import N_CARTAS_FIGURA_TOTALES, N_FIGURAS_REVELADAS
 from crud.TemporizadorTurno import temporizadores_turno
 
@@ -81,14 +80,10 @@ def _repartir_cartas_movimiento(db: Session, partida, n_cartas_por_jugador=3):
 
 def abandonar_partida(db: Session, partida_id: int, jugador_id: int)->bool:
     '''
-    Pasa el turno y elimina al jugador de la partida.
+    Elimina al jugador de la partida. Si el creador abandona la partida antes de iniciarla, 
+    elimina la partida (se cancela).
     
-    Si el creador abandona la partida antes de iniciarla,
-    - Elimina la partida.
-    - Devuelve True
-    
-    Si no,
-    - Devuelve False
+    :return: True si la partida fue cancelada, False en caso contrario.
     '''
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
     if (not partida):
