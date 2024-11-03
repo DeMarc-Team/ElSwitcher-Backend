@@ -15,7 +15,6 @@ async def test_terminar_turno_reponer_cartas(client, test_db, test_ws_messages, 
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
     test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}]
-    test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
     test_ws_messages[SINCRONIZAR_TURNO] = [{'partida_id': 1, 'inicio': mock_timeGmt, 'duracion': SEGUNDOS_TEMPORIZADOR_TURNO}]
 
     # Inicializamos la precondicion

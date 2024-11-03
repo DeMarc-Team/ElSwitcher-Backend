@@ -330,11 +330,11 @@ def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figur
             f"El jugador con ID {jugador.id_jugador} no posee el turno."
         )
     
-    hay_ganador = unatomic_usar_figura(db, partida, jugador, figura_data)
-    if (not hay_ganador.get("hay_ganador")):
+    ganador = unatomic_usar_figura(db, partida, jugador, figura_data)
+    if (not ganador.get("hay_ganador")):
         unatomic_aplicar_parciales(db, partida)
     db.commit()
-    return hay_ganador
+    return ganador
 
 def unatomic_usar_figura(db: Session, partida: Partida, jugador: Jugador, figura_data: CompletarFiguraData):    
 
