@@ -44,7 +44,8 @@ def test_db():
     Base.metadata.create_all(bind=engine)
     # Creamos una nueva sesión de base de datos para cada test
     db = TestingSessionLocal()
-    yield db
+    with patch('crud.repository.BaseRepository.session', db): # Para que repository use la misma session que el test
+        yield db
     db.close()
 
 @pytest.fixture(autouse=True, scope='session')
