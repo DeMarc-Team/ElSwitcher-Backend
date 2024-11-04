@@ -51,57 +51,42 @@ async def test_terminar_turno_reponer_cartas(client, test_db, test_ws_messages, 
     numero_esperado = min(3,len(jugador_inicial.mazo_cartas_de_figura))
     assert numero_de_figuras_reveladas == numero_esperado, f"Fallo: Se esperaba que el jugador tuviera {numero_esperado} figuras reveladas, pero tiene {numero_de_figuras_reveladas}."
     assert not eliminadas, f"Fallo: Se esperaba que no se eliminara ninguna tabla, pero se eliminaron {eliminadas}."
-    modificaciones_esperadas_en = {'jugadores': ['orden'], 'cartas_de_figura': ['revelada']}
+    modificaciones_esperadas_en = {'jugadores': ['orden'], 'cartas_de_figura': [
+        'revelada']}
     assert verificar_diccionarios(modificaciones, modificaciones_esperadas_en), f"Fallo: Las modificaciones no fueron las esperadas."
     assert verificar_tuplas(creadas, ['cartas_de_movimiento']), f"Fallo: Se esperaba que se crearan cartas de movimiento, pero no se crearon."
     
 @pytest.mark.asyncio
-async def test_terminar_turno(client, test_db, test_ws_counts):
+async def test_terminar_turno(client, test_db, test_ws_counts, mock_timeGmt):
     '''Test que chequea el funcionamiento en el escenario exitoso del endpoint para terminar_turno.'''
 
     partida, _ = crear_partida(test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores=3)
     iniciar_partida(test_db, partida)
-
     jugador_inicial = partida.jugador_del_turno
     segundo_jugador = partida.jugadores[1]
 
-    # Construyo una copia de los valores que deben permanecer invariantes
-    partida_datos_invariantes = {
-        "id": partida.id,
-        "nombre_partida": partida.nombre_partida,
-        "nombre_creador": partida.nombre_creador,
-        "iniciada": partida.iniciada,
-        "tablero": str(partida.tablero),
-        "id_creador": partida.id_creador
-    }
-
+    captura_inicial = capturar(get_all_tables(test_db))
+    
     # Pasamos el turno
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
+    response = client.put(
+        f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
     await test_temporizadores_turno.wait_for_all_tasks()
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
-    test_db.refresh(partida) # Para actualizar localmente la info de la partida
-
-    partida_datos_posteriores = {
-        "id": partida.id,
-        "nombre_partida": partida.nombre_partida,
-        "nombre_creador": partida.nombre_creador,
-        "iniciada": partida.iniciada,
-        "tablero": str(partida.tablero),
-        "id_creador": partida.id_creador
-    }
-
-    # Comprobamos que se mantengan los datos invariantes
-    assert (
-        partida_datos_invariantes == partida_datos_posteriores
-    ), f"Fallo: Se esperaba que el único dato que se modificara de la partida fuera el orden, pero no es así."
-
-    # Comprobamos que el turno sea del jugador correspondiente
-    assert (
-        partida.jugador_del_turno.id_jugador == segundo_jugador.id_jugador
-    ), f"Fallo: Se esperaba que el nuevo jugador del turno fuera el de id {segundo_jugador.id_jugador}, pero tiene id {partida.jugador_del_turno.id_jugador}."
     
-    assert len(partida.jugadores) == 4, f"Fallo: Se esperaba que la cantidad de jugadores fuera la misma, pero no es así."
+    test_db.refresh(partida)
+    captura_final = capturar(get_all_tables(test_db))
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
+
+    modificaciones_eperadas = {
+        ('jugadores', 1): [('orden', 0, 3)], 
+        ('jugadores', 2): [('orden', 1, 0)], 
+        ('jugadores', 3): [('orden', 2, 1)], 
+        ('jugadores', 4): [('orden', 3, 2)]
+        }
+    assert modificaciones == modificaciones_eperadas, f"Fallo: Se esperaba que no se modificara ninguna tabla, pero se modificaron {modificaciones}."
+    assert not eliminadas, f"Fallo: Se esperaba que no se eliminara ninguna tabla, pero se eliminaron {eliminadas}."
+    assert not creadas, f"Fallo: Se esperaba que no se creara ninguna tabla, pero se crearon {creadas}."
 
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws_counts[ACTUALIZAR_TURNO] = 1
