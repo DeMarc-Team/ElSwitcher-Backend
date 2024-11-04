@@ -8,7 +8,7 @@ def test_get_color_prohibido_None_200(client, test_db, test_ws_messages):
     iniciar_partida(test_db, partida)
     
     captura_inicial = capturar(get_all_tables(test_db))
-    response = client.get(f"/juego/{partida.id}/colorProhibido")
+    response = client.get(test_db, f"/juego/{partida.id}/colorProhibido")
     check_response(response, 200, {"color": None})
     captura_final = capturar(get_all_tables(test_db))
     
@@ -25,7 +25,7 @@ def test_get_color_prohibido_1_200(client, test_db, test_ws_messages):
     prohibir_color(test_db, partida, 1)
     
     captura_inicial = capturar(get_all_tables(test_db))
-    response = client.get(f"/juego/{partida.id}/colorProhibido")
+    response = client.get(test_db, f"/juego/{partida.id}/colorProhibido")
     check_response(response, 200, {"color": 1})
     captura_final = capturar(get_all_tables(test_db))
     

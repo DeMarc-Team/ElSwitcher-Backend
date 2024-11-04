@@ -33,7 +33,6 @@ Base.metadata.create_all(bind=engine)
 
 @pytest.fixture(scope='session')
 def client():
-    # Sobreescribir la dependencia de base de datos
     def override_get_db():
         try:
             db = TestingSessionLocal()
@@ -41,8 +40,21 @@ def client():
         finally:
             db.close()
     app.dependency_overrides[get_db] = override_get_db
+    
+    client = TestClient(app)
+    
+    for method in ['get', 'post', 'put', 'delete']:
+        original_method = getattr(client, method)
 
-    return TestClient(app)
+        def wrapped_method(db=TestingSessionLocal(), *args, _method=original_method, **kwargs):
+            response = _method(*args, **kwargs)
+            # Limpiar el caché de la sesión para forzar la carga de datos actualizados
+            db.expire_all()
+            return response
+
+        setattr(client, method, wrapped_method)
+
+    return client
 
 @pytest.fixture(scope='function')
 def test_db():

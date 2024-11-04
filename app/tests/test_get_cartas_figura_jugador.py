@@ -15,7 +15,7 @@ def test_get_cartas_figura_happy_path(client, test_db):
         iniciar_partida(db=test_db, partida=partida)
 
     for j in jugadores:
-        response = client.get(
+        response = client.get(test_db, 
             f"/juego/{partida.id}/jugadores/{j.id_jugador}/cartas_figura"
         )
         assert (
@@ -38,7 +38,7 @@ def test_get_cartas_figura_jugador_no_iniciada(client, test_db):
 
     j1_id = jugadores[0].id_jugador
 
-    response = client.get(f"/juego/{partida.id}/jugadores/{j1_id}/cartas_figura")
+    response = client.get(test_db, f"/juego/{partida.id}/jugadores/{j1_id}/cartas_figura")
     assert (
         response.status_code == 200
     ), f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
@@ -62,7 +62,7 @@ def test_get_cartas_figura_jugador_partida_llena_no_iniciada(client, test_db):
     )
 
     for j in jugadores:
-        response = client.get(
+        response = client.get(test_db, 
             f"/juego/{partida.id}/jugadores/{j.id_jugador}/cartas_figura"
         )
         assert (

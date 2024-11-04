@@ -16,7 +16,7 @@ def test_get_partidas_200(client, test_db, test_ws_counts, numero_jugadores):
     unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=3)
 
     # Llamamos al endpoint para obtener las partidas no iniciadas y no llenas
-    response = client.get("partidas")
+    response = client.get(test_db, "partidas")
     print(f"Response: {response.json()}")
     
     assert response.status_code == 200 , f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"

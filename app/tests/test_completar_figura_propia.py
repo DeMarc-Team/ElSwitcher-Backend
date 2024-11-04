@@ -37,7 +37,7 @@ def test_usar_figura_propia(client, test_db, test_ws_messages):
     # Capturamos la BDD antes de los cambios
     captura_inicial = capturar_metadata(get_all_tables(test_db))
 
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
 
     # Capturamos la BDD luego de los cambios
@@ -45,7 +45,7 @@ def test_usar_figura_propia(client, test_db, test_ws_messages):
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
     # Comparamos que los conjuntos (PORQUE EL ORDEN DE LAS CAPTURAS NO ES DETERMINISTA) de objetos sean los correctos
-    assert set(modificaciones) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
+    assert modificaciones == {('partidas', 1): [('color_prohibido', 0, 2)]}, "Fallo: Se esperaba otro conjunto de objetos modificados."
     assert set(eliminadas) == set(
         [
             ("cartas_de_movimiento", 1),    # Cartas de movimiento falseadas
@@ -100,7 +100,7 @@ def test_usar_figura_propia_yganar(client, test_db, test_ws_messages):
 
     eliminar_cartas_figura_del_maso(test_db, jugador_del_turno, 1)
 
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
     test_db.commit()
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
 
@@ -142,7 +142,7 @@ def test_usar_figura_propia_varias_figuras(client, test_db, test_ws_counts):
     # Capturamos la BDD antes de los cambios
     captura_inicial = capturar_metadata(get_all_tables(test_db))
     
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
     
     # Capturamos la BDD luego de los cambios
@@ -150,7 +150,7 @@ def test_usar_figura_propia_varias_figuras(client, test_db, test_ws_counts):
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
     # Comparamos que los conjuntos (PORQUE EL ORDEN DE LAS CAPTURAS NO ES DETERMINISTA) de objetos sean los correctos
-    assert set(modificaciones) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
+    assert set(modificaciones) == {('partidas', 1)}, "Fallo: Se esperaba otro conjunto de objetos modificados."
     assert set(eliminadas) == set(
         [
             ("cartas_de_movimiento", 1),    # Cartas de movimiento falseadas
@@ -200,7 +200,7 @@ def test_usar_figura_propia_varias_cartas(client, test_db, test_ws_counts):
     # Capturamos la BDD antes de los cambios
     captura_inicial = capturar_metadata(get_all_tables(test_db))
     
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
 
     # Capturamos la BDD luego de los cambios
@@ -208,7 +208,7 @@ def test_usar_figura_propia_varias_cartas(client, test_db, test_ws_counts):
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
     # Comparamos que los conjuntos (PORQUE EL ORDEN DE LAS CAPTURAS NO ES DETERMINISTA) de objetos sean los correctos
-    assert set(modificaciones) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
+    assert set(modificaciones) == {('partidas', 1)}, "Fallo: Se esperaba otro conjunto de objetos modificados."
     assert set(eliminadas) == set(
         [
             ("cartas_de_movimiento", 1),    # Cartas de movimiento falseadas
@@ -370,7 +370,7 @@ def test_usar_figura_propia_jugador_no_turno_403(client, test_db, test_ws_counts
         "figura": casillas_figura,
         "carta_fig": "f1"
     }
-    response = client.put(f'/juego/{partida.id}/jugadores/{otro_jugador.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{otro_jugador.id_jugador}/tablero/figura', json=request_body)
     respuesta_esperada = {'detail': f"El jugador con ID {otro_jugador.id_jugador} no posee el turno."}
     check_response(response, status_code_esperado=403, respuesta_esperada=respuesta_esperada)
 
@@ -393,7 +393,7 @@ def test_usar_figura_propia_partida_no_existe_404(client, test_db, test_ws_count
         "figura": [{"row": 0, "col": 0}],
         "carta_fig": "f1"
     }
-    response = client.put(f'/juego/{id_partida}/jugadores/{id_jugador}/tablero/figura', json=request_body)
+    response = client.put(test_db, f'/juego/{id_partida}/jugadores/{id_jugador}/tablero/figura', json=request_body)
     respuesta_esperada = {'detail': f'Partida con ID {id_partida} no encontrada.'}
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
@@ -413,7 +413,7 @@ def test_usar_figura_propia_partida_no_iniciada_403(client, test_db, test_ws_cou
         "figura": [{"row": 0, "col": 0}],
         "carta_fig": "f1"
     }
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador.id_jugador}/tablero/figura', json=request_body)
     respuesta_esperada = {'detail': f"La partida con ID {partida.id} todavía no comenzó."}
     check_response(response, status_code_esperado=403, respuesta_esperada=respuesta_esperada)
 
@@ -440,8 +440,8 @@ def test_usar_figura_propia_jugador_no_existe_404(client, test_db, test_ws_count
         "figura": [{"row": 0, "col": 0}],
         "carta_fig": "f1"
     }
-    response = client.put(f'/juego/{partida.id}/jugadores/{id_jugador}/tablero/figura', json=request_body)
-    respuesta_esperada = {'detail': f"Jugador con ID {id_jugador} no encontrado en la partida con ID {partida.id}."}
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{id_jugador}/tablero/figura', json=request_body)
+    respuesta_esperada = {'detail': f"Jugador con ID {id_jugador} no encontrado en la partida con ID {id_jugador}."}
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
 # ----------------------------------------------------------------
@@ -462,8 +462,8 @@ def test_usar_figura_propia_mano_sin_figura_404(client, test_db, test_ws_counts)
         "figura": [{"row": 0, "col": 0}],
         "carta_fig": "f1"
     }
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
-    respuesta_esperada = {'detail': f"El jugador de ID {jugador_del_turno.id} no tiene en la mano ninguna carta de figura revelada del formato {request_body.get('carta_fig')}."}
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    respuesta_esperada = {'detail': f"El jugador no tiene en la mano ninguna carta de figura revelada del formato {request_body.get('carta_fig')}."}
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
     # Verificamos que no se haya realizado ningun cambio en la base de datos
@@ -503,7 +503,7 @@ def test_usar_figura_propia_no_en_tablero_404(client, test_db, test_ws_counts):
         "figura": [{"row": 0, "col": 0}],
         "carta_fig": figura
     }
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
     respuesta_esperada = {'detail': f"No existe (en el tablero) ninguna figura del tipo que se intenta utilizar."}
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
@@ -544,7 +544,7 @@ def test_usar_figura_propia_casilla_incorrecta_404(client, test_db, test_ws_coun
         "figura": [{"row": 0, "col": 0}],
         "carta_fig": figura
     }
-    response = client.put(f'/juego/{partida.id}/jugadores/{creador.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{creador.id_jugador}/tablero/figura', json=request_body)
     respuesta_esperada = {'detail': f"No existe (en el tablero) la figura que se intenta utilizar en las coordenadas enviadas."}
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
@@ -565,7 +565,6 @@ def test_usar_figura_bloqueada_403(client, test_db, test_ws_counts):
     iniciar_partida(test_db, partida)
 
     jugador_del_turno = partida.jugador_del_turno
-
     tablero_mock = [
         [2, 2, 2, 4, 1, 2],
         [1, 2, 1, 4, 1, 2],
@@ -574,7 +573,6 @@ def test_usar_figura_bloqueada_403(client, test_db, test_ws_counts):
         [1, 1, 1, 4, 1, 2],
         [1, 1, 1, 4, 1, 2]
     ]
-
     establecer_tablero(test_db, partida, tablero_mock)
     figura = "f2"
     cartear_figuras(test_db, jugador_del_turno, [figura], primera_figura_bloqueada=True)
@@ -597,3 +595,50 @@ def test_usar_figura_bloqueada_403(client, test_db, test_ws_counts):
     assert not modificaciones, f"Se encontraron modificaciones en tablas en la db: {modificaciones}"
     assert not eliminadas, f"Se encontraron tablas eliminadas en la db: {eliminadas}"
     assert not creadas, f"Se encontraron tablas creadas en la db: {creadas}"
+
+def test_integracion_bloquear_color(client, test_db, test_ws_messages):
+    test_ws_messages[ACTUALIZAR_CARTAS_FIGURA] = [{"partida_id": 1}]
+    test_ws_messages[ACTUALIZAR_CARTAS_MOVIMIENTO] = [{"partida_id": 1}]
+
+    tablero_mock = [
+        [2, 2, 2, 4, 1, 2],
+        [1, 2, 1, 4, 1, 2],
+        [1, 2, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2]
+    ]
+    coordenadas_figura = [[[0, 1], [2, 1], [0, 0], [1, 1], [0, 2]]]
+    request_body = {
+        "figura": listas_to_casillas_figura(coordenadas_figura)[0],
+        "carta_fig": "f1"
+    }
+
+    # Configuramos el escenario
+    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1"], n_movimientos_a_consumir=3)
+
+    # Descartamos la carta de color 2
+    captura_inicial = capturar_metadata(get_all_tables(test_db))
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    check_response(response, status_code_esperado=200, respuesta_esperada=None)
+    
+    # Pedimos el color prohibido
+    response = client.get(test_db, f"/juego/{partida.id}/colorProhibido")
+    check_response(response, 200, {"color": 2})
+    captura_final = capturar_metadata(get_all_tables(test_db))
+    
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
+    
+    assert modificaciones == {('partidas', 1): [('color_prohibido', 0, 2)]}, \
+        f"Se esperaba que solo se actualice el color prohibido, pero se encontro {modificaciones}"
+    
+    assert eliminadas == [('cartas_de_figura', 51), 
+                          ('cartas_de_movimiento', 1), 
+                          ('cartas_de_movimiento', 2), 
+                          ('cartas_de_movimiento', 3), 
+                          ('movimientos_parciales', 1), 
+                          ('movimientos_parciales', 2), 
+                          ('movimientos_parciales', 3)], \
+        f"Se esperaba que se eliminen las cartas de figura y movimiento, pero se encontro {eliminadas}"
+    
+    assert creadas == [], f"No se esperaban creaciones, pero se encontro {creadas}"
