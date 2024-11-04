@@ -190,18 +190,26 @@ def unatomic_usar_figura(db: Session, partida: Partida, jugador: Jugador, figura
     
     coords_figuras_del_tipo = figuras_en_tablero[carta_fig_deseada]
     coords_figura = casillas_to_coords_figura_set(figura_data.figura)
-    
     if (coords_figura not in coords_figuras_del_tipo):
         raise ResourceNotFoundError(
             f"No existe (en el tablero) la figura que se intenta utilizar en las coordenadas enviadas."
         )
-    
+    partida.color_prohibido = __get_color_coordenadas(partida, coords_figura)
     db.delete(cartas_a_usar)
     db.flush()
     from crud.partidas import hay_ganador
     return hay_ganador(db, partida.id)
-    
-    
+
+def __get_color_coordenadas(partida: Partida, coords_figura)->int:
+    '''
+    Dada una figura, retorna el color de la primera casilla en el tablero.
+    '''
+    import json
+    tablero = json.loads(partida.tablero)
+    coordenadas = list(coords_figura)
+    color = tablero[coordenadas[0][0]][coordenadas[0][1]]
+    return color
+
 
 def unatomic_aplicar_parciales(db: Session, partida: Partida):
     '''
