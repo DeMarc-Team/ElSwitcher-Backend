@@ -15,7 +15,7 @@ def test_iniciar_partida_200(client, test_db, test_ws_messages, mock_timeGmt):
     partida, _ = crear_partida(db=test_db, nombre_partida="partida_con_2_jugadores", nombre_creador="Creador")
     unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=2)
 
-    response = client.put("partidas/1")
+    response = client.put(test_db, "partidas/1")
     print(f"Response: {response.json()}")
     
     # Verificamos la respuesta del servidor
@@ -48,7 +48,7 @@ def test_iniciar_partida_con_jugadores_insuficientes_403(client, test_db):
     id_partida = 1
     partida, _ = crear_partida(db=test_db, nombre_partida="partida_con_1_jugador", nombre_creador="Creador")
 
-    response = client.put("partidas/1")
+    response = client.put(test_db, "partidas/1")
     print(f"Response: {response.json()}")
     
     # Verificamos la respuesta del servidor
@@ -74,7 +74,7 @@ def test_iniciar_partida_ya_iniciada_403(client, test_db):
     iniciar_partida(db=test_db, partida=partida)
     
     # 
-    response = client.put("partidas/1")
+    response = client.put(test_db, "partidas/1")
     print(f"Response: {response.json()}")
     
     # Verificamos la respuesta del servidor
@@ -92,7 +92,7 @@ def test_iniciar_partida_ya_iniciada_403(client, test_db):
 
 def test_iniciar_partida_404(client, test_db):
     '''Test para iniciar una partida que no existe'''
-    response = client.put("partidas/1")
+    response = client.put(test_db, "partidas/1")
     print(f"Response: {response.json()}")
     
     # Verificamos la respuesta del servidor

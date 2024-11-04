@@ -21,14 +21,14 @@ def test_cancelar_movimiento_parcial(client, test_db, test_ws_counts):
     iniciar_partida(db=test_db, partida=partida)
     
     # Obtenemos de quien es el turno
-    response = client.get(f"/juego/{partida.id}/turno")
+    response = client.get(test_db, f"/juego/{partida.id}/turno")
 
     id_jugador_del_turno = response.json()['id_jugador']
     jugador_del_turno = [jugador for jugador in jugadores if jugador.id_jugador == id_jugador_del_turno][0]
 
     assert len(jugador_del_turno.mano_movimientos) == 3, "Fallo: El jugador debería haber jugado su carta de movimiento"
 
-    response = jugar_carta_m1(client, partida, id_jugador_del_turno)
+    response = jugar_carta_m1(client, test_db,partida, id_jugador_del_turno)
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     test_db.refresh(jugador_del_turno) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
 
@@ -38,7 +38,7 @@ def test_cancelar_movimiento_parcial(client, test_db, test_ws_counts):
     test_db.refresh(partida) # Sin esto el tablero queda viejo  
     assert partida.tablero == tablero_esperado_durante_parcial, "Fallo: El tablero no es el esperado"
 
-    response = client.delete(f"/juego/{partida.id}/jugadores/{id_jugador_del_turno}/mov-parciales")
+    response = client.delete(test_db, f"/juego/{partida.id}/jugadores/{id_jugador_del_turno}/mov-parciales")
     test_db.refresh(partida) # Sin esto el tablero queda viejo  
 
     assert partida.movimientos_parciales == [], "Fallo: Debería haberse limpiado la lista de movimientos parciales"
@@ -59,12 +59,12 @@ def test_no_se_puede_cancelar_movimiento_parcial_si_no_hay_movimientos_parciales
     iniciar_partida(db=test_db, partida=partida)
     
     # Obtenemos de quien es el turno
-    response = client.get(f"/juego/{partida.id}/turno")
+    response = client.get(test_db, f"/juego/{partida.id}/turno")
 
     id_jugador_del_turno = response.json()['id_jugador']
     jugador_del_turno = [jugador for jugador in jugadores if jugador.id_jugador == id_jugador_del_turno][0]
 
-    response = client.delete(f"/juego/{partida.id}/jugadores/{id_jugador_del_turno}/mov-parciales")
+    response = client.delete(test_db, f"/juego/{partida.id}/jugadores/{id_jugador_del_turno}/mov-parciales")
     test_db.refresh(partida) # Sin esto el tablero queda viejo  
 
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
@@ -84,17 +84,17 @@ async def test_se_limpian_los_movs_parciales_pasando_turno(client, test_db):
     iniciar_partida(db=test_db, partida=partida)
     
     # Obtenemos de quien es el turno
-    response = client.get(f"/juego/{partida.id}/turno")
+    response = client.get(test_db, f"/juego/{partida.id}/turno")
 
     id_jugador_del_turno = response.json()['id_jugador']
     jugador_del_turno = [jugador for jugador in jugadores if jugador.id_jugador == id_jugador_del_turno][0]
 
     assert len(jugador_del_turno.mano_movimientos) == 3, "Fallo: El jugador debería haber jugado su carta de movimiento"
 
-    response = jugar_carta_m1(client, partida, id_jugador_del_turno)
+    response = jugar_carta_m1(client, test_db,partida, id_jugador_del_turno)
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     test_db.refresh(jugador_del_turno) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
-    response = client.put(f"/juego/{partida.id}/jugadores/{id_jugador_del_turno}/turno")
+    response = client.put(test_db, f"/juego/{partida.id}/jugadores/{id_jugador_del_turno}/turno")
     await test_temporizadores_turno.wait_for_all_tasks()
     
     test_db.refresh(partida) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
@@ -120,18 +120,18 @@ def test_se_limpian_los_movs_parciales_abandonando(client, test_db, test_ws_coun
     iniciar_partida(db=test_db, partida=partida)
     
     # Obtenemos de quien es el turno
-    response = client.get(f"/juego/{partida.id}/turno")
+    response = client.get(test_db, f"/juego/{partida.id}/turno")
 
     id_jugador_del_turno = response.json()['id_jugador']
     jugador_del_turno = [jugador for jugador in jugadores if jugador.id_jugador == id_jugador_del_turno][0]
 
     assert len(jugador_del_turno.mano_movimientos) == 3, "Fallo: El jugador debería haber jugado su carta de movimiento"
 
-    response = jugar_carta_m1(client, partida, id_jugador_del_turno)
+    response = jugar_carta_m1(client,test_db, partida, id_jugador_del_turno)
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     test_db.refresh(jugador_del_turno) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
 
-    response = client.delete(f"/partidas/{partida.id}/jugadores/{id_jugador_del_turno}")
+    response = client.delete(test_db, f"/partidas/{partida.id}/jugadores/{id_jugador_del_turno}")
 
     test_db.refresh(partida) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
     assert partida.tablero == tablero_original, "Fallo: El tablero no debería haber cambiado"

@@ -17,7 +17,7 @@ def test_get_cartas_de_movimiento_happy_path(client, test_db):
         iniciar_partida(db=test_db, partida=partida)
 
     for j in jugadores:
-        response = client.get(
+        response = client.get(test_db, 
             f"/juego/{partida.id}/jugadores/{j.id_jugador}/cartas_movimiento"
         )
         assert (
@@ -41,7 +41,7 @@ def test_get_cartas_movimiento_jugador_no_iniciada(client, test_db):
     )
 
     for jugador in jugadores:
-        response = client.get(
+        response = client.get(test_db, 
             f"/juego/{partida.id}/jugadores/{jugador.id_jugador}/cartas_figura"
         )
         assert (

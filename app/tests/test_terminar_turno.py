@@ -29,7 +29,7 @@ async def test_terminar_turno_reponer_cartas(client, test_db, test_ws_messages, 
     captura_inicial = capturar(get_all_tables(test_db))
     
     
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
     await test_temporizadores_turno.wait_for_all_tasks()
     
@@ -68,7 +68,7 @@ async def test_terminar_turno(client, test_db, test_ws_counts):
     }
 
     # Pasamos el turno
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
     await test_temporizadores_turno.wait_for_all_tasks()
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
     test_db.refresh(partida) # Para actualizar localmente la info de la partida
@@ -164,7 +164,7 @@ async def test_reponer_cartas_movimiento(client, test_db):
     consumir_carta_movimiento(test_db, jugador_del_turno, "m1", cantidad=2)
     
     with mock.patch("models.CartaMovimiento.random_movimiento", mock.Mock(side_effect=["m2", "m3"])):
-        response = client.put(f'juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/turno')
+        response = client.put(test_db, f'juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/turno')
         await test_temporizadores_turno.wait_for_all_tasks()
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
     
@@ -180,7 +180,7 @@ def test_partida_inexistente_404(client, test_db, test_ws_counts):
     '''Test sobre los mensajes de error ante el envío de terminar turno a una partida inexistente.'''
 
     # Intentamos terminar el turno de una partida inexistente.
-    response = client.put(f'juego/{999999}/jugadores/{999999}/turno')
+    response = client.put(test_db, f'juego/{999999}/jugadores/{999999}/turno')
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
 
 def test_partida_no_iniciada_403(client, test_db, test_ws_counts):
@@ -189,7 +189,7 @@ def test_partida_no_iniciada_403(client, test_db, test_ws_counts):
     partida, _ = crear_partida(test_db)
 
     # Intentamos terminar el turno de una partida no iniciada.
-    response = client.put(f'juego/{partida.id}/jugadores/{1}/turno')
+    response = client.put(test_db, f'juego/{partida.id}/jugadores/{1}/turno')
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
 
 def test_jugador_sin_turno_403(client, test_db, test_ws_counts):
@@ -200,11 +200,11 @@ def test_jugador_sin_turno_403(client, test_db, test_ws_counts):
     iniciar_partida(test_db, partida)
 
     # Intentamos terminar el turno de un jugador que no posee el turno
-    response = client.put(f'juego/{partida.id}/jugadores/{3}/turno')
+    response = client.put(test_db, f'juego/{partida.id}/jugadores/{3}/turno')
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
 
 # Auxiliares
-async def pasar_ronda_completa(client, db, partida):
+async def pasar_ronda_completa(client, test_db, partida):
     '''
     Pasa una ronda completa de turnos y retorna una lista ordenada por turno de los ids de los jugadores que jugaron la ronda.
     '''
@@ -224,9 +224,8 @@ async def pasar_ronda_completa(client, db, partida):
         id_jugador_anterior = id_jugador_actual
 
         # Terminamos el turno del jugador actual
-        response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
+        response = client.put(test_db, f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
         await test_temporizadores_turno.wait_for_all_tasks()
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
-        db.refresh(partida) # Para actualizar localmente la info de la partida
         
     return orden_de_turnos
