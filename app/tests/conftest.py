@@ -2,6 +2,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
 from collections import Counter
+from unittest.mock import patch
+import time
 import pytest
 import os
 
@@ -12,8 +14,6 @@ from database import Base, get_db
 from main import app
 from tools import WSManagerTester; tester = WSManagerTester()
 from factory import test_temporizadores_turno
-from unittest.mock import patch
-import time;
 
 # Setup de la base de datos de prueba
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), "test.db")
