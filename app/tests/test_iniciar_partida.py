@@ -1,6 +1,8 @@
 
 from models import Partida
 from factory import crear_partida, unir_jugadores, iniciar_partida
+from tools import get_all_tables, comparar_capturas, capturar_metadata as capturar, verificar_cantidad_tuplas, eliminar_tablas_laxas
+from verifications import check_response
 from constantes_juego import N_CARTAS_FIGURA_TOTALES, N_FIGURAS_REVELADAS
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, SINCRONIZAR_TURNO
@@ -15,31 +17,26 @@ def test_iniciar_partida_200(client, test_db, test_ws_messages, mock_timeGmt):
     partida, _ = crear_partida(db=test_db, nombre_partida="partida_con_2_jugadores", nombre_creador="Creador")
     unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=2)
 
+    captura_inicial = capturar(get_all_tables(test_db))
     response = client.put("partidas/1")
-    print(f"Response: {response.json()}")
-    
-    # Verificamos la respuesta del servidor
-    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    respuesta_esperada = {'details': 'Partida iniciada correctamente', 'partida_id': 1}
-
-    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada}, pero se obtuvo {response.json}"
-    
-    # Verificamos que se haya iniciado la partida
-    partida = test_db.query(Partida).filter(Partida.id == 1).first()
-    assert partida.iniciada, f"Fallo: Se esperaba que la partida estuviera iniciada, pero se obtuvo {partida.iniciada}"
-    assert len(partida.jugadores) == 3, f"Fallo: Se esperaba que la partida tuviera 3 jugadores, pero se obtuvo {len(partida.jugadores)}"
+    check_response(response, 200, {'details': 'Partida iniciada correctamente', 'partida_id': 1})
+    captura_final = capturar(get_all_tables(test_db))
     
     # Calculamos la cantidad de cartas de figura que cada jugador deberia tener en esta partida
     n_cartas_fig_por_jugador = int(N_CARTAS_FIGURA_TOTALES/len(partida.jugadores))
     
-    # Verificamos que se hayan repartido las cartas de figura y cartas de movimiento
-    for jugador in partida.jugadores:
-        cartas_figura_reveladas = [figura for figura in jugador.mazo_cartas_de_figura if figura.revelada]
-        assert len(jugador.mazo_cartas_de_figura) == n_cartas_fig_por_jugador, f"Fallo: Se esperaba que el jugador tuviera 3 cartas de figura, pero se obtuvo {len(jugador.mazo_cartas_de_figura)}"
-        assert len(cartas_figura_reveladas) == N_FIGURAS_REVELADAS, f"Fallo: Se esperaba que el jugador tuviera {N_FIGURAS_REVELADAS} figuras reveladas, pero tiene {len(cartas_figura_reveladas)}"
-        assert len(jugador.mano_movimientos) == 3, f"Fallo: Se esperaba que el jugador tuviera 3 cartas de movimiento, pero se obtuvo {len(jugador.cartas_movimiento)}"
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
     
-    test_db.close()
+    modificaciones_esperadas = {
+        ('partidas', 1): 
+            [('duracion_turno', 0, SEGUNDOS_TEMPORIZADOR_TURNO), ('iniciada', False, True),
+             ('inicio_turno', '0', mock_timeGmt)],
+        } # se eliminaron los cambios en 'jugadores'
+    eliminar_tablas_laxas(modificaciones, ['jugadores'])
+    
+    assert modificaciones == modificaciones_esperadas, f"Se detectaron modificaciones inesperadas en las tablas: {modificaciones}"
+    assert not eliminadas, f"Se detectaron eliminaciones inesperadas en las tablas: {eliminadas}"
+    assert verificar_cantidad_tuplas(creadas, [('cartas_de_movimiento', 9),('cartas_de_figura', 48)]), f"Se detectaron creaciones inesperadas en las tablas: {creadas}"
 
 # ----------------------------------------------------------------
 
