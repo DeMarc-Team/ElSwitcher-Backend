@@ -12,6 +12,13 @@ Base.metadata.create_all(bind=engine)
 
 router = APIRouter(prefix="/juego")
 
+# FIXME: REFACT:
+# eliminar get_game_controller
+# cambiar 'controller: JuegoController = Depends(get_game_controller)'
+# por 'controller: JuegoController = juego_controller'
+# e intanciar juego_controller en JuegoController.py
+# igual para partida
+
 # Crear una dependencia para el controlador
 async def get_game_controller(db: Session = Depends(get_db)):
     return JuegoController(db)
