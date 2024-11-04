@@ -84,11 +84,6 @@ class BloquearFiguraData(BaseModel):
     figura: list[Casilla]
     carta_fig: str
     
-
-class ResponseCronometro(BaseModel):
-    inicio: str
-    duracion: int
-    
 class ResponseCronometro(BaseModel):
     inicio: str
     duracion: int
