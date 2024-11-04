@@ -148,6 +148,10 @@ def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figur
     partida = get_partida(db, id_partida)
     jugador = get_jugador(db, partida, id_jugador)
     
+    if (not partida.iniciada):
+        raise ForbiddenError(
+            f"La partida con ID {id_partida} todavía no comenzó.")
+    
     if (jugador.id_jugador != partida.jugador_del_turno.id):
         raise ForbiddenError(
             f"El jugador con ID {jugador.id_jugador} no posee el turno."
@@ -233,10 +237,6 @@ def get_partida(db: Session, id_partida: int):
     if (not partida):
         raise ResourceNotFoundError(
             f"Partida con ID {id_partida} no encontrada.")
-
-    if (not partida.iniciada):
-        raise ForbiddenError(
-            f"La partida con ID {id_partida} todavía no comenzó.")
             
     return partida
 
