@@ -57,6 +57,11 @@ class JuegoController:
             await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
             await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
             
+    async def bloquear_carta_ajena(self, id_partida, id_jugador, bloqueo_data):
+        juego_service.bloquear_carta_ajena(self.db, id_partida, id_jugador, bloqueo_data)
+        await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
+        await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
+            
 async def terminar_turno(db, id_partida, id_jugador):
     temporizadores_turno.cancelar_temporizador_del_turno(id_partida)
     turno_service.terminar_turno(db, id_partida)

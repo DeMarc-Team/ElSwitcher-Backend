@@ -54,7 +54,7 @@ class TurnoDetails(BaseModel):
 
 class CartaFiguraData(BaseModel):
     figura: str
-    revelada: bool
+    bloqueada: bool
 
 class CartaMovimientoData(BaseModel):
     movimiento: str
@@ -79,3 +79,7 @@ class CompletarFiguraData(BaseModel):
     figura: list[Casilla]
     carta_fig: str
     
+class BloquearFiguraData(BaseModel):
+    id_jugador_bloqueado: int
+    figura: list[Casilla]
+    carta_fig: str

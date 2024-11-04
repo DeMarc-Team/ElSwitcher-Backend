@@ -1,7 +1,16 @@
 import mock
 import pytest
 
-from factory import crear_partida, unir_jugadores, iniciar_partida, consumir_carta_movimiento, consumir_cantidad_cartas_figura_reveladas, consumir_cantidad_cartas_movimiento, test_temporizadores_turno
+from factory import (
+    crear_partida,
+    unir_jugadores,
+    iniciar_partida,
+    consumir_carta_movimiento,
+    consumir_cantidad_cartas_figura_reveladas,
+    consumir_cantidad_cartas_movimiento,
+    cartear_figuras,
+    test_temporizadores_turno,
+)
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_TURNO, ACTUALIZAR_TABLERO, SINCRONIZAR_TURNO
 from tools import get_all_tables, capturar_metadata as capturar, comparar_capturas, verificar_diccionarios, seleccionar_parametros, verificar_tuplas
 from constantes_juego import SEGUNDOS_TEMPORIZADOR_TURNO
@@ -175,6 +184,123 @@ async def test_reponer_cartas_movimiento(client, test_db):
     assert movimientos == [
         "m1", "m2", "m3"
     ], "Fallo: Las cartas de movimiento del jugador no se repusieron como se esperaba."
+
+def test_jugador_bloqueado(client, test_db):
+    '''Test sobre la no reposición de cartas de figura de un jugador bloqueado con varias cartas en su mano.'''
+    
+    partida, creador = crear_partida(test_db)
+    jugador_del_turno = creador     # Esto es así por construcción
+    unir_jugadores(test_db, partida, numero_de_jugadores=2)
+    iniciar_partida(test_db, partida)
+    
+    cartear_figuras(test_db, jugador_del_turno, ["f1", "f2"], primera_figura_bloqueada=True)
+    
+    captura_inicial = capturar(get_all_tables(test_db))
+    
+    # Terminamos el turno
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/turno')
+    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
+
+    captura_final = capturar(get_all_tables(test_db))
+    
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
+    assert set(modificaciones) == set([('jugadores', 3), ('jugadores', 2)]), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y nada más."
+    assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
+    assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
+
+def test_jugador_bloqueado_carta_revelada_libre(client, test_db):
+    '''Test sobre la no reposición de cartas de figura de un jugador bloqueado una única carta en la mano, la cual está libre.'''
+    
+    partida, creador = crear_partida(test_db)
+    jugador_bloqueado = creador     # Esto es así por construcción
+    unir_jugadores(test_db, partida, numero_de_jugadores=2)
+    iniciar_partida(test_db, partida)
+    
+    jugador_bloqueado.bloqueado = True
+    test_db.commit()
+    cartear_figuras(test_db, jugador_bloqueado, ["f1"], primera_figura_bloqueada=False)
+    
+    captura_inicial = capturar(get_all_tables(test_db))
+    
+    # Terminamos el turno del jugador bloqueado
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_bloqueado.id_jugador}/turno')
+    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
+
+    captura_final = capturar(get_all_tables(test_db))
+    
+    test_db.refresh(jugador_bloqueado)
+    assert jugador_bloqueado.bloqueado, f"Fallo: Se esperaba que el jugador se mantuviera bloqueado."
+    
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
+    assert set(modificaciones) == set([('jugadores', 3), ('jugadores', 2)]), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y nada más."
+    assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
+    assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
+
+def test_jugador_bloqueado_carta_revelada_bloqueada(client, test_db):
+    '''Test sobre la no reposición de cartas de figura de un jugador bloqueado una única carta en la mano, la cual está bloqueada.'''
+    
+    partida, creador = crear_partida(test_db)
+    jugador_bloqueado = creador     # Esto es así por construcción
+    unir_jugadores(test_db, partida, numero_de_jugadores=2)
+    iniciar_partida(test_db, partida)
+    
+    jugador_bloqueado.bloqueado = True
+    test_db.commit()
+    cartear_figuras(test_db, jugador_bloqueado, ["f1"], primera_figura_bloqueada=True)
+    
+    captura_inicial = capturar(get_all_tables(test_db))
+    
+    # Terminamos el turno del jugador bloqueado
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_bloqueado.id_jugador}/turno')
+    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
+
+    captura_final = capturar(get_all_tables(test_db))
+    
+    test_db.refresh(jugador_bloqueado)
+    assert jugador_bloqueado.bloqueado, f"Fallo: Se esperaba que el jugador se mantuviera bloqueado."
+    
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
+    assert set(modificaciones) == set([('jugadores', 3), ('jugadores', 2), ('cartas_de_figura', 49)]), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y una carta de figura."
+    assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
+    assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
+
+def test_jugador_bloqueado_sin_reveladas(client, test_db):
+    '''Test sobre la reposición de cartas de figura de un jugador bloqueado sin cartas en la mano.'''
+
+    partida, creador = crear_partida(test_db)
+    jugador_bloqueado = creador     # Esto es así por construcción
+    unir_jugadores(test_db, partida, numero_de_jugadores=2)
+    iniciar_partida(test_db, partida)
+
+    jugador_bloqueado.bloqueado = True
+    test_db.commit()
+    cartear_figuras(test_db, jugador_bloqueado, [])
+
+    captura_inicial = capturar(get_all_tables(test_db))
+
+    # Terminamos el turno del jugador bloqueado
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_bloqueado.id_jugador}/turno')
+    assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
+
+    captura_final = capturar(get_all_tables(test_db))
+
+    test_db.refresh(jugador_bloqueado)
+    assert not jugador_bloqueado.bloqueado, f"Fallo: Se esperaba que el jugador se desbloqueara."
+
+    modificaciones, eliminadas, creadas = comparar_capturas(
+        captura_inicial, captura_final
+    )
+    assert set(modificaciones) == set(
+        [
+            ("jugadores", 3),
+            ("jugadores", 2),
+            ("cartas_de_figura", 4),
+            ("cartas_de_figura", 5),
+            ("cartas_de_figura", 6),
+        ]
+    ), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y 3 cartas (las que se revelaron)."
+    assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
+    assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
 
 def test_partida_inexistente_404(client, test_db, test_ws_counts):
     '''Test sobre los mensajes de error ante el envío de terminar turno a una partida inexistente.'''

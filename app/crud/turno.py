@@ -65,7 +65,15 @@ def terminar_turno(db: Session, partida_id):
     
     __limpiar_stack_movimientos_parciales(db, partida, atomic=False)
     __reponer_cartas_movimiento(db, partida, partida.jugador_del_turno, atomic=False)
-    __reponer_cartas_figura(db, partida, partida.jugador_del_turno, atomic=False)
+    
+    if(not partida.jugador_del_turno.bloqueado):
+        __reponer_cartas_figura(db, partida, partida.jugador_del_turno, atomic=False)
+    elif ( len(partida.jugador_del_turno.mano_figuras) == 1 ):
+        partida.jugador_del_turno.mano_figuras[0].bloqueada = False
+    elif ( len(partida.jugador_del_turno.mano_figuras) == 0 ):
+        partida.jugador_del_turno.bloqueado = False
+        __reponer_cartas_figura(db, partida, partida.jugador_del_turno, atomic=False)
+    
     db.flush()
     __siguiente_turno(db, partida, atomic=False)
 
