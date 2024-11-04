@@ -194,7 +194,7 @@ def siguiente_turno(db: Session, partida: Partida):
 
 def get_jugador_sin_turno(db: Session, partida: Partida):
     '''
-    Función para obtener el jugador sin turno de una partida.
+    Función para obtener un jugador sin turno de una partida.
     '''
     
     assert partida.iniciada == True, "La partida no ha sido iniciada"
