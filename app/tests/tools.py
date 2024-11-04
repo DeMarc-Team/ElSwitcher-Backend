@@ -74,7 +74,7 @@ def capturar_metadata(objetos: list) -> dict:
             # Verifica si la columna es una clave foránea
             if column.foreign_keys:
                 # Si es una ForeignKey, maneja de manera especial si es necesario
-                metadata[obj.__tablename__, obj.id][f'{column_name} (FK)'] = f'{column_value}'
+                metadata[obj.__tablename__, obj.id][f'{column_name} (FK)'] = column_value
             else:
                 # Agrega la columna y su valor al diccionario de metadata
                 metadata[obj.__tablename__, obj.id][column_name] = column_value
