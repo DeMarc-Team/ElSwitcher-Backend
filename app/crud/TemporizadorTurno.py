@@ -13,10 +13,10 @@ class TemporizadorTurno:
         self.temporizadores = {}
         self.lock = asyncio.Lock()
 
-    async def __pasar_el_turno_por_temporizador(self, partida_id: int, func: callable, args: tuple):
+    async def __pasar_el_turno_por_temporizador(self, partida_id: int, terminar_turno: callable, args: tuple):
         try:
             del self.temporizadores[partida_id]
-            await self.__ejecutar_funcion(func, args)
+            await self.__ejecutar_funcion(terminar_turno, args)
         except ResourceNotFoundError as e:
             warnings.warn(
                 f"ResourceNotFoundError al pasar el turno por temporizador de la partida con ID {partida_id}: {e}", Warning)
@@ -24,11 +24,11 @@ class TemporizadorTurno:
             warnings.warn(
                 f"ForbiddenError al pasar el turno por temporizador de la partida con ID {partida_id}: {e}", Warning)
 
-    async def __iniciar_temporizador(self, partida_id: int, func: callable, args: tuple, duracion: int):
+    async def __iniciar_temporizador(self, partida_id: int, terminar_turno: callable, args: tuple, duracion: int):
         await asyncio.sleep(duracion)
-        await self.__pasar_el_turno_por_temporizador(partida_id, func, args)
+        await self.__pasar_el_turno_por_temporizador(partida_id, terminar_turno, args)
 
-    async def terminar_temporizador_del_turno(self, partida_id: int, func: callable, args: tuple) -> None:
+    async def terminar_temporizador_del_turno(self, partida_id: int, terminar_turno: callable, args: tuple) -> None:
         """
         Termina el temporizador del turno de una partida y ejecuta la función asociada 
         al temporizador.
@@ -43,21 +43,21 @@ class TemporizadorTurno:
                 tarea = self.temporizadores[partida_id]
                 if tarea.done():
                     warnings.warn(
-                        f"Se intento terminar con la tarea registrada con ID {partida_id}, pero ya habia terminado.", Warning)
+                        f"Se intento terminar con una tarea registrada, pero ya habia terminado. ID: {partida_id}", Warning)
                     # FIXME: GRAVE? En los test sucede este warning. Anda todo igual (no se si es bueno)
                     # pero se podria arreglar. En produccion no se da este warning, si se da
                     # definitivamente puede ser grave.
                 else:
-                    func = tarea.get_coro().cr_frame.f_locals['func']
+                    terminar_turno = tarea.get_coro().cr_frame.f_locals['terminar_turno']
                     args = tarea.get_coro().cr_frame.f_locals['args']
                     self.cancelar_temporizador_del_turno(partida_id)
             else:
                 warnings.warn(
-                    f"Se intento terminar con la tarea con ID {partida_id}, pero no estaba registrada.", Warning)
+                    f"Se intento terminar con una tarea, pero no estaba registrada. ID: {partida_id}", Warning)
                 # FIXME: No es grave. En los test sucede este warning. Anda todo igual
                 # pero se podria arreglar. En produccion no se da este warning pero si se da,
                 # no es grave.
-        await self.__ejecutar_funcion(func, args)
+        await self.__ejecutar_funcion(terminar_turno, args)
 
     async def __ejecutar_funcion(self, func: callable, args: tuple) -> None:
         if asyncio.iscoroutinefunction(func):
@@ -65,7 +65,7 @@ class TemporizadorTurno:
         else:
             func(*args)
 
-    async def iniciar_temporizador_del_turno(self, partida_id: int, func: callable, args: tuple, duracion: int = SEGUNDOS_TEMPORIZADOR_TURNO) -> tuple:
+    async def iniciar_temporizador_del_turno(self, partida_id: int, terminar_turno: callable, args: tuple, duracion: int = SEGUNDOS_TEMPORIZADOR_TURNO) -> tuple:
         """
         Inicia el temporizador del turno actual de una partida.
         Si ya existe el temporizador, lo cancela, elimina y reemplaza lanzando un warning.
@@ -74,7 +74,7 @@ class TemporizadorTurno:
         :PRE: La partida con ID partida_id existe y está iniciada.
 
         :param partida_id: ID de la partida.
-        :param func: Función a ejecutar al finalizar el temporizador.
+        :param terminar_turno: Función a ejecutar al finalizar el temporizador.
         :param args: Argumentos de la función.
         :param duracion: Duración del temporizador en segundos.
 
@@ -84,12 +84,12 @@ class TemporizadorTurno:
             if partida_id in self.temporizadores:
                 self.cancelar_temporizador_del_turno(partida_id)
                 warnings.warn(
-                    f"Se intento iniciar la tarea con ID {partida_id}, pero ya estaba registrada, se la cancelo y reemplazo.", Warning)
+                    f"Se intento iniciar una tarea, pero ya estaba registrada, se la cancelo y reemplazo. ID: {partida_id}", Warning)
 
             loop = asyncio.get_event_loop()
 
             tarea = loop.create_task(self.__iniciar_temporizador(
-                partida_id, func, args, duracion))
+                partida_id, terminar_turno, args, duracion))
             self.temporizadores[partida_id] = tarea
 
             return self.__get_gmt_zulu_time(), duracion
