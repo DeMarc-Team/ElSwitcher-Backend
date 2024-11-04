@@ -254,7 +254,7 @@ def configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas, n_mo
     establecer_tablero(test_db, partida, tablero_mock)
     
     jugador_del_turno = partida.jugador_del_turno
-    cartear_figuras(test_db, jugador_del_turno, cartas_figura_carteadas)
+    cartear_figuras(test_db, jugador_del_turno, cartas_figura_carteadas, primera_carta_bloqueada)
     
     movimientos_a_consumir = jugador_del_turno.mano_movimientos[0:n_movimientos_a_consumir]
     falsear_movimientos_parciales(test_db, partida, movimientos_a_consumir)
@@ -311,7 +311,7 @@ def test_usar_figura_con_bloqueada_y_libre(client, test_db, test_ws_counts):
             ("movimientos_parciales", 1),   # Movimientos parciales asociados a las cartas falseadas/consumidas
             ("movimientos_parciales", 2),
             ("movimientos_parciales", 3),
-            ("cartas_de_figura", 51),        # Carta de figura usada
+            ("cartas_de_figura", 52),        # Carta de figura usada
         ]
     ), "Fallo: Se esperaba otro conjunto de objetos eliminados."
     assert set(creadas) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
