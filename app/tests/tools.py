@@ -4,6 +4,7 @@ from database import Base
 from sqlalchemy.orm import Session
 import random
 from itertools import product
+from collections import Counter
 #TODO: Separar en clases ESTATICAS los diferentes tipos de tools (si lo hacemos con capturar,... el import seria mas lindo)
 # Ya hay una clase creada pero deberia ser estatica
 
@@ -279,6 +280,63 @@ def verificar_tuplas(entrada:list, validos:list)->bool:
         return False
     return True
 
+def verificar_cantidad_tuplas(entrada:list, validos:list)->bool:
+    """
+    Recibe un array de entrada del estilo [(str, ?), (str, ?, ?), ...]
+    y un array de strings validos del estilo [('str',cantidad), ('str',cantidad), ...]
+    Devuelve True si todas las entrada tienen la cantidad esperada de strings en validos 
+    y todos los strings en validos estan en entrada.
+    """
+    # Contar las ocurrencias de cada clave en entrada
+    contador_entrada = Counter(tupla[0] for tupla in entrada)
+    set_validos = set(tupla[0] for tupla in validos)
+
+    # Verificar si todas las claves válidas están presentes en entrada
+    if not set_validos.issubset(contador_entrada.keys()):
+        diferencia = set_validos - set(contador_entrada.keys())
+        print(f'Error: Las claves {diferencia} no son válidas.')
+        return False
+    
+    # Verificar si la cantidad de claves en entrada coincide con la cantidad esperada
+    for clave, cantidad in validos:
+        if contador_entrada[clave] != cantidad:
+            print(f'Error: La cantidad de claves {clave} es {contador_entrada[clave]}, se esperaba {cantidad}.')
+            return False
+            
+    return True
+    
+def ignorar_valores_de_campos_laxos(modificaciones: dict, campos_laxos: dict):
+    '''
+    Marca con 'ignoradas' los cambios en los campos especificados en 'campos_laxos' de las tablas especificadas en 
+    'modificaciones'.
+    Ejemplo:
+    > modificaciones = {('partidas', 1): [('duracion_turno', 0, 60), ('iniciada', False, True)]}
+    > campos_laxos = {'partidas': ['duracion_turno']}
+    > ignorar_valores_de_campos_laxos(modificaciones, campos_laxos)
+    > modificaciones == {('partidas', 1): [('duracion_turno', 'ignorado'), ('iniciada', False, True)]}
+    '''
+    for tabla_id, cambios in modificaciones.items():
+        tabla_nombre = tabla_id[0]
+        if tabla_nombre in campos_laxos:
+            for i, cambio in enumerate(cambios):
+                for campo in campos_laxos[tabla_nombre]:
+                    if cambio[0] == campo:
+                        cambios[i] = (cambio[0], 'ignorado')
+                        break
+
+def eliminar_tablas_laxas(modificaciones: dict, tablas_laxas: list):
+    '''
+    Elimina las tablas especificadas en 'tablas_laxas' de 'modificaciones'.
+    Ejemplo:
+    > modificaciones = {('partidas', 1): [('duracion_turno', 0, 60), ('iniciada', False, True)]}
+    > tablas_laxas = ['partidas']
+    > eliminar_tablas_laxas(modificaciones, tablas_laxas)
+    > modificaciones == {}
+    '''
+    claves_a_eliminar = [tabla_id for tabla_id in modificaciones if tabla_id[0] in tablas_laxas]
+    for tabla_id in claves_a_eliminar:
+        modificaciones.pop(tabla_id)
+        
 #TODO: Agregar en las de especificar que se pueda pasar para cada str un numero de veces que
 # se debe repetir (incluyendo 0). Usar from collections import Counter
 def verificar_diccionarios(entrada:dict, validos:dict)->bool:
