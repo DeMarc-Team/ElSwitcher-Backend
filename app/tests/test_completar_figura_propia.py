@@ -441,7 +441,7 @@ def test_usar_figura_propia_jugador_no_existe_404(client, test_db, test_ws_count
         "carta_fig": "f1"
     }
     response = client.put(f'/juego/{partida.id}/jugadores/{id_jugador}/tablero/figura', json=request_body)
-    respuesta_esperada = {'detail': f"Jugador con ID {id_jugador} no encontrado en la partida con ID {id_jugador}."}
+    respuesta_esperada = {'detail': f"Jugador con ID {id_jugador} no encontrado en la partida con ID {partida.id}."}
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
 # ----------------------------------------------------------------
