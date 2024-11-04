@@ -148,7 +148,7 @@ def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figur
     partida = get_partida(db, id_partida)
     jugador = get_jugador(db, partida, id_jugador)
     
-    if (jugador.id_jugador != partida.jugador_id):
+    if (jugador.id_jugador != partida.jugador_del_turno.id):
         raise ForbiddenError(
             f"El jugador con ID {jugador.id_jugador} no posee el turno."
         )
@@ -185,7 +185,7 @@ def unatomic_bloquear_figura(db: Session, partida: Partida, jugador: Jugador, bl
     en caso de poder hacerlo según las reglas del juego, bloquea la carta de este último.
     """
     
-    if (jugador.id_jugador != partida.jugador_id):
+    if (jugador.id_jugador != partida.jugador_del_turno.id):
         raise ForbiddenError(
             f"El jugador con ID {jugador.id_jugador} no posee el turno."
         )
