@@ -20,6 +20,11 @@ from factory import test_temporizadores_turno
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), "test.db")
 SQLALCHEMY_DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 
+# Configurar logging para que muestre solo los errores
+import logging
+logging.basicConfig()
+logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING) # Si se quiere ver los queries, cambiar a INFO
+
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
