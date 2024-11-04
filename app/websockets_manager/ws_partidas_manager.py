@@ -63,7 +63,7 @@ class PartidasConnectionManager:
 
         await self.broadcast(partida_id, mensaje)
         
-    async def send_sincronizar_turno(self, partida_id: int, inicio: int, duracion: int):
+    async def send_sincronizar_turno(self, partida_id: int, inicio: str, duracion: int):
         data = {
             "duracion": duracion,
             "inicio": inicio
