@@ -1,7 +1,7 @@
 from fastapi import WebSocket
 from pydantic import BaseModel
 from enum import Enum
-
+from devtools.check_types import safe_type_check
 
 class MessageType(Enum):
     ACTUALIZAR_SALA_ESPERA = "actualizar_sala_espera"
@@ -51,9 +51,11 @@ class PartidasConnectionManager:
             self.active_connections[partida_id] = {}
         self.active_connections[partida_id][jugador_id] = websocket
 
+    @safe_type_check
     async def send_actualizar_sala_espera(self, partida_id: int):
         await self.broadcast(partida_id, WsMessage(action=MessageType.ACTUALIZAR_SALA_ESPERA))
-    
+
+    @safe_type_check
     async def send_hay_ganador(self, partida_id: int, jugador_id: int, nombre: str):
         data = {
             "id": jugador_id,
@@ -62,7 +64,8 @@ class PartidasConnectionManager:
         mensaje = WsMessage(action=MessageType.HAY_GANADOR, data=str(data))
 
         await self.broadcast(partida_id, mensaje)
-        
+
+    @safe_type_check
     async def send_sincronizar_turno(self, partida_id: int, inicio: str, duracion: int):
         data = {
             "duracion": duracion,
@@ -71,21 +74,26 @@ class PartidasConnectionManager:
         mensaje = WsMessage(action=MessageType.SINCRONIZAR_TURNO, data=str(data))
         await self.broadcast(partida_id, mensaje)
 
+    @safe_type_check
     async def send_actualizar_turno(self, partida_id: int):
         await self.broadcast(partida_id, WsMessage(action=MessageType.ACTUALIZAR_TURNO))
-    
+
+    @safe_type_check
     async def send_actualizar_tablero(self, partida_id: int):
         await self.broadcast(partida_id, WsMessage(action=MessageType.ACTUALIZAR_TABLERO))
-        
+
+    @safe_type_check
     async def send_actualizar_cartas_movimiento(self, partida_id: int):
         await self.broadcast(partida_id, WsMessage(action=MessageType.ACTUALIZAR_CARTAS_MOVIMIENTO))
 
+    @safe_type_check
     async def send_actualizar_cartas_figura(self, partida_id: int):
         await self.broadcast(partida_id, WsMessage(action=MessageType.ACTUALIZAR_CARTAS_FIGURA))
 
+    @safe_type_check
     async def send_partida_cancelada(self, partida_id: int):
         await self.broadcast(partida_id, WsMessage(action=MessageType.PARTIDA_CANCELADA))
-        
+
     async def broadcast(self, partida_id: int, message: WsMessage):
         if partida_id in self.active_connections.keys():
             for connection in self.active_connections[partida_id].values():
