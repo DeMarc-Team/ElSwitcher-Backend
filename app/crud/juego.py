@@ -4,6 +4,7 @@ from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida, Jugador, CartaMovimiento, MovimientoParcial
 from schemas import Casilla, CasillasMov, CompletarFiguraData, BloquearFiguraData
 from figuras import hallar_todas_las_figuras_en_tablero
+from crud.repository import partida_repo
 
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (
@@ -355,3 +356,6 @@ def deshacer_movimiento(db: Session, id_partida, atomic=True):
         db.flush()
 
     return ultimo_movimiento
+
+def get_color_prohibido(id_partida):
+    return partida_repo.get_color_prohibido(id_partida)
