@@ -146,16 +146,7 @@ def get_figuras_en_tablero(partida: Partida):
 
 def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figura_data: CompletarFiguraData):
     partida = get_partida(db, id_partida)
-    jugador = get_jugador(db, partida, id_jugador)
-    
-    if (not partida.iniciada):
-        raise ForbiddenError(
-            f"La partida con ID {id_partida} todavía no comenzó.")
-    
-    if (jugador.id_jugador != partida.jugador_del_turno.id):
-        raise ForbiddenError(
-            f"El jugador con ID {jugador.id_jugador} no posee el turno."
-        )
+    jugador = get_jugador_from_partida(db, partida, id_jugador)
     
     ganador = unatomic_usar_figura(db, partida, jugador, figura_data)
     if (not ganador.get("hay_ganador")):
@@ -165,13 +156,22 @@ def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figur
 
 def bloquear_carta_ajena(db: Session, id_partida: int, id_jugador: int, bloqueo_data: BloquearFiguraData):
     partida = get_partida(db, id_partida)
-    jugador = get_jugador(db, partida, id_jugador)
-        
+    jugador = get_jugador_from_partida(db, partida, id_jugador)
+    
     unatomic_bloquear_figura(db, partida, jugador, bloqueo_data)
     unatomic_aplicar_parciales(db, partida)
     db.commit()
  
 def unatomic_usar_figura(db: Session, partida: Partida, jugador: Jugador, figura_data: CompletarFiguraData):    
+
+    if (not partida.iniciada):
+        raise ForbiddenError(
+            f"La partida con ID {partida.id} todavía no comenzó.")
+    
+    if (jugador.id_jugador != partida.jugador_del_turno.id):
+        raise ForbiddenError(
+            f"El jugador con ID {jugador.id_jugador} no posee el turno."
+        )
 
     carta_fig_deseada = figura_data.carta_fig
     coordenadas_fig_deseada = figura_data.figura
@@ -189,6 +189,10 @@ def unatomic_bloquear_figura(db: Session, partida: Partida, jugador: Jugador, bl
     en caso de poder hacerlo según las reglas del juego, bloquea la carta de este último.
     """
     
+    if (not partida.iniciada):
+        raise ForbiddenError(
+            f"La partida con ID {partida.id} todavía no comenzó.")
+    
     if (jugador.id_jugador != partida.jugador_del_turno.id):
         raise ForbiddenError(
             f"El jugador con ID {jugador.id_jugador} no posee el turno."
@@ -197,7 +201,7 @@ def unatomic_bloquear_figura(db: Session, partida: Partida, jugador: Jugador, bl
     fig_deseada = bloqueo_data.carta_fig
     coordenadas_fig_deseada = bloqueo_data.figura
     
-    jugador_a_bloquear = get_jugador(db, partida, bloqueo_data.id_jugador_bloqueado)
+    jugador_a_bloquear = get_jugador_from_partida(db, partida, bloqueo_data.id_jugador_bloqueado)
     
     if ( jugador_a_bloquear.bloqueado ):
         raise ForbiddenError(
@@ -240,7 +244,7 @@ def get_partida(db: Session, id_partida: int):
             
     return partida
 
-def get_jugador(db: Session, partida: Partida, id_jugador: int):
+def get_jugador_from_partida(db: Session, partida: Partida, id_jugador: int):
     jugador = db.get(Jugador, id_jugador)
     if ((not jugador) or (jugador not in partida.jugadores)):
         raise ResourceNotFoundError(
