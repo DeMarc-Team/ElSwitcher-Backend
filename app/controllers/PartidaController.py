@@ -2,7 +2,7 @@ import crud.partidas as partida_service
 import crud.jugadores as jugador_service
 from websockets_manager.ws_home_manager import ws_home_manager
 from websockets_manager.ws_partidas_manager import ws_partidas_manager
-
+from controllers.JuegoController import iniciar_temporizador_turno, terminar_temporizador_del_turno
 class PartidaController:
     def __init__(self, db):
         self.db = db
@@ -32,20 +32,20 @@ class PartidaController:
         partida_service.iniciar_partida(self.db, partida_id)
         await ws_home_manager.send_actualizar_partidas()
         await ws_partidas_manager.send_actualizar_sala_espera(partida_id)
+        await iniciar_temporizador_turno(self.db, partida_id)
         return {"details": "Partida iniciada correctamente", "partida_id": partida_id}
 
     async def abandonar_partida(self, partida_id, jugador_id):
-        eventos = partida_service.abandonar_partida(self.db, partida_id, jugador_id)
-        hay_ganador = eventos.get("hay_ganador")
-        partida_cancelada = eventos.get("partida_cancelada")
-        if hay_ganador:
-            await ws_partidas_manager.send_hay_ganador(partida_id, hay_ganador["id_ganador"], hay_ganador["nombre_ganador"])
-        elif partida_cancelada:
+        if (partida_service.es_su_turno(self.db, partida_id, jugador_id)):
+            await terminar_temporizador_del_turno(self.db, partida_id, jugador_id)
+        partida_cancelada = partida_service.abandonar_partida(self.db, partida_id, jugador_id)
+        if partida_cancelada:
             await ws_partidas_manager.send_partida_cancelada(partida_id)
             await ws_home_manager.send_actualizar_partidas()
+        elif (ganador := partida_service.hay_ganador(self.db, partida_id).get("hay_ganador")):
+            await ws_partidas_manager.send_hay_ganador(partida_id, ganador["id_ganador"], ganador["nombre_ganador"])
         else:
             await ws_home_manager.send_actualizar_partidas()
-            await ws_partidas_manager.send_actualizar_turno(partida_id)
             await ws_partidas_manager.send_actualizar_sala_espera(partida_id)
             await ws_partidas_manager.send_actualizar_tablero(partida_id)
         return {"detail": "El jugador abandonó la partida exitosamente"}

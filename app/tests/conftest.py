@@ -3,17 +3,18 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
 from collections import Counter
+from unittest.mock import patch
+import time
 import pytest
 import os
 
 import sys # Estas dos lineas modifican las importanciones de los modulos en los tests
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 
-from websockets_manager.ws_home_manager import MessageType as MThome, ws_home_manager, WsMessage as WsHomeMessage
-from websockets_manager.ws_partidas_manager import MessageType as MTpartidas, ws_partidas_manager, WsMessage as WsPartidasMessage
 from database import Base, get_db
 from main import app
 from tools import WSManagerTester; tester = WSManagerTester()
+from factory import test_temporizadores_turno
 
 # Setup de la base de datos de prueba
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), "test.db")
@@ -49,6 +50,19 @@ def test_db():
         yield db
     db.close()
 
+@pytest.fixture(scope='function', autouse=True)
+def mock_dict_temporizadores_turno():
+    # Mockeamos el diccionario del temporizador de turno
+    with patch("crud.TemporizadorTurno.temporizadores_turno", test_temporizadores_turno):
+        yield
+        test_temporizadores_turno.limpiar_temporizadores()
+
+@pytest.fixture(scope='function')
+def mock_timeGmt():
+    time_struct_to_mock = time.struct_time([2021, 1, 1, 0, 0, 0, 0, 0, 0])
+    with patch("time.gmtime", return_value=time_struct_to_mock):
+        yield time.strftime('%Y-%m-%dT%H:%M:%SZ', time_struct_to_mock)
+        
 @pytest.fixture(autouse=True, scope='session')
 def teardown_db():
     yield
@@ -85,7 +99,7 @@ def test_ws_messages():
             print(f"Llamadas actuales para '{message_type}': {actual_calls}")
             
             # Usamos Counter para comparar las listas de diccionarios sin importar el orden
-            assert Counter(map(frozenset, actual_calls)) == Counter(map(frozenset, expected_messages)), \
+            assert Counter(map(lambda x : str(x), actual_calls)) == Counter(map(lambda x : str(x), expected_messages)), \
                 f"send_{message_type} recibió: {actual_calls} pero esperaba {expected_messages}."
 
     yield from tester.test_ws_factory([], assert_message_calls)

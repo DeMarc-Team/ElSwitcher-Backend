@@ -1,4 +1,6 @@
 from sqlalchemy.orm import Session
+from crud.TemporizadorTurno import TemporizadorTurno
+import asyncio
 from models import (Partida,
                     Jugador,
                     CartaFigura,
@@ -6,6 +8,30 @@ from models import (Partida,
                     MovimientoParcial
                     )
 from constantes_juego import N_CARTAS_FIGURA_TOTALES
+
+class TemporizadorTurnoToTest(TemporizadorTurno):
+    def limpiar_temporizadores(self):
+        """
+        Cancela todos los temporizadores activos.
+        """
+        for partida_id, tarea in list(self.temporizadores.items()):
+            tarea.cancel()
+        self.temporizadores.clear()
+        print("Todos los temporizadores han sido cancelados.")
+        
+    async def wait_for_all_tasks(self):
+        """
+        Espera a que todos los temporizadores activos y las tareas pendientes terminen.
+        """
+        async with self.lock:
+            while self.temporizadores:
+                await asyncio.sleep(1)
+            tareas_pendientes = [t for t in asyncio.all_tasks() if t is not asyncio.current_task() and not t.cancelled()]
+            if tareas_pendientes:
+                await asyncio.gather(*tareas_pendientes)
+
+        
+test_temporizadores_turno = TemporizadorTurnoToTest()
 
 def crear_partida(db: Session, nombre_partida: str = "Partida", nombre_creador: str = "Creador") -> Partida:
     '''
@@ -165,6 +191,19 @@ def siguiente_turno(db: Session, partida: Partida):
         jugador.orden = partida.jugadores.index(jugador)
 
     db.commit()
+
+def get_jugador_sin_turno(db: Session, partida: Partida):
+    '''
+    Función para obtener un jugador sin turno de una partida.
+    '''
+    
+    assert partida.iniciada == True, "La partida no ha sido iniciada"
+    assert len(partida.jugadores) > 1, "La partida debe tener al menos 2 jugadores para poder obtener el jugador sin turno"
+    
+    id_jugador_del_turno = partida.jugador_del_turno.id
+    for jugador in partida.jugadores:
+        if jugador.id != id_jugador_del_turno:
+            return jugador
 
 def consumir_carta_movimiento(db: Session, jugador: Jugador, mov: str, cantidad=1):
     '''
