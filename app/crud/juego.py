@@ -159,6 +159,14 @@ def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figur
     db.commit()
     return ganador
 
+def bloquear_carta_ajena(db: Session, id_partida: int, id_jugador: int, bloqueo_data: BloquearFiguraData):
+    partida = get_partida(db, id_partida)
+    jugador = get_jugador(db, partida, id_jugador)
+        
+    unatomic_bloquear_figura(db, partida, jugador, bloqueo_data)
+    unatomic_aplicar_parciales(db, partida)
+    db.commit()
+ 
 def unatomic_usar_figura(db: Session, partida: Partida, jugador: Jugador, figura_data: CompletarFiguraData):    
 
     carta_fig_deseada = figura_data.carta_fig
@@ -170,15 +178,7 @@ def unatomic_usar_figura(db: Session, partida: Partida, jugador: Jugador, figura
     db.flush()
     from crud.partidas import hay_ganador
     return hay_ganador(db, partida.id)
-
-def bloquear_carta_ajena(db: Session, id_partida: int, id_jugador: int, bloqueo_data: BloquearFiguraData):
-    partida = get_partida(db, id_partida)
-    jugador = get_jugador(db, partida, id_jugador)
-        
-    unatomic_bloquear_figura(db, partida, jugador, bloqueo_data)
-    unatomic_aplicar_parciales(db, partida)
-    db.commit()
-        
+       
 def unatomic_bloquear_figura(db: Session, partida: Partida, jugador: Jugador, bloqueo_data: BloquearFiguraData):
     """
     Recibe una partida, un jugador y datos para bloquear a otro jugador y
