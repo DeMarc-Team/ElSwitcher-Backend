@@ -265,7 +265,7 @@ def test_jugador_bloqueado_carta_revelada_bloqueada(client, test_db):
     assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
 
 def test_jugador_bloqueado_sin_reveladas(client, test_db):
-    '''Test sobre la no reposición de cartas de figura de un jugador bloqueado sin cartas en la mano.'''
+    '''Test sobre la reposición de cartas de figura de un jugador bloqueado sin cartas en la mano.'''
 
     partida, creador = crear_partida(test_db)
     jugador_bloqueado = creador     # Esto es así por construcción
