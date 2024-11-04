@@ -83,3 +83,7 @@ class BloquearFiguraData(BaseModel):
     id_jugador_bloqueado: int
     figura: list[Casilla]
     carta_fig: str
+
+class ResponseCronometro(BaseModel):
+    inicio: str
+    duracion: int
