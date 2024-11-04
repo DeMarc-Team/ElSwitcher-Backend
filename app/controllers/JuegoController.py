@@ -56,7 +56,11 @@ class JuegoController:
         else:
             await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
             await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
-            
+    
+    async def get_color_prohibido(self, id_partida):
+        color = juego_service.get_color_prohibido(id_partida)
+        return {"color": color}
+
 async def terminar_turno(db, id_partida, id_jugador):
     temporizadores_turno.cancelar_temporizador_del_turno(id_partida)
     turno_service.terminar_turno(db, id_partida)

@@ -1,6 +1,4 @@
 from database import Base
-from exceptions import ResourceNotFoundError
-
 from sqlalchemy import Integer, Boolean, String, ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, Mapped, mapped_column
@@ -95,7 +93,7 @@ class Partida(Base):
 
 
     tablero = mapped_column(String, nullable=False, default=random_tablero)
-
+    color_prohibido = mapped_column(Integer, default=0)
     movimientos_parciales = relationship('MovimientoParcial', order_by='MovimientoParcial.orden')
 
     def __str__(self):  # pragma: no cover

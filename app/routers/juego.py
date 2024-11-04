@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from database import engine, get_db
 from models import Base
 from controllers.JuegoController import JuegoController
-from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails, TableroData, CasillasMov, MovimientoParcialData, CompletarFiguraData
+from schemas import RespuestaColorProhibido, CartaFiguraData, CartaMovimientoData, TurnoDetails, TableroData, CasillasMov, MovimientoParcialData, CompletarFiguraData
 
 Base.metadata.create_all(bind=engine)
 
@@ -87,3 +87,7 @@ async def get_movimientos_parciales(id_partida: int, id_jugador: int, controller
             tags=["Juego"])
 async def completar_figura_propia(id_partida: int, id_jugador: int, figura_data: CompletarFiguraData, controller: JuegoController = Depends(get_game_controller)):
     await controller.completar_figura_propia(id_partida, id_jugador, figura_data)
+
+@router.get('/{id_partida:int}/colorProhibido', summary="Obtiene el color prohibido", tags=["Juego"],response_model=RespuestaColorProhibido)
+async def get_color_prohibido(id_partida: int, controller: JuegoController = Depends(get_game_controller)):
+    return await controller.get_color_prohibido(id_partida)

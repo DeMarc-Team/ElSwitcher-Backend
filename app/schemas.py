@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
+from typing_extensions import Annotated
 
 class PartidaData(BaseModel):
     nombre_partida: str
@@ -79,3 +80,11 @@ class CompletarFiguraData(BaseModel):
     figura: list[Casilla]
     carta_fig: str
     
+class RespuestaColorProhibido(BaseModel):
+    color: Annotated[int, Field(ge=1, le=4)] | None
+    
+    @field_validator("color", mode="before")
+    def validate_color(cls, value):
+        if value is None or (isinstance(value,int) and (1 <= value <= 4)):
+            return value
+        return None

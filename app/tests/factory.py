@@ -61,6 +61,16 @@ def crear_partida(db: Session, nombre_partida: str = "Partida", nombre_creador: 
     db.commit()
     return partida, creador
 
+def prohibir_color(db: Session, partida: Partida, color: int):
+    '''
+    Procedimiento para prohibir un color en una partida.
+    '''
+    assert partida.iniciada == True, "La partida no ha sido iniciada"
+    assert color != partida.color_prohibido, "El color ya está prohibido"
+    assert partida.numero_de_jugadores > 1, "La partida debe tener al menos 2 jugadores para poder prohibir un color"
+    
+    partida.color_prohibido = color
+    db.commit()
 
 def unir_jugadores(db: Session, partida: Partida , numero_de_jugadores: int = 1) -> Jugador:
     '''
