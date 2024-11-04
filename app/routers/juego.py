@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from database import engine, get_db
 from models import Base
 from controllers.JuegoController import JuegoController
-from schemas import CartaFiguraData, CartaMovimientoData, TurnoDetails, TableroData, CasillasMov, MovimientoParcialData, CompletarFiguraData
+from schemas import ResponseCronometro, CartaFiguraData, CartaMovimientoData, TurnoDetails, TableroData, CasillasMov, MovimientoParcialData, CompletarFiguraData
 
 Base.metadata.create_all(bind=engine)
 
@@ -80,3 +80,10 @@ async def get_movimientos_parciales(id_partida: int, id_jugador: int, controller
             tags=["Juego"])
 async def completar_figura_propia(id_partida: int, id_jugador: int, figura_data: CompletarFiguraData, controller: JuegoController = Depends(get_game_controller)):
     await controller.completar_figura_propia(id_partida, id_jugador, figura_data)
+
+@router.get('/{id_partida}/cronometro',
+            summary="Obtener el cronómetro de la partida",
+            response_model=ResponseCronometro,
+            tags=["Juego"])
+async def get_cronometro(id_partida: int, controller: JuegoController = Depends(get_game_controller)):
+    return await controller.get_cronometro(id_partida)
