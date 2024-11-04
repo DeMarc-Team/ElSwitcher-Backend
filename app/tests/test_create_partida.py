@@ -8,7 +8,7 @@ def test_create_partida(client, test_db, test_ws_messages):
         "nombre_partida": "Partida_nueva",
         "nombre_creador": "Jugador_nuevo"
     }
-    response = client.post("/partidas", json=nueva_partida)
+    response = client.post(test_db, "/partidas", json=nueva_partida)
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada

@@ -14,7 +14,7 @@ def test_unirse_partida_200(client, test_db, test_ws_messages):
 
     # Enviamos la solicitud al servidor
     body = {"nombre": "Jugador4"}
-    response = client.post("partidas/1/jugadores", json=body)
+    response = client.post(test_db, "partidas/1/jugadores", json=body)
     print(f"Response: {response.json()}")
     
     # Verificamos la respuesta del servidor
@@ -37,7 +37,7 @@ def test_unirse_partida_llena_403(client, test_db):
 
     # Enviamos la solicitud al servidor
     body = {"nombre": "Jugador5"}
-    response = client.post("partidas/1/jugadores", json=body)
+    response = client.post(test_db, "partidas/1/jugadores", json=body)
     print(f"Response: {response.json()}")
 
     # Verificamos la respuesta del servidor
@@ -61,7 +61,7 @@ def test_unirse_partida_iniciada_403(client, test_db):
 
     # Enviamos la solicitud al servidor
     body = {"nombre": "Jugador5"}
-    response = client.post("partidas/1/jugadores", json=body)
+    response = client.post(test_db, "partidas/1/jugadores", json=body)
     print(f"Response: {response.json()}")
     
     # Verificamos la respuesta del servidor
@@ -79,7 +79,7 @@ def test_unirse_partida_iniciada_403(client, test_db):
 def test_unirse_partida_404(client, test_db):
     '''Test al unirse a una partida inexistente'''
     body = {"nombre": "Jugador5"}
-    response = client.post("partidas/1/jugadores", json=body)
+    response = client.post(test_db, "partidas/1/jugadores", json=body)
     print(f"Response: {response.json()}")
     
     # Verificamos la respuesta del servidor
