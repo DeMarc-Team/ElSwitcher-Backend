@@ -88,6 +88,3 @@ class ResponseCronometro(BaseModel):
     inicio: str
     duracion: int
     
-class ResponseCronometro(BaseModel):
-    inicio: str
-    duracion: int
