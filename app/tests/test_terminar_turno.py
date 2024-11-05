@@ -170,7 +170,7 @@ async def test_reponer_cartas_movimiento(client, test_db):
         "m1", "m2", "m3"
     ], "Fallo: Las cartas de movimiento del jugador no se repusieron como se esperaba."
 
-def test_jugador_bloqueado(client, test_db):
+def test_jugador_bloqueado(client, test_db, mock_timeGmt):
     '''Test sobre la no reposición de cartas de figura de un jugador bloqueado con varias cartas en su mano.'''
     
     partida, creador = crear_partida(test_db)
@@ -189,11 +189,12 @@ def test_jugador_bloqueado(client, test_db):
     captura_final = capturar(get_all_tables(test_db))
     
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
-    assert set(modificaciones) == set([('jugadores', 3), ('jugadores', 2)]), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y nada más."
+    print(modificaciones)
+    assert set(modificaciones) == set([('jugadores', 3), ('jugadores', 2), ('jugadores', 1)]), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y nada más."
     assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
     assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
 
-def test_jugador_bloqueado_carta_revelada_libre(client, test_db):
+def test_jugador_bloqueado_carta_revelada_libre(client, test_db, mock_timeGmt):
     '''Test sobre la no reposición de cartas de figura de un jugador bloqueado una única carta en la mano, la cual está libre.'''
     
     partida, creador = crear_partida(test_db)
@@ -217,11 +218,11 @@ def test_jugador_bloqueado_carta_revelada_libre(client, test_db):
     assert jugador_bloqueado.bloqueado, f"Fallo: Se esperaba que el jugador se mantuviera bloqueado."
     
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
-    assert set(modificaciones) == set([('jugadores', 3), ('jugadores', 2)]), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y nada más."
+    assert set(modificaciones) == set([('jugadores', 3), ('jugadores', 2), ('jugadores', 1)]), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y nada más."
     assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
     assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
 
-def test_jugador_bloqueado_carta_revelada_bloqueada(client, test_db):
+def test_jugador_bloqueado_carta_revelada_bloqueada(client, test_db, mock_timeGmt):
     '''Test sobre la no reposición de cartas de figura de un jugador bloqueado una única carta en la mano, la cual está bloqueada.'''
     
     partida, creador = crear_partida(test_db)
@@ -245,11 +246,11 @@ def test_jugador_bloqueado_carta_revelada_bloqueada(client, test_db):
     assert jugador_bloqueado.bloqueado, f"Fallo: Se esperaba que el jugador se mantuviera bloqueado."
     
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
-    assert set(modificaciones) == set([('jugadores', 3), ('jugadores', 2), ('cartas_de_figura', 49)]), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y una carta de figura."
+    assert set(modificaciones) == set([('jugadores', 3), ('jugadores', 2), ('jugadores', 1), ('cartas_de_figura', 49)]), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y una carta de figura."
     assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
     assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
 
-def test_jugador_bloqueado_sin_reveladas(client, test_db):
+def test_jugador_bloqueado_sin_reveladas(client, test_db, mock_timeGmt):
     '''Test sobre la reposición de cartas de figura de un jugador bloqueado sin cartas en la mano.'''
 
     partida, creador = crear_partida(test_db)
@@ -275,17 +276,17 @@ def test_jugador_bloqueado_sin_reveladas(client, test_db):
     modificaciones, eliminadas, creadas = comparar_capturas(
         captura_inicial, captura_final
     )
-    assert set(modificaciones) == set(
-        [
-            ("jugadores", 3),
-            ("jugadores", 2),
-            ("cartas_de_figura", 4),
-            ("cartas_de_figura", 5),
-            ("cartas_de_figura", 6),
-        ]
-    ), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y 3 cartas (las que se revelaron)."
-    assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
-    assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
+    print(modificaciones)
+    assert modificaciones == {
+        ('jugadores', 1): [('bloqueado', True, False), ('orden', 0, 2)], 
+        ('jugadores', 2): [('orden', 1, 0)], 
+        ('jugadores', 3): [('orden', 2, 1)], 
+        ('cartas_de_figura', 4): [('revelada', False, True)], 
+        ('cartas_de_figura', 5): [('revelada', False, True)], 
+        ('cartas_de_figura', 6): [('revelada', False, True)]}, \
+            "Fallo: Se esperaba que solo se modificara el orden de los jugadores y 3 cartas (las que se revelaron)."
+    assert eliminadas == [], "Fallo: Se esperaba que no se eliminaran elementos."
+    assert creadas == [], "Fallo: Se esperaba que no hubieran creaciones."
 
 def test_partida_inexistente_404(client, test_db, test_ws_counts):
     '''Test sobre los mensajes de error ante el envío de terminar turno a una partida inexistente.'''
