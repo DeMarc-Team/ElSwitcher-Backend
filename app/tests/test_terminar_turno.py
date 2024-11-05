@@ -42,7 +42,6 @@ async def test_terminar_turno_reponer_cartas(client, test_db, test_ws_messages, 
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
     await test_temporizadores_turno.wait_for_all_tasks()
     
-    
     captura_final = capturar(get_all_tables(test_db))
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
@@ -80,7 +79,6 @@ async def test_terminar_turno(client, test_db, test_ws_counts):
     response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
     await test_temporizadores_turno.wait_for_all_tasks()
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
-    
 
     partida_datos_posteriores = {
         "id": partida.id,
@@ -177,8 +175,6 @@ async def test_reponer_cartas_movimiento(client, test_db):
         await test_temporizadores_turno.wait_for_all_tasks()
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
     
-    
-    
     movimientos = [mov.movimiento for mov in jugador_del_turno.mano_movimientos]
     
     assert movimientos == [
@@ -221,7 +217,6 @@ def test_jugador_bloqueado_carta_revelada_libre(client, test_db):
     iniciar_partida(test_db, partida)
     
     jugador_bloqueado.bloqueado = True
-    
     cartear_figuras(test_db, jugador_bloqueado, ["f1"], primera_figura_bloqueada=False)
     
     captura_inicial = capturar(get_all_tables(test_db))
@@ -231,7 +226,6 @@ def test_jugador_bloqueado_carta_revelada_libre(client, test_db):
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
 
     captura_final = capturar(get_all_tables(test_db))
-    
     
     assert jugador_bloqueado.bloqueado, f"Fallo: Se esperaba que el jugador se mantuviera bloqueado."
     
@@ -253,7 +247,6 @@ def test_jugador_bloqueado_carta_revelada_bloqueada(client, test_db):
     iniciar_partida(test_db, partida)
     
     jugador_bloqueado.bloqueado = True
-    
     cartear_figuras(test_db, jugador_bloqueado, ["f1"], primera_figura_bloqueada=True)
     
     captura_inicial = capturar(get_all_tables(test_db))
@@ -263,7 +256,6 @@ def test_jugador_bloqueado_carta_revelada_bloqueada(client, test_db):
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
 
     captura_final = capturar(get_all_tables(test_db))
-    
     
     assert jugador_bloqueado.bloqueado, f"Fallo: Se esperaba que el jugador se mantuviera bloqueado."
     
@@ -287,7 +279,6 @@ def test_jugador_bloqueado_sin_reveladas(client, test_db):
     iniciar_partida(test_db, partida)
 
     jugador_bloqueado.bloqueado = True
-    
     cartear_figuras(test_db, jugador_bloqueado, [])
 
     captura_inicial = capturar(get_all_tables(test_db))
@@ -298,7 +289,6 @@ def test_jugador_bloqueado_sin_reveladas(client, test_db):
 
     captura_final = capturar(get_all_tables(test_db))
 
-    
     assert not jugador_bloqueado.bloqueado, f"Fallo: Se esperaba que el jugador se desbloqueara."
 
     modificaciones, eliminadas, creadas = comparar_capturas(

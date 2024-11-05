@@ -306,7 +306,6 @@ async def test_integracion_abandonar_partida_en_el_turno_ultimo_jugador_200(clie
     response = client.put(test_db, "partidas/1")
     check_response(response, 200, {'details': 'Partida iniciada correctamente', 'partida_id': 1})
     
-    
     # Abandonamos al jugador del turno
     ganador = get_jugador_sin_turno(test_db, partida)
     test_ws_messages[HAY_GANADOR] = [{'partida_id': 1, 'jugador_id': ganador.id, 'nombre': ganador.nombre}]
