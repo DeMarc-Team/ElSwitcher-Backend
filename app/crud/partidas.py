@@ -7,6 +7,7 @@ from schemas import PartidaData
 from models import Jugador, CartaFigura, CartaMovimiento, Partida
 from constantes_juego import N_CARTAS_FIGURA_TOTALES, N_FIGURAS_REVELADAS
 from crud.TemporizadorTurno import temporizadores_turno
+from crud.repository import partida_repo
 
 def get_id_creador(db: Session, partida_id):
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
@@ -157,14 +158,29 @@ def hay_ganador(db: Session, partida_id: int):
 
     if (id_ganador is not None):
         eliminar_partida(db, partida)
-        db.commit()
         return {"hay_ganador" : {"id_ganador" : id_ganador, "nombre_ganador" : nombre_ganador}}
 
     return {"hay_ganador" : None}
 
+def ganador_si_abandona_el(db: Session,partida_id: int, jugador_id: int):
+    """
+    Si hay dos jugadores, devuelve como ganador al otro jugador.
+    
+    Returna 
+        Si habra un ganador: {'hay_ganador' : {'id_ganador' : id_ganador, 'nombre_ganador' : nombre_ganador}}
+        Si no habra un ganador: {'hay_ganador' : None}
+    """
+    partida = db.get(Partida, partida_id)
+    if (not partida):
+        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
+    if (partida.iniciada and len(partida.jugadores) == 2):
+        nombre_ganador, id_ganador = partida_repo.get_otro_jugador(partida_id, jugador_id)
+        return {'hay_ganador' : {'id_ganador' : id_ganador, 'nombre_ganador' : nombre_ganador}}
+    return {'hay_ganador' : None}
 
-def eliminar_partida(db: Session, partida: Partida):
+def eliminar_partida(db: Session, partida):
+    if not isinstance(partida, Partida):
+        partida = db.get(Partida, partida)
     temporizadores_turno.cancelar_temporizador_del_turno(partida.id)
     db.delete(partida)
     db.commit()
-    
