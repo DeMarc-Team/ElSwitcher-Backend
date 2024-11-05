@@ -22,7 +22,6 @@ class PartidaController:
             "iniciada": response.iniciada,
             "espacios_disponibles": espacios_disponibles
         }
-
     async def create_partida(self, partida):
         partida_details = partida_service.create_partida(self.db, partida)
         await ws_home_manager.send_actualizar_partidas()

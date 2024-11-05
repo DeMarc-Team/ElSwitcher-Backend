@@ -6,7 +6,9 @@ def test_create_partida(client, test_db, test_ws_messages):
     test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
     nueva_partida = {
         "nombre_partida": "Partida_nueva",
-        "nombre_creador": "Jugador_nuevo"
+        "nombre_creador": "Jugador_nuevo",
+        'privada': False,
+        'contraseña': '',
     }
     response = client.post(test_db, "/partidas", json=nueva_partida)
     print(f"Response: {response.json()}")

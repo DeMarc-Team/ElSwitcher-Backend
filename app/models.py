@@ -73,6 +73,9 @@ class Partida(Base):
     jugadores: Mapped[list[Jugador]] = relationship(
         'Jugador', back_populates='partidas', cascade="all", order_by='Jugador.orden', collection_class=ordering_list('orden'))
     
+    privada = mapped_column(Boolean, default=False)
+    contraseña = mapped_column(String(255), nullable=False, default='')
+
     @hybrid_property
     def numero_de_jugadores(self) -> int:
         return len(self.jugadores)

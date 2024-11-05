@@ -39,7 +39,7 @@ def verificar_permisos(inspector, engine):
 def verificar_columnas(inspector, tabla, columnas_esperadas):
     columnas_creadas = inspector.get_columns(tabla)
     columnas_creadas_nombres = [col['name'] for col in columnas_creadas]
-    print(f"\nColumnas de la tabla {tabla}:\n",columnas_creadas_nombres)
+    print(f"\nColumnas R{tabla}:\n",columnas_creadas_nombres)
 
     assert len(columnas_esperadas) == len(columnas_creadas_nombres), f"Fallo: La cantidad de columnas en '{tabla}' no es la esperada. Se esperaban {len(columnas_esperadas)} pero se encontraron {len(columnas_creadas_nombres)}"
     assert columnas_esperadas == columnas_creadas_nombres, f"Fallo: No se crearon todas las columnas en '{tabla}'. Se esperaban {columnas_esperadas}, pero se encontraron {columnas_creadas_nombres}"
@@ -64,9 +64,9 @@ def test_db_creation(): #test_db):
     assert len(tablas_esperadas) == len(tablas_creadas), f"Fallo: La cantidad de tablas creadas no es la esperada. Se esperaban {len(tablas_esperadas)} pero se encontraron {len(tablas_creadas)}"
     assert tablas_esperadas == tablas_creadas, f"Fallo: No se crearon todas las tablas esperadas. Se esperaban {tablas_esperadas} pero se encontraron {tablas_creadas}"
     
-    #verificar_columnas(inspector, "partidas", ['id', 'nombre_partida', 'nombre_creador', 'iniciada', 'tablero'])
-    #verificar_columnas(inspector, "jugadores", ['id_jugador', 'nombre', 'es_creador', 'partida_id', 'orden', 'bloqueado'])
-    #verificar_columnas(inspector, "cartas_de_movimiento", ['id', 'movimiento', 'jugador_id'])
-    #verificar_columnas(inspector, "cartas_de_figura", ['id', 'figura', 'revelada', 'bloqueada', 'jugador_id'])
+    # verificar_columnas(inspector, "partidas", ['id', 'nombre_partida', 'nombre_creador', 'iniciada', 'privada', 'contraseña', 'tablero'])
+    # verificar_columnas(inspector, "jugadores", ['id_jugador', 'nombre', 'es_creador', 'partida_id', 'orden'])
+    # verificar_columnas(inspector, "cartas_de_movimiento", ['id', 'movimiento', 'jugador_id'])
+    # verificar_columnas(inspector, "cartas_de_figura", ['id', 'figura', 'revelada', 'jugador_id'])
 
     # test_db.close()
