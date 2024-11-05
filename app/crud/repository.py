@@ -8,6 +8,8 @@ import os
 _engine = engine
 session = localSession()
 
+# FIXME: no duplicar la session, usar la misma que ya se usa en todos lados
+
 class BaseRepository():
     """
         Todos los metodos que deberian ser generales entre
