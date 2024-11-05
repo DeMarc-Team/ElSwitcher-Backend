@@ -151,7 +151,7 @@ def bloqueo_generico_test(client, test_db, mano_del_jugador_a_bloquear, n_movimi
         "figura": casillas_figura,
         "carta_fig": request_carta_fig
     }
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id}/bloquear-carta', json=request_body)
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id}/bloquear-carta', json=request_body)
     check_response(response, status_code_esperado, respuesta_esperada)
 
     # Capturamos la BDD luego de los cambios

@@ -198,7 +198,7 @@ def test_jugador_bloqueado(client, test_db):
     captura_inicial = capturar(get_all_tables(test_db))
     
     # Terminamos el turno
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/turno')
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
 
     captura_final = capturar(get_all_tables(test_db))
@@ -223,7 +223,7 @@ def test_jugador_bloqueado_carta_revelada_libre(client, test_db):
     captura_inicial = capturar(get_all_tables(test_db))
     
     # Terminamos el turno del jugador bloqueado
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_bloqueado.id_jugador}/turno')
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_bloqueado.id_jugador}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
 
     captura_final = capturar(get_all_tables(test_db))
@@ -251,7 +251,7 @@ def test_jugador_bloqueado_carta_revelada_bloqueada(client, test_db):
     captura_inicial = capturar(get_all_tables(test_db))
     
     # Terminamos el turno del jugador bloqueado
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_bloqueado.id_jugador}/turno')
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_bloqueado.id_jugador}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
 
     captura_final = capturar(get_all_tables(test_db))
@@ -279,7 +279,7 @@ def test_jugador_bloqueado_sin_reveladas(client, test_db):
     captura_inicial = capturar(get_all_tables(test_db))
 
     # Terminamos el turno del jugador bloqueado
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_bloqueado.id_jugador}/turno')
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_bloqueado.id_jugador}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
 
     captura_final = capturar(get_all_tables(test_db))

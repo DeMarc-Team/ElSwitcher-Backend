@@ -294,7 +294,7 @@ def test_usar_figura_con_bloqueada_y_libre(client, test_db, test_ws_counts):
     # Capturamos la BDD antes de los cambios
     captura_inicial = capturar_metadata(get_all_tables(test_db))
     
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
 
     # Capturamos la BDD luego de los cambios
@@ -583,7 +583,7 @@ def test_usar_figura_bloqueada_403(client, test_db, test_ws_counts):
         "figura": [{"row": 0, "col": 0}],
         "carta_fig": figura
     }
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
     respuesta_esperada = {'detail': 'El jugador de ID 1 no tiene ninguna carta del formato f2 desbloqueada en su mano.'}
     check_response(response, status_code_esperado=403, respuesta_esperada=respuesta_esperada)
 
