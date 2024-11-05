@@ -194,8 +194,9 @@ def unatomic_bloquear_figura(db: Session, partida: Partida, jugador: Jugador, bl
         )
     
     carta_a_bloquear = get_carta_revelada_from_jugador(jugador_a_bloquear, fig_deseada)
-    check_figura_en_tablero(partida, coordenadas_fig_deseada, fig_deseada)
+    coords_figura = check_figura_en_tablero(partida, coordenadas_fig_deseada, fig_deseada)
     
+    partida.color_prohibido = __get_color_coordenadas(partida, coords_figura)
     carta_a_bloquear.bloqueada = True
     jugador_a_bloquear.bloqueado = True
     db.flush()
