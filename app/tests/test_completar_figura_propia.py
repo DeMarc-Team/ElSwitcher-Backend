@@ -149,7 +149,6 @@ def test_usar_figura_propia_varias_figuras(client, test_db, test_ws_counts):
     captura_final = capturar_metadata(get_all_tables(test_db))
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
-    # Comparamos que los conjuntos (PORQUE EL ORDEN DE LAS CAPTURAS NO ES DETERMINISTA) de objetos sean los correctos
     assert set(modificaciones) == {('partidas', 1)}, "Fallo: Se esperaba otro conjunto de objetos modificados."
     assert set(eliminadas) == set(
         [
@@ -207,7 +206,6 @@ def test_usar_figura_propia_varias_cartas(client, test_db, test_ws_counts):
     captura_final = capturar_metadata(get_all_tables(test_db))
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
-    # Comparamos que los conjuntos (PORQUE EL ORDEN DE LAS CAPTURAS NO ES DETERMINISTA) de objetos sean los correctos
     assert set(modificaciones) == {('partidas', 1)}, "Fallo: Se esperaba otro conjunto de objetos modificados."
     assert set(eliminadas) == set(
         [
@@ -301,7 +299,6 @@ def test_usar_figura_con_bloqueada_y_libre(client, test_db, test_ws_counts):
     captura_final = capturar_metadata(get_all_tables(test_db))
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
-    print(modificaciones)
     assert modificaciones == {('partidas', 1): [('color_prohibido', 0, 2)]}, "Fallo: Se esperaba otro conjunto de objetos modificados."
     assert set(eliminadas) == set(
         [
@@ -565,6 +562,7 @@ def test_usar_figura_bloqueada_403(client, test_db, test_ws_counts):
     iniciar_partida(test_db, partida)
 
     jugador_del_turno = partida.jugador_del_turno
+
     tablero_mock = [
         [2, 2, 2, 4, 1, 2],
         [1, 2, 1, 4, 1, 2],
@@ -573,6 +571,7 @@ def test_usar_figura_bloqueada_403(client, test_db, test_ws_counts):
         [1, 1, 1, 4, 1, 2],
         [1, 1, 1, 4, 1, 2]
     ]
+
     establecer_tablero(test_db, partida, tablero_mock)
     figura = "f2"
     cartear_figuras(test_db, jugador_del_turno, [figura], primera_figura_bloqueada=True)

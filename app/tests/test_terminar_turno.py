@@ -204,7 +204,6 @@ def test_jugador_bloqueado(client, test_db):
     captura_final = capturar(get_all_tables(test_db))
     
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
-    print(modificaciones)
     assert modificaciones == {
         ('jugadores', 1): [('orden', 0, 2)], 
         ('jugadores', 2): [('orden', 1, 0)], 

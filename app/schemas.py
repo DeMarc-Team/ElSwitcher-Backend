@@ -84,6 +84,7 @@ class BloquearFiguraData(BaseModel):
     id_jugador_bloqueado: int
     figura: list[Casilla]
     carta_fig: str
+
 class RespuestaColorProhibido(BaseModel):
     color: Annotated[int, Field(ge=1, le=4)] | None
     

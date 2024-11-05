@@ -1,9 +1,10 @@
-from database import Base
 from sqlalchemy import Integer, Boolean, String, ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.ext.orderinglist import ordering_list
+
 from figuras import SET_DE_CARTAS
+from database import Base
 
 # JUGADOR ------------------------------------------------------
 class Jugador(Base):
