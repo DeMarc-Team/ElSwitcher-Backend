@@ -56,7 +56,7 @@ class JuegoController:
         else:
             await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
             await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
-
+            
     async def bloquear_carta_ajena(self, id_partida, id_jugador, bloqueo_data):
         juego_service.bloquear_carta_ajena(self.db, id_partida, id_jugador, bloqueo_data)
         await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)

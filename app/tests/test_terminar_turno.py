@@ -67,13 +67,12 @@ async def test_terminar_turno(client, test_db, test_ws_counts, mock_timeGmt):
     segundo_jugador = partida.jugadores[1]
 
     captura_inicial = capturar(get_all_tables(test_db))
-    
+
     # Pasamos el turno
-    response = client.put(
-        f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
+    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
     await test_temporizadores_turno.wait_for_all_tasks()
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
-    
+
     test_db.refresh(partida)
     captura_final = capturar(get_all_tables(test_db))
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
@@ -189,7 +188,6 @@ def test_jugador_bloqueado(client, test_db, mock_timeGmt):
     captura_final = capturar(get_all_tables(test_db))
     
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
-    print(modificaciones)
     assert set(modificaciones) == set([('jugadores', 3), ('jugadores', 2), ('jugadores', 1)]), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y nada más."
     assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
     assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
@@ -276,7 +274,6 @@ def test_jugador_bloqueado_sin_reveladas(client, test_db, mock_timeGmt):
     modificaciones, eliminadas, creadas = comparar_capturas(
         captura_inicial, captura_final
     )
-    print(modificaciones)
     assert modificaciones == {
         ('jugadores', 1): [('bloqueado', True, False), ('orden', 0, 2)], 
         ('jugadores', 2): [('orden', 1, 0)], 

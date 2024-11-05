@@ -74,7 +74,7 @@ class MovimientoParcialData(BaseModel):
     destino: str
     orden: int
     movimiento: str    
-    
+
 class CompletarFiguraData(BaseModel):
     figura: list[Casilla]
     carta_fig: str
@@ -83,8 +83,7 @@ class BloquearFiguraData(BaseModel):
     id_jugador_bloqueado: int
     figura: list[Casilla]
     carta_fig: str
-    
+
 class ResponseCronometro(BaseModel):
     inicio: str
     duracion: int
-    
