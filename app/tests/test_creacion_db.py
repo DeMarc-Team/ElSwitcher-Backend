@@ -39,7 +39,6 @@ def verificar_permisos(inspector, engine):
 def verificar_columnas(inspector, tabla, columnas_esperadas):
     columnas_creadas = inspector.get_columns(tabla)
     columnas_creadas_nombres = [col['name'] for col in columnas_creadas]
-    print(f"\nColumnas R{tabla}:\n",columnas_creadas_nombres)
 
     assert len(columnas_esperadas) == len(columnas_creadas_nombres), f"Fallo: La cantidad de columnas en '{tabla}' no es la esperada. Se esperaban {len(columnas_esperadas)} pero se encontraron {len(columnas_creadas_nombres)}"
     assert columnas_esperadas == columnas_creadas_nombres, f"Fallo: No se crearon todas las columnas en '{tabla}'. Se esperaban {columnas_esperadas}, pero se encontraron {columnas_creadas_nombres}"
