@@ -27,13 +27,13 @@ def test_hacer_movimiento_200(client, test_db):
 
     response = jugar_carta_m1(client, test_db, partida, id_jugador_del_turno)
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    test_db.refresh(jugador_del_turno) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
+    
 
     assert len(partida.movimientos_parciales) == 1, "Fallo: Debería haber un movimiento parcial"
     assert partida.movimientos_parciales[0].origen == str((0,0)), "Fallo: La casilla 1 no es la esperada"
     assert partida.movimientos_parciales[0].destino == str((2,2)), "Fallo: La casilla 2 no es la esperada"
 
-    test_db.refresh(partida) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
+    
     assert partida.tablero != tablero_original, "Fallo: El tablero no debería haber cambiado"
     assert partida.tablero == tablero_esperado, "Fallo: El tablero no es el esperado"
 
@@ -63,7 +63,7 @@ def test_movimiento_invalido(client, test_db):
     assert partida.movimientos_parciales == [], "Fallo: La casilla 1 no es la esperada"
 
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    test_db.refresh(jugador_del_turno) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
+    
     assert len(jugador_del_turno.mano_movimientos) == 3, "Fallo: El jugador no debe haber podido descartar su carta"
 
 # Auxiliares
@@ -72,7 +72,7 @@ def agregar_m1_a_los_inventarios(test_db, n_m1_a_agregar , jugadores):
         for n_m1_a_agregar in range(n_m1_a_agregar):
             carta = CartaMovimiento(movimientos_de=jugador,movimiento='m1') # Para poder testear hacer movimientos necesito darle una carta que se jugar en el tablero
             test_db.add(carta)
-            test_db.commit()
+            
 
 def jugar_carta_m1(client, test_db, partida, id_jugador_del_turno):
     jugada = {

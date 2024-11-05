@@ -101,7 +101,6 @@ def test_usar_figura_propia_yganar(client, test_db, test_ws_messages):
     eliminar_cartas_figura_del_maso(test_db, jugador_del_turno, 1)
 
     response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
-    test_db.commit()
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
 
     # Chequeamos que se haya eliminado todo de la db
@@ -372,7 +371,7 @@ def test_usar_figura_propia_jugador_no_turno_403(client, test_db, test_ws_counts
     check_response(response, status_code_esperado=403, respuesta_esperada=respuesta_esperada)
 
     # Verificamos que no se haya realizado ningun cambio en la base de datos
-    test_db.refresh(partida)
+    
     captura_final = capturar_metadata([partida, *partida.jugadores, *jugador_del_turno.mazo_cartas_de_figura, *otro_jugador.mazo_cartas_de_figura])
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
@@ -415,7 +414,7 @@ def test_usar_figura_propia_partida_no_iniciada_403(client, test_db, test_ws_cou
     check_response(response, status_code_esperado=403, respuesta_esperada=respuesta_esperada)
 
     # Verificamos que no se haya realizado ningun cambio en la base de datos
-    test_db.refresh(partida)
+    
     captura_final = capturar_metadata([partida, *partida.jugadores, *jugador.mazo_cartas_de_figura])
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
@@ -464,7 +463,7 @@ def test_usar_figura_propia_mano_sin_figura_404(client, test_db, test_ws_counts)
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
     # Verificamos que no se haya realizado ningun cambio en la base de datos
-    test_db.refresh(partida)
+    
     captura_final = capturar_metadata([partida, *partida.jugadores, *jugador_del_turno.mazo_cartas_de_figura])
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
@@ -505,7 +504,7 @@ def test_usar_figura_propia_no_en_tablero_404(client, test_db, test_ws_counts):
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
     # Verificamos que no se haya realizado ningun cambio en la base de datos
-    test_db.refresh(partida)
+    
     captura_final = capturar_metadata([partida, *partida.jugadores, *jugador_del_turno.mazo_cartas_de_figura])
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
@@ -546,7 +545,7 @@ def test_usar_figura_propia_casilla_incorrecta_404(client, test_db, test_ws_coun
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
     # Verificamos que no se haya realizado ningun cambio en la base de datos
-    test_db.refresh(partida)
+    
     captura_final = capturar_metadata([partida, *partida.jugadores, *jugador_del_turno.mazo_cartas_de_figura])
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
@@ -587,7 +586,7 @@ def test_usar_figura_bloqueada_403(client, test_db, test_ws_counts):
     check_response(response, status_code_esperado=403, respuesta_esperada=respuesta_esperada)
 
     # Verificamos que no se haya realizado ningun cambio en la base de datos
-    test_db.refresh(partida)
+    
     captura_final = capturar_metadata([partida, *partida.jugadores, *jugador_del_turno.mazo_cartas_de_figura])
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 

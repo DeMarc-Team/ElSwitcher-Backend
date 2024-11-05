@@ -243,7 +243,7 @@ async def test_integracion_abandonar_partida_iniciada_ultimo_jugador_200(client,
     check_response(response, 200, None)
     
     # await test_temporizadores_turno.wait_for_all_tasks()
-    test_db.refresh(partida)
+    
     
     # Hacemos que un jugador abandone la partida
     jugador_ganador = partida.jugador_del_turno
@@ -305,7 +305,7 @@ async def test_integracion_abandonar_partida_en_el_turno_ultimo_jugador_200(clie
     
     response = client.put(test_db, "partidas/1")
     check_response(response, 200, {'details': 'Partida iniciada correctamente', 'partida_id': 1})
-    test_db.refresh(partida)
+    
     
     # Abandonamos al jugador del turno
     ganador = get_jugador_sin_turno(test_db, partida)
