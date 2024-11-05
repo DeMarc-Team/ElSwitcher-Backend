@@ -29,7 +29,10 @@ def test_bloquear_happy_path(client, test_db, test_ws_messages):
     )
 
     # 51 es, por construcción, el id de la carta carteada (y bloqueada en este caso).
-    assert set(modificaciones) == set({('cartas_de_figura', 51): [('bloqueada', False, True)]}), "Fallo: Se esperaba que hubieran otras modificaciones."
+    assert modificaciones == {
+        ('jugadores', 2): [('bloqueado', False, True)], 
+        ('cartas_de_figura', 51): [('bloqueada', False, True)]
+        }, "Fallo: Se esperaba que hubieran otras modificaciones."
     assert set(eliminadas) == set(
         [
             ("movimientos_parciales", 1),

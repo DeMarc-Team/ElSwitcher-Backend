@@ -204,9 +204,14 @@ def test_jugador_bloqueado(client, test_db):
     captura_final = capturar(get_all_tables(test_db))
     
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
-    assert set(modificaciones) == set([('jugadores', 3), ('jugadores', 2)]), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y nada más."
-    assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
-    assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
+    print(modificaciones)
+    assert modificaciones == {
+        ('jugadores', 1): [('orden', 0, 2)], 
+        ('jugadores', 2): [('orden', 1, 0)], 
+        ('jugadores', 3): [('orden', 2, 1)]}, \
+            "Fallo: Se esperaba que solo se modificara el orden de los jugadores y nada más."
+    assert eliminadas == [], "Fallo: Se esperaba que no se eliminaran elementos."
+    assert creadas == [], "Fallo: Se esperaba que no hubieran creaciones."
 
 def test_jugador_bloqueado_carta_revelada_libre(client, test_db):
     '''Test sobre la no reposición de cartas de figura de un jugador bloqueado una única carta en la mano, la cual está libre.'''
@@ -232,9 +237,13 @@ def test_jugador_bloqueado_carta_revelada_libre(client, test_db):
     assert jugador_bloqueado.bloqueado, f"Fallo: Se esperaba que el jugador se mantuviera bloqueado."
     
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
-    assert set(modificaciones) == set([('jugadores', 3), ('jugadores', 2)]), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y nada más."
-    assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
-    assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
+    assert modificaciones == {
+        ('jugadores', 1): [('orden', 0, 2)], 
+        ('jugadores', 2): [('orden', 1, 0)], 
+        ('jugadores', 3): [('orden', 2, 1)]}, \
+            "Fallo: Se esperaba que solo se modificara el orden de los jugadores y nada más."
+    assert eliminadas == [], "Fallo: Se esperaba que no se eliminaran elementos."
+    assert creadas == [], "Fallo: Se esperaba que no hubieran creaciones."
 
 def test_jugador_bloqueado_carta_revelada_bloqueada(client, test_db):
     '''Test sobre la no reposición de cartas de figura de un jugador bloqueado una única carta en la mano, la cual está bloqueada.'''
@@ -260,9 +269,15 @@ def test_jugador_bloqueado_carta_revelada_bloqueada(client, test_db):
     assert jugador_bloqueado.bloqueado, f"Fallo: Se esperaba que el jugador se mantuviera bloqueado."
     
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
-    assert set(modificaciones) == set([('jugadores', 3), ('jugadores', 2), ('cartas_de_figura', 49)]), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y una carta de figura."
-    assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
-    assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
+
+    assert modificaciones == {
+        ('jugadores', 1): [('orden', 0, 2)], 
+        ('jugadores', 2): [('orden', 1, 0)], 
+        ('jugadores', 3): [('orden', 2, 1)], 
+        ('cartas_de_figura', 49): [('bloqueada', True, False)]}, \
+            "Fallo: Se esperaba que solo se modificara el orden de los jugadores y una carta de figura."
+    assert eliminadas == [], "Fallo: Se esperaba que no se eliminaran elementos."
+    assert creadas == [], "Fallo: Se esperaba que no hubieran creaciones."
 
 def test_jugador_bloqueado_sin_reveladas(client, test_db):
     '''Test sobre la reposición de cartas de figura de un jugador bloqueado sin cartas en la mano.'''
@@ -290,15 +305,14 @@ def test_jugador_bloqueado_sin_reveladas(client, test_db):
     modificaciones, eliminadas, creadas = comparar_capturas(
         captura_inicial, captura_final
     )
-    assert set(modificaciones) == set(
-        [
-            ("jugadores", 3),
-            ("jugadores", 2),
-            ("cartas_de_figura", 4),
-            ("cartas_de_figura", 5),
-            ("cartas_de_figura", 6),
-        ]
-    ), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y 3 cartas (las que se revelaron)."
+    assert modificaciones == {
+        ('jugadores', 1): [('bloqueado', True, False), ('orden', 0, 2)], 
+        ('jugadores', 2): [('orden', 1, 0)], 
+        ('jugadores', 3): [('orden', 2, 1)], 
+        ('cartas_de_figura', 4): [('revelada', False, True)], 
+        ('cartas_de_figura', 5): [('revelada', False, True)], 
+        ('cartas_de_figura', 6): [('revelada', False, True)]}, \
+            "Fallo: Se esperaba que solo se modificara el orden de los jugadores y 3 cartas (las que se revelaron)."
     assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
     assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
 

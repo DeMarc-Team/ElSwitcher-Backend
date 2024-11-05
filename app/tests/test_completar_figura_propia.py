@@ -301,8 +301,8 @@ def test_usar_figura_con_bloqueada_y_libre(client, test_db, test_ws_counts):
     captura_final = capturar_metadata(get_all_tables(test_db))
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
-    # Comparamos que los conjuntos (PORQUE EL ORDEN DE LAS CAPTURAS NO ES DETERMINISTA) de objetos sean los correctos
-    assert set(modificaciones) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
+    print(modificaciones)
+    assert modificaciones == {('partidas', 1): [('color_prohibido', 0, 2)]}, "Fallo: Se esperaba otro conjunto de objetos modificados."
     assert set(eliminadas) == set(
         [
             ("cartas_de_movimiento", 1),    # Cartas de movimiento falseadas
@@ -441,7 +441,7 @@ def test_usar_figura_propia_jugador_no_existe_404(client, test_db, test_ws_count
         "carta_fig": "f1"
     }
     response = client.put(test_db, f'/juego/{partida.id}/jugadores/{id_jugador}/tablero/figura', json=request_body)
-    respuesta_esperada = {'detail': f"Jugador con ID {id_jugador} no encontrado en la partida con ID {id_jugador}."}
+    respuesta_esperada = {'detail': f"Jugador con ID {id_jugador} no encontrado en la partida con ID {partida.id}."}
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
 # ----------------------------------------------------------------
@@ -463,7 +463,7 @@ def test_usar_figura_propia_mano_sin_figura_404(client, test_db, test_ws_counts)
         "carta_fig": "f1"
     }
     response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
-    respuesta_esperada = {'detail': f"El jugador no tiene en la mano ninguna carta de figura revelada del formato {request_body.get('carta_fig')}."}
+    respuesta_esperada = {"detail": f"El jugador de ID 1 no tiene en la mano ninguna carta de figura revelada del formato {request_body.get('carta_fig')}."}
     check_response(response, status_code_esperado=404, respuesta_esperada=respuesta_esperada)
 
     # Verificamos que no se haya realizado ningun cambio en la base de datos
