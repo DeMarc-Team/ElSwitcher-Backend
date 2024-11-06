@@ -162,11 +162,12 @@ def hay_ganador(db: Session, partida_id: int):
 
     return {"hay_ganador" : None}
 
-def ganador_si_abandona_el(db: Session,partida_id: int, jugador_id: int):
+def determinar_ganador_por_abandono(db: Session,partida_id: int, jugador_id: int):
     """
-    Si hay dos jugadores, devuelve como ganador al otro jugador.
+    Si hay dos jugadores en la partida, devuelve el nombre e id del jugador con id distinto 
+    al pasado por parametro.
     
-    Returna 
+    Retorna 
         Si habra un ganador: {'hay_ganador' : {'id_ganador' : id_ganador, 'nombre_ganador' : nombre_ganador}}
         Si no habra un ganador: {'hay_ganador' : None}
     """
