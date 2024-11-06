@@ -151,6 +151,10 @@ def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figur
     
     unatomic_usar_figura(db, partida, jugador, figura_data)
     unatomic_aplicar_parciales(db, partida)
+      
+    if (jugador.bloqueado and len(jugador.mano_figuras) == 1 and jugador.mano_figuras[0].bloqueada):
+        jugador.mano_figuras[0].bloqueada = False
+
     db.commit()
 
 def bloquear_carta_ajena(db: Session, id_partida: int, id_jugador: int, bloqueo_data: BloquearFiguraData):
