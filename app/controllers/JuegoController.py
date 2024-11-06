@@ -1,5 +1,6 @@
 import crud.juego as juego_service
 import crud.turno as turno_service
+import crud.partidas as partida_service
 from websockets_manager.ws_partidas_manager import ws_partidas_manager
 from figuras import hallar_todas_las_figuras_en_tablero
 import json
@@ -47,12 +48,13 @@ class JuegoController:
         return juego_service.get_movimientos_parciales(self.db, id_partida)
 
     async def completar_figura_propia(self, id_partida, id_jugador, figura_data):
-        eventos = juego_service.completar_figura_propia(self.db, id_partida, id_jugador, figura_data)
-        hay_ganador = eventos.get("hay_ganador")
-        if (hay_ganador):
-            id_ganador = hay_ganador.get("id_ganador")
-            nombre_ganador = hay_ganador.get("nombre_ganador")
+        juego_service.completar_figura_propia(self.db, id_partida, id_jugador, figura_data)
+        
+        if (ganador := juego_service.determinar_ganador_por_terminar_mazo(self.db, id_partida, id_jugador).get("ganador")):
+            id_ganador = ganador.get("id_ganador")
+            nombre_ganador = ganador.get("nombre_ganador")
             await ws_partidas_manager.send_hay_ganador(id_partida, id_ganador, nombre_ganador)
+            partida_service.eliminar_partida(self.db, id_partida)
         else:
             await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
             await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
