@@ -356,8 +356,9 @@ def determinar_ganador_por_terminar_mazo(db: Session, id_partida: int, id_jugado
     '''
     Determina si el jugador ha ganado la partida al terminar su mazo de cartas de figura.
     
-    :return: Un diccionario con la clave "ganador" que contiene el ID y nombre del jugador 
-    ganador, o None si no hay ganador.
+    Retorna 
+        Si hay un ganador: {'ganador' : {'id' : id_ganador, 'nombre' : nombre_ganador}}
+        Si no: {'ganador' : None}
     '''
     partida = db.query(Partida).filter(Partida.id == id_partida).first()
     if (not partida):
@@ -367,5 +368,5 @@ def determinar_ganador_por_terminar_mazo(db: Session, id_partida: int, id_jugado
     
     jugador = partida.jugador_del_turno
     if (jugador.numero_de_cartas_figura == 0):
-        return {"ganador": {"id_ganador": jugador.id_jugador, "nombre_ganador": jugador.nombre}}
+        return {"ganador": {"id": jugador.id_jugador, "nombre": jugador.nombre}}
     return {"ganador": None}

@@ -37,7 +37,7 @@ class PartidaController:
 
     async def abandonar_partida(self, partida_id, jugador_id):
         if (ganador := partida_service.determinar_ganador_por_abandono(self.db, partida_id, jugador_id).get("ganador")):
-            await ws_partidas_manager.send_hay_ganador(partida_id, ganador["id_ganador"], ganador["nombre_ganador"])
+            await ws_partidas_manager.send_hay_ganador(partida_id, ganador["id"], ganador["nombre"])
             partida_service.eliminar_partida(self.db, partida_id)
             return {"detail": "El jugador abandonó la partida exitosamente y se ha declarado un ganador"}
         

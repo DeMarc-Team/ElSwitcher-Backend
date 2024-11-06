@@ -120,7 +120,7 @@ def determinar_ganador_por_abandono(db: Session,partida_id: int, jugador_id: int
     al pasado por parametro.
     
     Retorna 
-        Si habra un ganador: {'ganador' : {'id_ganador' : id_ganador, 'nombre_ganador' : nombre_ganador}}
+        Si habra un ganador: {'ganador' : {'id' : id_ganador, 'nombre' : nombre_ganador}}
         Si no habra un ganador: {'ganador' : None}
     """
     partida = db.get(Partida, partida_id)
@@ -128,7 +128,7 @@ def determinar_ganador_por_abandono(db: Session,partida_id: int, jugador_id: int
         raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
     if (partida.iniciada and len(partida.jugadores) == 2):
         nombre_ganador, id_ganador = partida_repo.get_otro_jugador(partida_id, jugador_id)
-        return {'ganador' : {'id_ganador' : id_ganador, 'nombre_ganador' : nombre_ganador}}
+        return {'ganador' : {'id' : id_ganador, 'nombre' : nombre_ganador}}
     return {'ganador' : None}
 
 def eliminar_partida(db: Session, partida):

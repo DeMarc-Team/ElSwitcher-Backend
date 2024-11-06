@@ -51,9 +51,7 @@ class JuegoController:
         juego_service.completar_figura_propia(self.db, id_partida, id_jugador, figura_data)
         
         if (ganador := juego_service.determinar_ganador_por_terminar_mazo(self.db, id_partida, id_jugador).get("ganador")):
-            id_ganador = ganador.get("id_ganador")
-            nombre_ganador = ganador.get("nombre_ganador")
-            await ws_partidas_manager.send_hay_ganador(id_partida, id_ganador, nombre_ganador)
+            await ws_partidas_manager.send_hay_ganador(id_partida, ganador.get("id"), ganador.get("nombre"))
             partida_service.eliminar_partida(self.db, id_partida)
         else:
             await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
