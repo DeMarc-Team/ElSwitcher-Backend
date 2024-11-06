@@ -148,7 +148,7 @@ def test_usar_figura_propia_varias_figuras(client, test_db, test_ws_counts):
     captura_final = capturar_metadata(get_all_tables(test_db))
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
-    assert set(modificaciones) == {('partidas', 1)}, "Fallo: Se esperaba otro conjunto de objetos modificados."
+    assert modificaciones == {('partidas', 1): [('color_prohibido', 0, 2)]}, "Fallo: Se esperaba otro conjunto de objetos modificados."
     assert set(eliminadas) == set(
         [
             ("cartas_de_movimiento", 1),    # Cartas de movimiento falseadas
@@ -172,10 +172,10 @@ def test_usar_figura_propia_varias_figuras(client, test_db, test_ws_counts):
 def test_usar_figura_propia_varias_cartas(client, test_db, test_ws_counts):
     # Tablero que deseamos que se utilice
     tablero_mock = [
-        [2, 2, 2, 4, 1, 2],
-        [1, 2, 1, 4, 1, 2],
-        [1, 2, 1, 4, 1, 2],
         [1, 1, 1, 4, 1, 2],
+        [2, 1, 2, 4, 1, 2],
+        [2, 1, 2, 4, 1, 2],
+        [1, 2, 1, 4, 1, 2],
         [1, 1, 1, 4, 1, 2],
         [1, 1, 1, 4, 1, 2]
     ]
@@ -205,7 +205,7 @@ def test_usar_figura_propia_varias_cartas(client, test_db, test_ws_counts):
     captura_final = capturar_metadata(get_all_tables(test_db))
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
-    assert set(modificaciones) == {('partidas', 1)}, "Fallo: Se esperaba otro conjunto de objetos modificados."
+    assert modificaciones == {('partidas', 1): [('color_prohibido', 0, 1)]}, "Fallo: Se esperaba otro conjunto de objetos modificados."
     assert set(eliminadas) == set(
         [
             ("cartas_de_movimiento", 1),    # Cartas de movimiento falseadas
@@ -593,10 +593,10 @@ def test_integracion_bloquear_color(client, test_db, test_ws_messages):
     test_ws_messages[ACTUALIZAR_CARTAS_MOVIMIENTO] = [{"partida_id": 1}]
 
     tablero_mock = [
-        [2, 2, 2, 4, 1, 2],
-        [1, 2, 1, 4, 1, 2],
-        [1, 2, 1, 4, 1, 2],
-        [1, 1, 1, 4, 1, 2],
+        [4, 4, 4, 2, 1, 2],
+        [1, 4, 3, 4, 1, 2],
+        [1, 4, 1, 4, 1, 2],
+        [4, 1, 4, 4, 1, 2],
         [1, 1, 1, 4, 1, 2],
         [1, 1, 1, 4, 1, 2]
     ]
@@ -609,19 +609,19 @@ def test_integracion_bloquear_color(client, test_db, test_ws_messages):
     # Configuramos el escenario
     partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1"], n_movimientos_a_consumir=3)
 
-    # Descartamos la carta de color 2
+    # Descartamos la carta de color 4
     captura_inicial = capturar_metadata(get_all_tables(test_db))
     response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
     check_response(response, status_code_esperado=200, respuesta_esperada=None)
     
     # Pedimos el color prohibido
     response = client.get(test_db, f"/juego/{partida.id}/colorProhibido")
-    check_response(response, 200, {"color": 2})
+    check_response(response, 200, {"color": 4})
     captura_final = capturar_metadata(get_all_tables(test_db))
     
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
     
-    assert modificaciones == {('partidas', 1): [('color_prohibido', 0, 2)]}, \
+    assert modificaciones == {('partidas', 1): [('color_prohibido', 0, 4)]}, \
         f"Se esperaba que solo se actualice el color prohibido, pero se encontro {modificaciones}"
     
     assert eliminadas == [('cartas_de_figura', 51), 
