@@ -34,7 +34,7 @@ def get_partida_details(db: Session, id: int):
 
 def create_partida(db: Session, partida: PartidaData):
     
-    criterio_de_privacidad(partida)
+    desambiguar_eleccion_de_privacidad(partida)
     
     new_partida = Partida(nombre_partida=partida.nombre_partida, nombre_creador=partida.nombre_creador, privada=partida.privada, contraseña=partida.contraseña)
     db.add(new_partida)
@@ -44,7 +44,7 @@ def create_partida(db: Session, partida: PartidaData):
     db.commit()
     return new_partida
 
-def criterio_de_privacidad(partida: PartidaData):
+def desambiguar_eleccion_de_privacidad(partida: PartidaData):
     if (partida.privada == False or partida.contraseña == None or partida.contraseña == ""):
         partida.contraseña = ""
         partida.privada = False

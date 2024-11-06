@@ -59,7 +59,7 @@ def test_create_partida_privada(client, test_db, test_ws_messages):
         'privada': True,
         'contraseña': '1234',
     }
-    response = client.post("/partidas", json=partida_privada)
+    response = client.post(test_db, "/partidas", json=partida_privada)
 
     
     respuesta_esperada = {  'nombre_partida': 'privadita',
@@ -86,7 +86,7 @@ def test_create_partida_privada_contra_vacia(client,test_db,test_ws_messages):
         'privada': True,
         'contraseña': '',
     }
-    response = client.post("/partidas", json=partida_privada)
+    response = client.post(test_db, "/partidas", json=partida_privada)
 
     respuesta_esperada = {
         "nombre_partida": "privadinha",
@@ -118,7 +118,7 @@ def test_create_partida_privada_contra_nula(client,test_db,test_ws_messages):
         'privada': False,
         'contraseña': None
     }
-    response = client.post("/partidas", json=partida_privada)
+    response = client.post(test_db,"/partidas", json=partida_privada)
 
     respuesta_esperada = {
         "nombre_partida": "privadinha",
@@ -150,7 +150,7 @@ def test_create_partida_privada_contra_faltante(client,test_db,test_ws_messages)
         'privada': True,
 
     }
-    response = client.post("/partidas", json=partida_privada)
+    response = client.post(test_db, "/partidas", json=partida_privada)
 
     respuesta_esperada = {
         "nombre_partida": "privadinha",
@@ -173,6 +173,15 @@ def test_create_partida_privada_contra_faltante(client,test_db,test_ws_messages)
 
 
 def verificar_efectos_en_db(test_db, datos_esperados, id_partida):
+    """
+    Dada una id de partida, la busca en la base de datos
+    y se asegura que coincida con los datos esperados
+
+    Args:
+        test_db: Session de la db
+        datos_esperados (Dict): Datos con los que se corrobora
+        id_partida (Int): ID de la partida en la db
+    """
     partida_en_db = test_db.query(Partida).filter(Partida.id == id_partida).first()
     
     assert datos_esperados['nombre_partida'] == partida_en_db.nombre_partida
@@ -182,5 +191,13 @@ def verificar_efectos_en_db(test_db, datos_esperados, id_partida):
 
 
 def verificar_respuesta_de_api(response, status_code_esperado, respuesta_esperada):
+    """Utilizando la response de la request hecha con client. Verifica
+    que el código de respuesta y los datos coincidan.
+
+    Args:
+        response : Objeto response resultado de una llamada de client.method
+        status_code_esperado (Int): 
+        respuesta_esperada ( Dict ): Datos con los que se corrobora correcto
+    """
     assert response.status_code == status_code_esperado, f"Fallo: Se esperaba el estado {status_code_esperado}, pero se obtuvo {response.status_code}"
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
