@@ -33,7 +33,7 @@ def test_get_tablero_200(client, test_db):
     iniciar_partida(db=test_db, partida=partida)
 
     # Llamamos al endpoint para obtener el tablero de la partida con ID 1 (existente)
-    response = client.get("juego/1/tablero")
+    response = client.get(test_db, "juego/1/tablero")
     print(f"Response: {response.json()}")
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     assert json.dumps(response.json()['tablero']) == tablero_mock, f"Fallo: Se esperaba el tablero {tablero_mock}, pero se obtuvo {response.json()}"
@@ -50,7 +50,7 @@ def test_get_tablero_format(client, test_db):
     unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=2)
     iniciar_partida(db=test_db, partida=partida)
 
-    response = client.get("juego/1/tablero")
+    response = client.get(test_db, "juego/1/tablero")
     print(f"Response: {response.json()}")
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     tablero = response.json()['tablero']
@@ -59,7 +59,7 @@ def test_get_tablero_format(client, test_db):
     assert all(isinstance(cell, int) for row in tablero for cell in row), "Fallo: Se esperaba que cada celda del tablero fuera un entero"
 
 def test_get_tablero_404(client, test_db):
-    response = client.get("juego/1/tablero")
+    response = client.get(test_db, "juego/1/tablero")
     print(f"Response: {response.json()}")
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
     respuesta_esperada = {'detail': 'Partida no encontrada'}

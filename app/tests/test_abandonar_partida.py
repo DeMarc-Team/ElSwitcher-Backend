@@ -27,7 +27,7 @@ def test_abandonar_partida_en_el_turno_200(client, test_db, test_ws_messages, nu
     partida = iniciar_partida(db=test_db, partida=partida)
 
     # Realizamos la petición
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
+    response = client.delete(test_db, f"/partidas/{id_partida}/jugadores/{id_jugador}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
@@ -54,7 +54,7 @@ def test_abandonar_partida_no_iniciada_creador_200(client, test_db, test_ws_mess
     unir_jugadores(test_db, partida, numero_de_jugadores-1)
 
     # Realizamos la petición
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_creador}")
+    response = client.delete(test_db, f"/partidas/{id_partida}/jugadores/{id_creador}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
@@ -82,7 +82,7 @@ def test_abandonar_partida_no_iniciada_no_creador_200(client, test_db, test_ws_c
     id_partida = partida.id
 
     # Realizamos la petición
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
+    response = client.delete(test_db, f"/partidas/{id_partida}/jugadores/{id_jugador}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
@@ -112,7 +112,7 @@ def test_abandonar_partida_iniciada_creador_200(client, test_db, test_ws_message
     siguiente_turno(test_db, partida)
 
     # Realizamos la petición
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_creador}")
+    response = client.delete(test_db, f"/partidas/{id_partida}/jugadores/{id_creador}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
@@ -144,7 +144,7 @@ def test_abandonar_partida_iniciada_no_creador_200(client, test_db, test_ws_mess
     partida = iniciar_partida(test_db, partida)
 
     # Realizamos la petición
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
+    response = client.delete(test_db, f"/partidas/{id_partida}/jugadores/{id_jugador}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
@@ -162,7 +162,7 @@ def test_abandonar_partida_no_existente_404(client, test_db, test_ws_messages):
     id_jugador = 1
 
     # Realizamos la petición
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
+    response = client.delete(test_db, f"/partidas/{id_partida}/jugadores/{id_jugador}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
@@ -178,7 +178,7 @@ def test_abandonar_partida_jugador_no_existente_404(client, test_db, test_ws_mes
     id_jugador = 2
 
     # Realizamos la petición
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
+    response = client.delete(test_db, f"/partidas/{id_partida}/jugadores/{id_jugador}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
@@ -201,7 +201,7 @@ def test_abandonar_partida_iniciada_ultimo_jugador_200(client, test_db, test_ws_
     partida = iniciar_partida(test_db, partida)
 
     # Realizamos la petición
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{id_jugador}")
+    response = client.delete(test_db, f"/partidas/{id_partida}/jugadores/{id_jugador}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
@@ -229,7 +229,7 @@ async def test_integracion_abandonar_partida_iniciada_ultimo_jugador_200(client,
     test_ws_messages[ACTUALIZAR_SALA_ESPERA] = [{'partida_id': 1}]
     test_ws_messages[SINCRONIZAR_TURNO] = [{'partida_id': 1, 'inicio': mock_timeGmt, 'duracion': SEGUNDOS_TEMPORIZADOR_TURNO}]
     
-    response = client.put("partidas/1")
+    response = client.put(test_db, "partidas/1")
     check_response(response, 200, {'details': 'Partida iniciada correctamente', 'partida_id': 1})
 
     # await test_temporizadores_turno.wait_for_all_tasks()
@@ -239,17 +239,17 @@ async def test_integracion_abandonar_partida_iniciada_ultimo_jugador_200(client,
     test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}]
     test_ws_messages[SINCRONIZAR_TURNO].extend([{'partida_id': 1, 'inicio': mock_timeGmt, 'duracion': SEGUNDOS_TEMPORIZADOR_TURNO}])
 
-    response = client.put(f'/juego/{partida.id}/jugadores/{partida.jugador_del_turno.id}/turno')
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{partida.jugador_del_turno.id}/turno')
     check_response(response, 200, None)
     
     # await test_temporizadores_turno.wait_for_all_tasks()
-    test_db.refresh(partida)
+    
     
     # Hacemos que un jugador abandone la partida
     jugador_ganador = partida.jugador_del_turno
     test_ws_messages[HAY_GANADOR] = [{'partida_id': 1, 'jugador_id': jugador_ganador.id, 'nombre': jugador_ganador.nombre}]
     
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{get_jugador_sin_turno(test_db, partida).id}")
+    response = client.delete(test_db, f"/partidas/{id_partida}/jugadores/{get_jugador_sin_turno(test_db, partida).id}")
     check_response(response, 200, {'detail': 'El jugador abandonó la partida exitosamente'})
 
     # Verificamos que la base de datos se haya actualizado correctamente
@@ -275,7 +275,7 @@ async def test_abandonar_partida_en_el_turno_ultimo_jugador_200(client, test_db,
     partida = iniciar_partida(test_db, partida)
 
     # Realizamos la petición
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{partida.jugador_del_turno.id}")
+    response = client.delete(test_db, f"/partidas/{id_partida}/jugadores/{partida.jugador_del_turno.id}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
@@ -303,9 +303,8 @@ async def test_integracion_abandonar_partida_en_el_turno_ultimo_jugador_200(clie
     test_ws_messages[ACTUALIZAR_SALA_ESPERA] = [{'partida_id': 1}]
     test_ws_messages[SINCRONIZAR_TURNO] = [{'partida_id': 1, 'inicio': mock_timeGmt, 'duracion': SEGUNDOS_TEMPORIZADOR_TURNO}]
     
-    response = client.put("partidas/1")
+    response = client.put(test_db, "partidas/1")
     check_response(response, 200, {'details': 'Partida iniciada correctamente', 'partida_id': 1})
-    test_db.refresh(partida)
     
     # Abandonamos al jugador del turno
     ganador = get_jugador_sin_turno(test_db, partida)
@@ -315,7 +314,7 @@ async def test_integracion_abandonar_partida_en_el_turno_ultimo_jugador_200(clie
     test_ws_messages[SINCRONIZAR_TURNO].extend([{'partida_id': 1, 'inicio': mock_timeGmt, 'duracion': SEGUNDOS_TEMPORIZADOR_TURNO}])
     
 
-    response = client.delete(f"/partidas/{id_partida}/jugadores/{partida.jugador_del_turno.id}")
+    response = client.delete(test_db, f"/partidas/{id_partida}/jugadores/{partida.jugador_del_turno.id}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada

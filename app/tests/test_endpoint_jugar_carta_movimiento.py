@@ -18,22 +18,18 @@ def test_hacer_movimiento_200(client, test_db):
     iniciar_partida(db=test_db, partida=partida)
     
     # Obtenemos de quien es el turno
-    response = client.get(f"/juego/{partida.id}/turno")
+    response = client.get(test_db, f"/juego/{partida.id}/turno")
 
     id_jugador_del_turno = response.json()['id_jugador']
     jugador_del_turno = [jugador for jugador in jugadores if jugador.id_jugador == id_jugador_del_turno][0]
 
     assert len(jugador_del_turno.mano_movimientos) == 3, "Fallo: El jugador debería haber jugado su carta de movimiento"
 
-    response = jugar_carta_m1(client, partida, id_jugador_del_turno)
+    response = jugar_carta_m1(client, test_db, partida, id_jugador_del_turno)
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    test_db.refresh(jugador_del_turno) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
-
     assert len(partida.movimientos_parciales) == 1, "Fallo: Debería haber un movimiento parcial"
     assert partida.movimientos_parciales[0].origen == str((0,0)), "Fallo: La casilla 1 no es la esperada"
     assert partida.movimientos_parciales[0].destino == str((2,2)), "Fallo: La casilla 2 no es la esperada"
-
-    test_db.refresh(partida) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
     assert partida.tablero != tablero_original, "Fallo: El tablero no debería haber cambiado"
     assert partida.tablero == tablero_esperado, "Fallo: El tablero no es el esperado"
 
@@ -50,20 +46,19 @@ def test_movimiento_invalido(client, test_db):
     iniciar_partida(db=test_db, partida=partida)
     
     # Obtenemos de quien es el turno
-    response = client.get(f"/juego/{partida.id}/turno")
+    response = client.get(test_db, f"/juego/{partida.id}/turno")
 
     id_jugador_del_turno = response.json()['id_jugador']
     jugador_del_turno = [jugador for jugador in jugadores if jugador.id_jugador == id_jugador_del_turno][0]
 
     assert len(jugador_del_turno.mano_movimientos) == 3, "Fallo: El jugador debería haber jugado su carta de movimiento"
 
-    response = jugar_movimiento_invalido(client, partida, id_jugador_del_turno)
+    response = jugar_movimiento_invalido(client, test_db, partida, id_jugador_del_turno)
     
     assert partida.tablero == tablero_original, "Fallo: El tablero no debería haber cambiado"
     assert partida.movimientos_parciales == [], "Fallo: La casilla 1 no es la esperada"
 
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
-    test_db.refresh(jugador_del_turno) # Esto es necesario para que el objeto jugador_del_turno se actualice con la base de datos, no supe sacarlo
     assert len(jugador_del_turno.mano_movimientos) == 3, "Fallo: El jugador no debe haber podido descartar su carta"
 
 # Auxiliares
@@ -72,9 +67,8 @@ def agregar_m1_a_los_inventarios(test_db, n_m1_a_agregar , jugadores):
         for n_m1_a_agregar in range(n_m1_a_agregar):
             carta = CartaMovimiento(movimientos_de=jugador,movimiento='m1') # Para poder testear hacer movimientos necesito darle una carta que se jugar en el tablero
             test_db.add(carta)
-            test_db.commit()
 
-def jugar_carta_m1(client, partida, id_jugador_del_turno):
+def jugar_carta_m1(client, test_db, partida, id_jugador_del_turno):
     jugada = {
         "casilla1": {
             "row": 0,
@@ -86,10 +80,10 @@ def jugar_carta_m1(client, partida, id_jugador_del_turno):
         },
         "codeMove": "m1"
     }
-    response = client.put(f"/juego/{partida.id}/jugadores/{id_jugador_del_turno}/tablero/casilla",json=jugada)
+    response = client.put(test_db, f"/juego/{partida.id}/jugadores/{id_jugador_del_turno}/tablero/casilla",json=jugada)
     return response
 
-def jugar_movimiento_invalido(client, partida, id_jugador_del_turno):
+def jugar_movimiento_invalido(client, test_db, partida, id_jugador_del_turno):
     jugada = {
         "casilla1": {
             "row": 0,
@@ -102,5 +96,5 @@ def jugar_movimiento_invalido(client, partida, id_jugador_del_turno):
         "codeMove": "m1"
     }
     # Hacemos un movimiento
-    response = client.put(f"/juego/{partida.id}/jugadores/{id_jugador_del_turno}/tablero/casilla",json=jugada)
+    response = client.put(test_db, f"/juego/{partida.id}/jugadores/{id_jugador_del_turno}/tablero/casilla",json=jugada)
     return response

@@ -41,8 +41,22 @@ def client():
         finally:
             db.close()
     app.dependency_overrides[get_db] = override_get_db
+    
+    client = TestClient(app)
+    
+    # Limpiar el caché de la sesión de base de datos después de cada request
+    # para forzar la carga de datos actualizados
+    for method in ['get', 'post', 'put', 'delete']:
+        original_method = getattr(client, method)
 
-    return TestClient(app)
+        def wrapped_method(db, *args, _method=original_method, **kwargs):
+            response = _method(*args, **kwargs)
+            db.expire_all()
+            return response
+
+        setattr(client, method, wrapped_method)
+
+    return client
 
 @pytest.fixture(scope='function')
 def test_db():
