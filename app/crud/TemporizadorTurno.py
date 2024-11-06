@@ -4,7 +4,7 @@ import warnings
 
 from constantes_juego import SEGUNDOS_TEMPORIZADOR_TURNO
 from exceptions import ResourceNotFoundError, ForbiddenError
-from crud.repository import partida_repo
+from crud.repository import PartidaRepo
 
 # NOTE: Ningun warning deberia suceder en produccion.
 
@@ -96,7 +96,7 @@ class TemporizadorTurno:
             inicio_turno = self.__get_gmt_zulu_time()
             duracion_turno = SEGUNDOS_TEMPORIZADOR_TURNO
             
-            partida_repo.put_inicio_y_duracion_turno(partida_id, inicio_turno, duracion_turno)
+            PartidaRepo().put_inicio_y_duracion_turno(partida_id, inicio_turno, duracion_turno)
             
             return inicio_turno, duracion_turno
 

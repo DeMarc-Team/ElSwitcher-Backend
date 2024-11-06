@@ -6,19 +6,19 @@ from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida, Jugador, CartaMovimiento
 from schemas import TurnoDetails
 from constantes_juego import N_FIGURAS_REVELADAS
-from crud.repository import partida_repo
+from crud.repository import PartidaRepo
 
 def get_inicio_y_duracion_turno(partida_id):
     """
     Devuelve inicio y duracion del cronometro de la partida.
     """
-    return partida_repo.get_inicio_y_duracion_turno(partida_id)
+    return PartidaRepo().get_inicio_y_duracion_turno(partida_id)
 
 def verificar_partida_iniciada(partida_id):
     """
     Lanza las excepciones correspondientes si la partida no esta iniciada.
     """
-    partida_iniciada = partida_repo.get_iniciada(partida_id)
+    partida_iniciada = PartidaRepo().get_iniciada(partida_id)
     if (not partida_iniciada):
         raise ForbiddenError(f"La partida con ID {partida_id} no esta iniciada.")
 
