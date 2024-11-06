@@ -4,6 +4,7 @@ from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida, Jugador, CartaMovimiento, MovimientoParcial
 from schemas import Casilla, CasillasMov, CompletarFiguraData, BloquearFiguraData
 from figuras import hallar_todas_las_figuras_en_tablero
+from crud.repository import PartidaRepo
 
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (
@@ -174,8 +175,9 @@ def unatomic_usar_figura(db: Session, partida: Partida, jugador: Jugador, figura
     carta_fig_deseada = figura_data.carta_fig
     coordenadas_fig_deseada = figura_data.figura
     carta_a_usar = get_carta_revelada_from_jugador(jugador, carta_fig_deseada)
-    check_figura_en_tablero(partida, coordenadas_fig_deseada, carta_fig_deseada)
+    coords_figura = check_figura_en_tablero(partida, coordenadas_fig_deseada, carta_fig_deseada)
     
+    partida.color_prohibido = __get_color_coordenadas(partida, coords_figura)
     db.delete(carta_a_usar)
     db.flush()
        
@@ -210,11 +212,22 @@ def unatomic_bloquear_figura(db: Session, partida: Partida, jugador: Jugador, bl
         )
     
     carta_a_bloquear = get_carta_revelada_from_jugador(jugador_a_bloquear, fig_deseada)
-    check_figura_en_tablero(partida, coordenadas_fig_deseada, fig_deseada)
+    coords_figura = check_figura_en_tablero(partida, coordenadas_fig_deseada, fig_deseada)
     
+    partida.color_prohibido = __get_color_coordenadas(partida, coords_figura)
     carta_a_bloquear.bloqueada = True
     jugador_a_bloquear.bloqueado = True
     db.flush()
+
+def __get_color_coordenadas(partida: Partida, coords_figura)->int:
+    '''
+    Dada una figura, retorna el color de la primera casilla en el tablero.
+    '''
+    import json
+    tablero = json.loads(partida.tablero)
+    coordenadas = list(coords_figura)
+    color = tablero[coordenadas[0][0]][coordenadas[0][1]]
+    return color
 
 def unatomic_aplicar_parciales(db: Session, partida: Partida):
     '''
@@ -252,6 +265,8 @@ def check_figura_en_tablero(partida: Partida, coordenadas_fig_deseada: list[Casi
     """
     Verifica que la figura con código fig_deseada esté en las coordenadas del tablero coordenadas_fig_deseada.
     En caso de no estarlo, arroja la excepción ResourceNotFoundError.
+    
+    :return: Un conjunto de tuplas con las coordenadas de la figura.
     """
     
     figuras_en_tablero = get_figuras_en_tablero(partida)
@@ -268,6 +283,8 @@ def check_figura_en_tablero(partida: Partida, coordenadas_fig_deseada: list[Casi
         raise ResourceNotFoundError(
             f"No existe (en el tablero) la figura que se intenta utilizar en las coordenadas enviadas."
         )
+    
+    return coords_figura
 
 def get_carta_revelada_from_jugador(jugador: Jugador, fig_deseada: str):
     cartas_del_tipo_en_mano = [carta for carta in jugador.mano_figuras if carta.figura == fig_deseada]
@@ -370,3 +387,6 @@ def determinar_ganador_por_terminar_mazo(db: Session, id_partida: int, id_jugado
     if (jugador.numero_de_cartas_figura == 0):
         return {"ganador": {"id": jugador.id_jugador, "nombre": jugador.nombre}}
     return {"ganador": None}
+
+def get_color_prohibido(id_partida):
+    return PartidaRepo().get_color_prohibido(id_partida)

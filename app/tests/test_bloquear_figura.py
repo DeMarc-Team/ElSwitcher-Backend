@@ -29,7 +29,11 @@ def test_bloquear_happy_path(client, test_db, test_ws_messages):
     )
 
     # 51 es, por construcción, el id de la carta carteada (y bloqueada en este caso).
-    assert set(modificaciones) == set({('cartas_de_figura', 51): [('bloqueada', False, True)]}), "Fallo: Se esperaba que hubieran otras modificaciones."
+    assert modificaciones == {
+        ('jugadores', 2): [('bloqueado', False, True)], 
+        ('cartas_de_figura', 51): [('bloqueada', False, True)],
+        ('partidas', 1): [('color_prohibido', 0, 2)]
+        }, "Fallo: Se esperaba que hubieran otras modificaciones."
     assert set(eliminadas) == set(
         [
             ("movimientos_parciales", 1),
@@ -151,7 +155,7 @@ def bloqueo_generico_test(client, test_db, mano_del_jugador_a_bloquear, n_movimi
         "figura": casillas_figura,
         "carta_fig": request_carta_fig
     }
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id}/bloquear-carta', json=request_body)
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id}/bloquear-carta', json=request_body)
     check_response(response, status_code_esperado, respuesta_esperada)
 
     # Capturamos la BDD luego de los cambios

@@ -38,11 +38,10 @@ async def test_terminar_turno_reponer_cartas(client, test_db, test_ws_messages, 
     captura_inicial = capturar(get_all_tables(test_db))
     
     
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
     await test_temporizadores_turno.wait_for_all_tasks()
     
-    test_db.refresh(partida) # Para actualizar localmente la info de la partida
     captura_final = capturar(get_all_tables(test_db))
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
@@ -69,7 +68,7 @@ async def test_terminar_turno(client, test_db, test_ws_counts, mock_timeGmt):
     captura_inicial = capturar(get_all_tables(test_db))
 
     # Pasamos el turno
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
     await test_temporizadores_turno.wait_for_all_tasks()
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
 
@@ -157,11 +156,9 @@ async def test_reponer_cartas_movimiento(client, test_db):
     consumir_carta_movimiento(test_db, jugador_del_turno, "m1", cantidad=2)
     
     with mock.patch("models.CartaMovimiento.random_movimiento", mock.Mock(side_effect=["m2", "m3"])):
-        response = client.put(f'juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/turno')
+        response = client.put(test_db, f'juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/turno')
         await test_temporizadores_turno.wait_for_all_tasks()
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
-    
-    test_db.refresh(partida) # Para actualizar localmente la info de la partida
     
     movimientos = [mov.movimiento for mov in jugador_del_turno.mano_movimientos]
     
@@ -182,15 +179,19 @@ def test_jugador_bloqueado(client, test_db, mock_timeGmt):
     captura_inicial = capturar(get_all_tables(test_db))
     
     # Terminamos el turno
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/turno')
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
 
     captura_final = capturar(get_all_tables(test_db))
     
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
-    assert set(modificaciones) == set([('jugadores', 3), ('jugadores', 2), ('jugadores', 1)]), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y nada más."
-    assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
-    assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
+    assert modificaciones == {
+        ('jugadores', 1): [('orden', 0, 2)], 
+        ('jugadores', 2): [('orden', 1, 0)], 
+        ('jugadores', 3): [('orden', 2, 1)]}, \
+            "Fallo: Se esperaba que solo se modificara el orden de los jugadores y nada más."
+    assert eliminadas == [], "Fallo: Se esperaba que no se eliminaran elementos."
+    assert creadas == [], "Fallo: Se esperaba que no hubieran creaciones."
 
 def test_jugador_bloqueado_carta_revelada_libre(client, test_db, mock_timeGmt):
     '''Test sobre la no reposición de cartas de figura de un jugador bloqueado una única carta en la mano, la cual está libre.'''
@@ -201,24 +202,26 @@ def test_jugador_bloqueado_carta_revelada_libre(client, test_db, mock_timeGmt):
     iniciar_partida(test_db, partida)
     
     jugador_bloqueado.bloqueado = True
-    test_db.commit()
     cartear_figuras(test_db, jugador_bloqueado, ["f1"], primera_figura_bloqueada=False)
     
     captura_inicial = capturar(get_all_tables(test_db))
     
     # Terminamos el turno del jugador bloqueado
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_bloqueado.id_jugador}/turno')
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_bloqueado.id_jugador}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
 
     captura_final = capturar(get_all_tables(test_db))
     
-    test_db.refresh(jugador_bloqueado)
     assert jugador_bloqueado.bloqueado, f"Fallo: Se esperaba que el jugador se mantuviera bloqueado."
     
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
-    assert set(modificaciones) == set([('jugadores', 3), ('jugadores', 2), ('jugadores', 1)]), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y nada más."
-    assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
-    assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
+    assert modificaciones == {
+        ('jugadores', 1): [('orden', 0, 2)], 
+        ('jugadores', 2): [('orden', 1, 0)], 
+        ('jugadores', 3): [('orden', 2, 1)]}, \
+            "Fallo: Se esperaba que solo se modificara el orden de los jugadores y nada más."
+    assert eliminadas == [], "Fallo: Se esperaba que no se eliminaran elementos."
+    assert creadas == [], "Fallo: Se esperaba que no hubieran creaciones."
 
 def test_jugador_bloqueado_carta_revelada_bloqueada(client, test_db, mock_timeGmt):
     '''Test sobre la no reposición de cartas de figura de un jugador bloqueado una única carta en la mano, la cual está bloqueada.'''
@@ -229,24 +232,28 @@ def test_jugador_bloqueado_carta_revelada_bloqueada(client, test_db, mock_timeGm
     iniciar_partida(test_db, partida)
     
     jugador_bloqueado.bloqueado = True
-    test_db.commit()
     cartear_figuras(test_db, jugador_bloqueado, ["f1"], primera_figura_bloqueada=True)
     
     captura_inicial = capturar(get_all_tables(test_db))
     
     # Terminamos el turno del jugador bloqueado
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_bloqueado.id_jugador}/turno')
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_bloqueado.id_jugador}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
 
     captura_final = capturar(get_all_tables(test_db))
     
-    test_db.refresh(jugador_bloqueado)
     assert jugador_bloqueado.bloqueado, f"Fallo: Se esperaba que el jugador se mantuviera bloqueado."
     
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
-    assert set(modificaciones) == set([('jugadores', 3), ('jugadores', 2), ('jugadores', 1), ('cartas_de_figura', 49)]), "Fallo: Se esperaba que solo se modificara el orden de los jugadores y una carta de figura."
-    assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
-    assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
+
+    assert modificaciones == {
+        ('jugadores', 1): [('orden', 0, 2)], 
+        ('jugadores', 2): [('orden', 1, 0)], 
+        ('jugadores', 3): [('orden', 2, 1)], 
+        ('cartas_de_figura', 49): [('bloqueada', True, False)]}, \
+            "Fallo: Se esperaba que solo se modificara el orden de los jugadores y una carta de figura."
+    assert eliminadas == [], "Fallo: Se esperaba que no se eliminaran elementos."
+    assert creadas == [], "Fallo: Se esperaba que no hubieran creaciones."
 
 def test_jugador_bloqueado_sin_reveladas(client, test_db, mock_timeGmt):
     '''Test sobre la reposición de cartas de figura de un jugador bloqueado sin cartas en la mano.'''
@@ -257,18 +264,16 @@ def test_jugador_bloqueado_sin_reveladas(client, test_db, mock_timeGmt):
     iniciar_partida(test_db, partida)
 
     jugador_bloqueado.bloqueado = True
-    test_db.commit()
     cartear_figuras(test_db, jugador_bloqueado, [])
 
     captura_inicial = capturar(get_all_tables(test_db))
 
     # Terminamos el turno del jugador bloqueado
-    response = client.put(f'/juego/{partida.id}/jugadores/{jugador_bloqueado.id_jugador}/turno')
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_bloqueado.id_jugador}/turno')
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
 
     captura_final = capturar(get_all_tables(test_db))
 
-    test_db.refresh(jugador_bloqueado)
     assert not jugador_bloqueado.bloqueado, f"Fallo: Se esperaba que el jugador se desbloqueara."
 
     modificaciones, eliminadas, creadas = comparar_capturas(
@@ -289,7 +294,7 @@ def test_partida_inexistente_404(client, test_db, test_ws_counts):
     '''Test sobre los mensajes de error ante el envío de terminar turno a una partida inexistente.'''
 
     # Intentamos terminar el turno de una partida inexistente.
-    response = client.put(f'juego/{999999}/jugadores/{999999}/turno')
+    response = client.put(test_db, f'juego/{999999}/jugadores/{999999}/turno')
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
 
 def test_partida_no_iniciada_403(client, test_db, test_ws_counts):
@@ -298,7 +303,7 @@ def test_partida_no_iniciada_403(client, test_db, test_ws_counts):
     partida, _ = crear_partida(test_db)
 
     # Intentamos terminar el turno de una partida no iniciada.
-    response = client.put(f'juego/{partida.id}/jugadores/{1}/turno')
+    response = client.put(test_db, f'juego/{partida.id}/jugadores/{1}/turno')
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
 
 def test_jugador_sin_turno_403(client, test_db, test_ws_counts):
@@ -309,11 +314,11 @@ def test_jugador_sin_turno_403(client, test_db, test_ws_counts):
     iniciar_partida(test_db, partida)
 
     # Intentamos terminar el turno de un jugador que no posee el turno
-    response = client.put(f'juego/{partida.id}/jugadores/{3}/turno')
+    response = client.put(test_db, f'juego/{partida.id}/jugadores/{3}/turno')
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}"
 
 # Auxiliares
-async def pasar_ronda_completa(client, db, partida):
+async def pasar_ronda_completa(client, test_db, partida):
     '''
     Pasa una ronda completa de turnos y retorna una lista ordenada por turno de los ids de los jugadores que jugaron la ronda.
     '''
@@ -333,9 +338,8 @@ async def pasar_ronda_completa(client, db, partida):
         id_jugador_anterior = id_jugador_actual
 
         # Terminamos el turno del jugador actual
-        response = client.put(f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
+        response = client.put(test_db, f'juego/{partida.id}/jugadores/{id_jugador_actual}/turno')
         await test_temporizadores_turno.wait_for_all_tasks()
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
-        db.refresh(partida) # Para actualizar localmente la info de la partida
         
     return orden_de_turnos

@@ -7,7 +7,7 @@ def test_get_turno_details(client, test_db):
     unir_jugadores(test_db, partida=partida, numero_de_jugadores=3)
     iniciar_partida(test_db, partida)
     
-    response = client.get(f"/juego/{partida.id}/turno")
+    response = client.get(test_db, f"/juego/{partida.id}/turno")
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
     
     turno_details = response.json()
@@ -24,14 +24,14 @@ def test_partida_sin_iniciar_403(client, test_db):
     partida, _ = crear_partida(test_db)
     unir_jugadores(test_db, partida=partida, numero_de_jugadores=1)
     
-    response = client.get(f'/juego/{partida.id}/turno')
+    response = client.get(test_db, f'/juego/{partida.id}/turno')
     assert response.status_code == 403, f"Fallo: Se esperaba el estado 403, pero se obtuvo {response.status_code}."
     
 def test_la_partida_no_existe_404(client, test_db):
     '''Test sobre el comportamiento de get_turno_details ante el intento de acceso cuando una partida no está iniciada.'''
    
     partida_id = 1    
-    response = client.get(f'/juego/{partida_id}/turno')
+    response = client.get(test_db, f'/juego/{partida_id}/turno')
     
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}."
     
@@ -41,7 +41,7 @@ def test_cambio_en_el_turno(client, test_db):
     unir_jugadores(test_db, partida=partida, numero_de_jugadores=2)
     iniciar_partida(test_db, partida)
     
-    response = client.get(f"/juego/{partida.id}/turno")
+    response = client.get(test_db, f"/juego/{partida.id}/turno")
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
     
     turno_details = response.json()
@@ -56,7 +56,7 @@ def test_cambio_en_el_turno(client, test_db):
     siguiente_turno(test_db, partida)
     
     # Obtenemos nuevamente la información
-    response = client.get(f"/juego/{partida.id}/turno")
+    response = client.get(test_db, f"/juego/{partida.id}/turno")
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
     
     # Chequeamos que el turno se haya pasado y sea lo unico que cambio

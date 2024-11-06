@@ -67,6 +67,10 @@ class JuegoController:
         inicio, duracion = turno_service.get_inicio_y_duracion_turno(id_partida)
         return { "inicio": inicio, "duracion": duracion }
 
+    async def get_color_prohibido(self, id_partida):
+        color = juego_service.get_color_prohibido(id_partida)
+        return {"color": color}
+
 
 
 async def terminar_turno(db, id_partida):

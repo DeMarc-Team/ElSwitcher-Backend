@@ -8,6 +8,8 @@ import os
 _engine = engine
 session = localSession()
 
+# FIXME: no duplicar la session, usar la misma que ya se usa en todos lados
+
 class BaseRepository():
     """
         Todos los metodos que deberian ser generales entre
@@ -72,6 +74,17 @@ class PartidaRepo(BaseRepository):
             raise ResourceNotFoundError(f"No se encontro ninguna partida con ID {partida_id} al buscar el jugador del turno.")
         
         return partida.jugador_del_turno
+    
+    def get_color_prohibido(self, partida_id):
+        """
+            Obtener el color prohibido de una partida
+        """
+        try:
+            partida = self.get_by_id(partida_id)
+        except ResourceNotFoundError:
+            raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
+        
+        return partida.color_prohibido
 
     def put_inicio_y_duracion_turno(self, partida_id, inicio_turno, duracion_turno):
         """

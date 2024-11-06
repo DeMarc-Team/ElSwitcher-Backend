@@ -31,21 +31,14 @@ def seleccionar_parametros(parametros:list, numero_a_seleccionar:int=None)->list
 
 # Para la base de datos:
 
-def get_all_tables(session: Session, hacer_commit:bool = False) -> list:
+def get_all_tables(session: Session) -> list:
     '''
     Devuelve una lista con todas las instancias de todas las tablas de la base de datos.
     Se puede pasar directo a capturar_metadata, capturar_str o capturar_metadata_str para capturar toda la db.
-    
-    IMPORTANTE: Se hace commit de la db si no se aclara lo contrario.
     '''
-
-    if hacer_commit:
-        session.commit()
-
     all_instances = []
     
-    # Iterar sobre las clases mapeadas en la metadata de Base
-    for mapper in Base.registry.mappers:
+    for mapper in Base.registry.mappers: # Iterar sobre las clases mapeadas en la metadata de Base
         instances = session.query(mapper.class_).all()
         all_instances.extend(instances)
     

@@ -12,7 +12,7 @@ def test_get_cronometro_partida_iniciada_200(client, test_db, mock_timeGmt):
     iniciar_partida(test_db, partida)
     
     captura_inicial = capturar(get_all_tables(test_db))
-    response = client.get(f"juego/{partida.id}/cronometro")
+    response = client.get(test_db, f"juego/{partida.id}/cronometro")
     check_response(response, 200, {'inicio': mock_timeGmt, 'duracion': SEGUNDOS_TEMPORIZADOR_TURNO})
     captura_final = capturar(get_all_tables(test_db))
     
@@ -30,7 +30,7 @@ def test_get_cronometro_partida_no_iniciada_403(client, test_db):
     unir_jugadores(test_db, partida, 2)
     
     captura_inicial = capturar(get_all_tables(test_db))
-    response = client.get(f"juego/{partida.id}/cronometro")
+    response = client.get(test_db, f"juego/{partida.id}/cronometro")
     check_response(response, 403, {'detail': 'La partida con ID 1 no esta iniciada.'})
     captura_final = capturar(get_all_tables(test_db))
     

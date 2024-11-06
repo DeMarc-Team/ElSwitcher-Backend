@@ -1,11 +1,10 @@
-from database import Base
-from exceptions import ResourceNotFoundError
-
 from sqlalchemy import Integer, Boolean, String, ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.ext.orderinglist import ordering_list
+
 from figuras import SET_DE_CARTAS
+from database import Base
 
 # JUGADOR ------------------------------------------------------
 class Jugador(Base):
@@ -101,7 +100,7 @@ class Partida(Base):
     inicio_turno = mapped_column(String, nullable=False, default='0')
     duracion_turno = mapped_column(Integer, nullable=False, default=0)
     tablero = mapped_column(String, nullable=False, default=random_tablero)
-
+    color_prohibido = mapped_column(Integer, nullable=False , default=0)
     movimientos_parciales = relationship('MovimientoParcial', order_by='MovimientoParcial.orden')
 
     def __str__(self):  # pragma: no cover
