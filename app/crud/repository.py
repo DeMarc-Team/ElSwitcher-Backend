@@ -108,6 +108,31 @@ class PartidaRepo(BaseRepository):
         
         return partida.iniciada
 
+    def get_otro_jugador(self, partida_id, jugador_id):
+        """
+            Obtener el nombre e id de otro jugador de una partida
+        """
+        try:
+            partida = self.get_by_id(partida_id)
+        except ResourceNotFoundError:
+            raise ResourceNotFoundError(f"No se encontro ninguna partida con ID {partida_id} al buscar el otro jugador.")
+        
+        for jugador in partida.jugadores:
+            if jugador.id != jugador_id:
+                return jugador.nombre, jugador.id
+        return None
+
+    def get_numero_de_jugadores(self, partida_id):
+        """
+            Obtener el numero de jugadores de una partida
+        """
+        try:
+            partida = self.get_by_id(partida_id)
+        except ResourceNotFoundError:
+            raise ResourceNotFoundError(f"No se encontro ninguna partida con ID {partida_id} al buscar el numero de jugadores.")
+        
+        return len(partida.jugadores)
+
 partida_repo = PartidaRepo()
 class JugadoresRepo(BaseRepository):
     model = Jugador
