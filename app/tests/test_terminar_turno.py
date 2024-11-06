@@ -50,8 +50,7 @@ async def test_terminar_turno_reponer_cartas(client, test_db, test_ws_messages, 
     numero_esperado = min(3,len(jugador_inicial.mazo_cartas_de_figura))
     assert numero_de_figuras_reveladas == numero_esperado, f"Fallo: Se esperaba que el jugador tuviera {numero_esperado} figuras reveladas, pero tiene {numero_de_figuras_reveladas}."
     assert not eliminadas, f"Fallo: Se esperaba que no se eliminara ninguna tabla, pero se eliminaron {eliminadas}."
-    modificaciones_esperadas_en = {'jugadores': ['orden'], 'cartas_de_figura': [
-        'revelada']}
+    modificaciones_esperadas_en = {'jugadores': ['orden'], 'cartas_de_figura': ['revelada']}
     assert verificar_diccionarios(modificaciones, modificaciones_esperadas_en), f"Fallo: Las modificaciones no fueron las esperadas."
     assert verificar_tuplas(creadas, ['cartas_de_movimiento']), f"Fallo: Se esperaba que se crearan cartas de movimiento, pero no se crearon."
     
@@ -72,7 +71,6 @@ async def test_terminar_turno(client, test_db, test_ws_counts, mock_timeGmt):
     await test_temporizadores_turno.wait_for_all_tasks()
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
 
-    test_db.refresh(partida)
     captura_final = capturar(get_all_tables(test_db))
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
