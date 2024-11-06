@@ -4,7 +4,7 @@ from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida, Jugador, CartaMovimiento, MovimientoParcial
 from schemas import Casilla, CasillasMov, CompletarFiguraData, BloquearFiguraData
 from figuras import hallar_todas_las_figuras_en_tablero
-from crud.repository import partida_repo
+from crud.repository import PartidaRepo
 
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (
@@ -185,15 +185,6 @@ def unatomic_usar_figura(db: Session, partida: Partida, jugador: Jugador, figura
     from crud.partidas import hay_ganador
     return hay_ganador(db, partida.id)
 
-def __get_color_coordenadas(partida: Partida, coords_figura)->int:
-    '''
-    Dada una figura, retorna el color de la primera casilla en el tablero.
-    '''
-    import json
-    tablero = json.loads(partida.tablero)
-    coordenadas = list(coords_figura)
-    color = tablero[coordenadas[0][0]][coordenadas[0][1]]
-    return color
 
 def unatomic_bloquear_figura(db: Session, partida: Partida, jugador: Jugador, bloqueo_data: BloquearFiguraData):
     """
@@ -233,6 +224,16 @@ def unatomic_bloquear_figura(db: Session, partida: Partida, jugador: Jugador, bl
     jugador_a_bloquear.bloqueado = True
     db.flush()
 
+def __get_color_coordenadas(partida: Partida, coords_figura)->int:
+    '''
+    Dada una figura, retorna el color de la primera casilla en el tablero.
+    '''
+    import json
+    tablero = json.loads(partida.tablero)
+    coordenadas = list(coords_figura)
+    color = tablero[coordenadas[0][0]][coordenadas[0][1]]
+    return color
+
 def unatomic_aplicar_parciales(db: Session, partida: Partida):
     '''
     Aplica los movimientos parciales del jugador (NO HACE VERIFICACIONES DE PERMISOS, i.e, QUE EL JUGADOR TENGA EL TURNO).
@@ -269,6 +270,8 @@ def check_figura_en_tablero(partida: Partida, coordenadas_fig_deseada: list[Casi
     """
     Verifica que la figura con código fig_deseada esté en las coordenadas del tablero coordenadas_fig_deseada.
     En caso de no estarlo, arroja la excepción ResourceNotFoundError.
+    
+    :return: Un conjunto de tuplas con las coordenadas de la figura.
     """
     
     figuras_en_tablero = get_figuras_en_tablero(partida)
@@ -372,4 +375,4 @@ def deshacer_movimiento(db: Session, id_partida, atomic=True):
     return ultimo_movimiento
 
 def get_color_prohibido(id_partida):
-    return partida_repo.get_color_prohibido(id_partida)
+    return PartidaRepo().get_color_prohibido(id_partida)

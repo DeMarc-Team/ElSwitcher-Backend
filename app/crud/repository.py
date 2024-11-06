@@ -84,8 +84,6 @@ class PartidaRepo(BaseRepository):
         
         return partida.color_prohibido
 
-partida_repo = PartidaRepo()
-
 class JugadoresRepo(BaseRepository):
     model = Jugador
 

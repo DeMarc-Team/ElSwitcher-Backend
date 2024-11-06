@@ -99,7 +99,7 @@ class Partida(Base):
 
 
     tablero = mapped_column(String, nullable=False, default=random_tablero)
-    color_prohibido = mapped_column(Integer, default=0)
+    color_prohibido = mapped_column(Integer, nullable=False , default=0)
     movimientos_parciales = relationship('MovimientoParcial', order_by='MovimientoParcial.orden')
 
     def __str__(self):  # pragma: no cover

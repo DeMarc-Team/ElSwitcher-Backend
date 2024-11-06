@@ -90,6 +90,6 @@ class RespuestaColorProhibido(BaseModel):
     
     @field_validator("color", mode="before")
     def validate_color(cls, value):
-        if value is None or (isinstance(value,int) and (1 <= value <= 4)):
+        if isinstance(value,int) and (1 <= value <= 4):
             return value
         return None
