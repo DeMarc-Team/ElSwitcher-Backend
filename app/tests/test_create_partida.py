@@ -1,7 +1,7 @@
 from models import Partida, Jugador
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
 
-def test_create_partida(client, test_db, test_ws_messages):
+def test_create_partida_publica(client, test_db, test_ws_messages):
     '''Test para crear una partida'''
     test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
     nueva_partida = {
@@ -47,3 +47,140 @@ def test_create_partida(client, test_db, test_ws_messages):
     assert creador.orden == 0, f"Fallo: Se esperaba 0 como orden del creador, pero se obtuvo {creador.orden}"
 
     test_db.close()
+
+
+
+def test_create_partida_privada(client, test_db, test_ws_messages):
+    test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
+
+    partida_privada = {
+        "nombre_partida": "privadita",
+        "nombre_creador": "Antonio",
+        'privada': True,
+        'contraseña': '1234',
+    }
+    response = client.post("/partidas", json=partida_privada)
+
+    
+    respuesta_esperada = {  'nombre_partida': 'privadita',
+                            'nombre_creador': 'Antonio',
+                            'id': 1,
+                            'id_creador': 1,
+                            'iniciada': False}
+    
+    verificar_respuesta_de_api(response, 200, respuesta_esperada)
+    verificar_efectos_en_db(test_db, partida_privada, response.json()['id'])
+    test_db.close()
+
+
+def test_create_partida_privada_contra_vacia(client,test_db,test_ws_messages):
+    """
+        Crear una partida con contraseña vacia
+        provoca que sea simplemente publica sin importar el
+        valor del campo 'privada' al llamar a la API.
+    """
+    test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
+    partida_privada = {
+        "nombre_partida": "privadinha",
+        "nombre_creador": "Antonio2",
+        'privada': True,
+        'contraseña': '',
+    }
+    response = client.post("/partidas", json=partida_privada)
+
+    respuesta_esperada = {
+        "nombre_partida": "privadinha",
+        "nombre_creador": "Antonio2",
+        'id': 1,
+        'id_creador': 1,
+        'iniciada': False
+    }
+
+
+    
+    verificar_respuesta_de_api(response, 200, respuesta_esperada)
+
+    partida_privada['privada'] = False # En este caso setear la contraseña vacia, hace que se ignore el campo 'privada' y la partida sea publica
+    verificar_efectos_en_db(test_db, partida_privada, response.json()['id'])
+
+
+    test_db.close()
+
+def test_create_partida_privada_contra_nula(client,test_db,test_ws_messages):
+    """
+        Crear una partida con contraseña nula
+        hace que sea pública.
+    """
+    test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
+    partida_privada = {
+        "nombre_partida": "privadinha",
+        "nombre_creador": "Antonio2",
+        'privada': False,
+        'contraseña': None
+    }
+    response = client.post("/partidas", json=partida_privada)
+
+    respuesta_esperada = {
+        "nombre_partida": "privadinha",
+        "nombre_creador": "Antonio2",
+        'id': 1,
+        'id_creador': 1,
+        'iniciada': False
+    }
+
+
+    
+    verificar_respuesta_de_api(response, 200, respuesta_esperada)
+
+    partida_privada['contraseña'] = '' # Si la contraseña es nula, al crearla se reemplza por el valor por defecto de las partidas públicas
+    verificar_efectos_en_db(test_db, partida_privada, response.json()['id'])
+
+
+    test_db.close()
+
+def test_create_partida_privada_contra_faltante(client,test_db,test_ws_messages):
+    """
+        Crear una partida con contraseña nula
+        hace que sea pública.
+    """
+    test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
+    partida_privada = {
+        "nombre_partida": "privadinha",
+        "nombre_creador": "Antonio2",
+        'privada': True,
+
+    }
+    response = client.post("/partidas", json=partida_privada)
+
+    respuesta_esperada = {
+        "nombre_partida": "privadinha",
+        "nombre_creador": "Antonio2",
+        'id': 1,
+        'id_creador': 1,
+        'iniciada': False
+    }
+
+
+    
+    verificar_respuesta_de_api(response, 200, respuesta_esperada)
+
+    partida_privada['contraseña'] = '' # Si la contraseña no se agrega, al crearla se reemplza por el valor por defecto de las partidas públicas
+    partida_privada['privada'] = False # No setear la contraseña hace que se ignore el campo 'privada' y la partida sea publica
+    verificar_efectos_en_db(test_db, partida_privada, response.json()['id'])
+
+
+    test_db.close()
+
+
+def verificar_efectos_en_db(test_db, datos_esperados, id_partida):
+    partida_en_db = test_db.query(Partida).filter(Partida.id == id_partida).first()
+    
+    assert datos_esperados['nombre_partida'] == partida_en_db.nombre_partida
+    assert datos_esperados['nombre_creador'] == partida_en_db.nombre_creador
+    assert datos_esperados['privada'] == partida_en_db.privada
+    assert datos_esperados['contraseña'] == partida_en_db.contraseña
+
+
+def verificar_respuesta_de_api(response, status_code_esperado, respuesta_esperada):
+    assert response.status_code == status_code_esperado, f"Fallo: Se esperaba el estado {status_code_esperado}, pero se obtuvo {response.status_code}"
+    assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"

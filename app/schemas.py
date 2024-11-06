@@ -5,7 +5,7 @@ class PartidaData(BaseModel):
     nombre_partida: str
     nombre_creador: str
     privada: bool
-    contraseña: str
+    contraseña: str | None = None
 
 class PartidaDetails(BaseModel):
     id: int
