@@ -20,6 +20,7 @@ class GetPartida(BaseModel): #Listar partidas
     nombre_creador: str
     id_creador: int
     iniciada: bool
+    privada: bool
     numero_de_jugadores: int
 
 class PartidaDetails2(BaseModel):

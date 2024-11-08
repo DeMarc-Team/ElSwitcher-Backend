@@ -25,5 +25,6 @@ def test_get_partidas_200(client, test_db, test_ws_counts, numero_jugadores):
                            'id': 1,
                            'id_creador': 1,
                            'iniciada': False,
+                           'privada': False,
                            'numero_de_jugadores': numero_jugadores}]
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
