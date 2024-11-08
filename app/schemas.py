@@ -33,7 +33,7 @@ class PartidaDetails2(BaseModel):
 
 class FromUnirsePartida(BaseModel):
     nombre: str
-    contraseña: str | None
+    contraseña: str = ""
 
 class JugadorData(BaseModel):
     nombre: str

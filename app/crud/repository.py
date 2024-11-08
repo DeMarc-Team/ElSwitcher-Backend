@@ -38,7 +38,7 @@ class BaseRepository():
         """
         query_result = cls.session.query(cls.model).filter(cls.model.id == id_to_match).first()
         if not query_result:
-            raise ResourceNotFoundError(f"No ningun elemento con ID {id_to_match} en la tabla {cls.model.__tablename__}.")
+            raise ResourceNotFoundError(f"No hay ningun elemento con ID {id_to_match} en la tabla {cls.model.__tablename__}.")
         
         return query_result
     
