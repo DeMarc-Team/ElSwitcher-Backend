@@ -7,6 +7,7 @@ from schemas import PartidaData
 from models import Jugador, CartaFigura, CartaMovimiento, Partida
 from constantes_juego import N_CARTAS_FIGURA_TOTALES, N_FIGURAS_REVELADAS
 from crud.TemporizadorTurno import temporizadores_turno
+from crud.repository import PartidaRepo
 
 def get_id_creador(db: Session, partida_id):
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
@@ -80,9 +81,8 @@ def _repartir_cartas_movimiento(db: Session, partida, n_cartas_por_jugador=3):
 
 def abandonar_partida(db: Session, partida_id: int, jugador_id: int)->bool:
     '''
-    Elimina al jugador de la partida. Si el creador abandona la partida antes de iniciarla, 
-    elimina la partida (se cancela).
-    
+    Elimina al jugador de la partida.
+
     :return: True si la partida fue cancelada, False en caso contrario.
     '''
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
@@ -98,7 +98,7 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int)->bool:
     db.delete(jugador)
     db.commit()
 
-    return __partida_cancelada(db, partida, jugador, id_creador)
+    return not partida.iniciada and jugador.id_jugador == id_creador
 
 def es_su_turno(db: Session, partida_id: int, jugador_id: int)->bool:
     """
@@ -114,57 +114,31 @@ def es_su_turno(db: Session, partida_id: int, jugador_id: int)->bool:
     
     return partida.iniciada and jugador.id == partida.jugador_del_turno.id
 
-def __partida_cancelada(db: Session, partida: Partida, jugador: Jugador, id_creador: int):
-    if (not partida.iniciada and jugador.id_jugador == id_creador):
-        eliminar_partida(db, partida)
-        db.commit()
-        return True
-    return False
-
-def hay_ganador(db: Session, partida_id: int):
-    '''
-    En la partida pasada por parametro, verifica si hay un ganador y lo
-    devuelve.
-
-    Un jugador gana si cumple alguna de las siguientes condiciones en orden
-    de prioridad:
-
-    1. Se queda en su turno sin cartas de figura en su maso.
-    2. Es el único jugador en la partida.
-
-    Retorna un diccionario con la siguiente estructura:
-    - Si hay un ganador:
-        {"hay_ganador" : {"id_ganador" : id_ganador, "nombre_ganador" : nombre_ganador}}
-    - Si no hay un ganador:
-        {"hay_ganador" : None}
-    '''
+def determinar_ganador_por_abandono(db: Session,partida_id: int, jugador_id: int):
+    """
+    Si hay dos jugadores en la partida, devuelve el nombre e id del jugador con id distinto 
+    al pasado por parametro.
+    
+    Retorna 
+        Si habra un ganador: {'ganador' : {'id' : id_ganador, 'nombre' : nombre_ganador}}
+        Si no habra un ganador: {'ganador' : None}
+    """
     partida = db.get(Partida, partida_id)
     if (not partida):
         raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
+    if (partida.iniciada and len(partida.jugadores) == 2):
+        nombre_ganador, id_ganador = PartidaRepo().get_otro_jugador(partida_id, jugador_id)
+        return {'ganador' : {'id' : id_ganador, 'nombre' : nombre_ganador}}
+    return {'ganador' : None}
+
+def eliminar_partida(db: Session, partida):
+    '''
+    Elimina la partida de la base de datos.
     
-    id_ganador = None
-    nombre_ganador = None
-    db.refresh(partida)
-    if (partida.iniciada):
-        if (partida.jugador_del_turno.numero_de_cartas_figura == 0):
-            id_ganador = partida.jugador_del_turno.id_jugador
-            nombre_ganador = partida.jugador_del_turno.nombre
-        elif (len(partida.jugadores) == 1):
-            id_ganador = partida.jugadores[0].id_jugador
-            nombre_ganador = partida.jugadores[0].nombre
-    
-    # Aca pueden ir mas verificaciones para determinar si hay un ganador
-
-    if (id_ganador is not None):
-        eliminar_partida(db, partida)
-        db.commit()
-        return {"hay_ganador" : {"id_ganador" : id_ganador, "nombre_ganador" : nombre_ganador}}
-
-    return {"hay_ganador" : None}
-
-
-def eliminar_partida(db: Session, partida: Partida):
+    :param partida: Partida o id de la partida a eliminar.
+    '''
+    if not isinstance(partida, Partida):
+        partida = db.get(Partida, partida)
     temporizadores_turno.cancelar_temporizador_del_turno(partida.id)
     db.delete(partida)
     db.commit()
-    

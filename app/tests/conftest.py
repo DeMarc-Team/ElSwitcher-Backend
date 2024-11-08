@@ -14,7 +14,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from database import Base, get_db
 from main import app
 from tools import WSManagerTester; tester = WSManagerTester()
-from factory import test_temporizadores_turno
+from factory import test_temporizadores_turno, MOCK_GMT_TIME_ZT
 
 # Setup de la base de datos de prueba
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), "test.db")
@@ -80,7 +80,7 @@ def mock_dict_temporizadores_turno():
 def mock_timeGmt():
     time_struct_to_mock = time.struct_time([2024, 11, 3, 15, 30, 0, 7, 2, 3])
     with patch("time.gmtime", return_value=time_struct_to_mock):
-        yield "2024-11-03T15:30:00Z"
+        yield MOCK_GMT_TIME_ZT
         
 @pytest.fixture(autouse=True, scope='session')
 def teardown_db():

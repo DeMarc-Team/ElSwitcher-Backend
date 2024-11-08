@@ -149,11 +149,9 @@ def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figur
     partida = get_partida(db, id_partida)
     jugador = get_jugador_from_partida(db, partida, id_jugador)
     
-    ganador = unatomic_usar_figura(db, partida, jugador, figura_data)
-    if (not ganador.get("hay_ganador")):
-        unatomic_aplicar_parciales(db, partida)
+    unatomic_usar_figura(db, partida, jugador, figura_data)
+    unatomic_aplicar_parciales(db, partida)
     db.commit()
-    return ganador
 
 def bloquear_carta_ajena(db: Session, id_partida: int, id_jugador: int, bloqueo_data: BloquearFiguraData):
     partida = get_partida(db, id_partida)
@@ -182,10 +180,7 @@ def unatomic_usar_figura(db: Session, partida: Partida, jugador: Jugador, figura
     partida.color_prohibido = __get_color_coordenadas(partida, coords_figura)
     db.delete(carta_a_usar)
     db.flush()
-    from crud.partidas import hay_ganador
-    return hay_ganador(db, partida.id)
-
-
+       
 def unatomic_bloquear_figura(db: Session, partida: Partida, jugador: Jugador, bloqueo_data: BloquearFiguraData):
     """
     Recibe una partida, un jugador y datos para bloquear a otro jugador y
@@ -373,6 +368,25 @@ def deshacer_movimiento(db: Session, id_partida, atomic=True):
         db.flush()
 
     return ultimo_movimiento
+
+def determinar_ganador_por_terminar_mazo(db: Session, id_partida: int, id_jugador: int):
+    '''
+    Determina si el jugador ha ganado la partida al terminar su mazo de cartas de figura.
+    
+    Retorna 
+        Si hay un ganador: {'ganador' : {'id' : id_ganador, 'nombre' : nombre_ganador}}
+        Si no: {'ganador' : None}
+    '''
+    partida = db.query(Partida).filter(Partida.id == id_partida).first()
+    if (not partida):
+        raise ResourceNotFoundError(f"Partida con ID {id_partida} no encontrada.")
+    
+    assert partida.jugador_del_turno.id == id_jugador, "No es el turno del jugador"# No deberia pasar esto
+    
+    jugador = partida.jugador_del_turno
+    if (jugador.numero_de_cartas_figura == 0):
+        return {"ganador": {"id": jugador.id_jugador, "nombre": jugador.nombre}}
+    return {"ganador": None}
 
 def get_color_prohibido(id_partida):
     return PartidaRepo().get_color_prohibido(id_partida)

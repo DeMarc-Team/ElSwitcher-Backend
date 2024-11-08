@@ -55,51 +55,34 @@ async def test_terminar_turno_reponer_cartas(client, test_db, test_ws_messages, 
     assert verificar_tuplas(creadas, ['cartas_de_movimiento']), f"Fallo: Se esperaba que se crearan cartas de movimiento, pero no se crearon."
     
 @pytest.mark.asyncio
-async def test_terminar_turno(client, test_db, test_ws_counts):
+async def test_terminar_turno(client, test_db, test_ws_counts, mock_timeGmt):
     '''Test que chequea el funcionamiento en el escenario exitoso del endpoint para terminar_turno.'''
 
     partida, _ = crear_partida(test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores=3)
     iniciar_partida(test_db, partida)
-
     jugador_inicial = partida.jugador_del_turno
     segundo_jugador = partida.jugadores[1]
 
-    # Construyo una copia de los valores que deben permanecer invariantes
-    partida_datos_invariantes = {
-        "id": partida.id,
-        "nombre_partida": partida.nombre_partida,
-        "nombre_creador": partida.nombre_creador,
-        "iniciada": partida.iniciada,
-        "tablero": str(partida.tablero),
-        "id_creador": partida.id_creador
-    }
+    captura_inicial = capturar(get_all_tables(test_db))
 
     # Pasamos el turno
     response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_inicial.id_jugador}/turno')
     await test_temporizadores_turno.wait_for_all_tasks()
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."
 
-    partida_datos_posteriores = {
-        "id": partida.id,
-        "nombre_partida": partida.nombre_partida,
-        "nombre_creador": partida.nombre_creador,
-        "iniciada": partida.iniciada,
-        "tablero": str(partida.tablero),
-        "id_creador": partida.id_creador
-    }
+    captura_final = capturar(get_all_tables(test_db))
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
-    # Comprobamos que se mantengan los datos invariantes
-    assert (
-        partida_datos_invariantes == partida_datos_posteriores
-    ), f"Fallo: Se esperaba que el único dato que se modificara de la partida fuera el orden, pero no es así."
-
-    # Comprobamos que el turno sea del jugador correspondiente
-    assert (
-        partida.jugador_del_turno.id_jugador == segundo_jugador.id_jugador
-    ), f"Fallo: Se esperaba que el nuevo jugador del turno fuera el de id {segundo_jugador.id_jugador}, pero tiene id {partida.jugador_del_turno.id_jugador}."
-    
-    assert len(partida.jugadores) == 4, f"Fallo: Se esperaba que la cantidad de jugadores fuera la misma, pero no es así."
+    modificaciones_eperadas = {
+        ('jugadores', 1): [('orden', 0, 3)], 
+        ('jugadores', 2): [('orden', 1, 0)], 
+        ('jugadores', 3): [('orden', 2, 1)], 
+        ('jugadores', 4): [('orden', 3, 2)]
+        }
+    assert modificaciones == modificaciones_eperadas, f"Fallo: Se esperaba que no se modificara ninguna tabla, pero se modificaron {modificaciones}."
+    assert not eliminadas, f"Fallo: Se esperaba que no se eliminara ninguna tabla, pero se eliminaron {eliminadas}."
+    assert not creadas, f"Fallo: Se esperaba que no se creara ninguna tabla, pero se crearon {creadas}."
 
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
     test_ws_counts[ACTUALIZAR_TURNO] = 1
@@ -181,7 +164,7 @@ async def test_reponer_cartas_movimiento(client, test_db):
         "m1", "m2", "m3"
     ], "Fallo: Las cartas de movimiento del jugador no se repusieron como se esperaba."
 
-def test_jugador_bloqueado(client, test_db):
+def test_jugador_bloqueado(client, test_db, mock_timeGmt):
     '''Test sobre la no reposición de cartas de figura de un jugador bloqueado con varias cartas en su mano.'''
     
     partida, creador = crear_partida(test_db)
@@ -208,7 +191,7 @@ def test_jugador_bloqueado(client, test_db):
     assert eliminadas == [], "Fallo: Se esperaba que no se eliminaran elementos."
     assert creadas == [], "Fallo: Se esperaba que no hubieran creaciones."
 
-def test_jugador_bloqueado_carta_revelada_libre(client, test_db):
+def test_jugador_bloqueado_carta_revelada_libre(client, test_db, mock_timeGmt):
     '''Test sobre la no reposición de cartas de figura de un jugador bloqueado una única carta en la mano, la cual está libre.'''
     
     partida, creador = crear_partida(test_db)
@@ -238,7 +221,7 @@ def test_jugador_bloqueado_carta_revelada_libre(client, test_db):
     assert eliminadas == [], "Fallo: Se esperaba que no se eliminaran elementos."
     assert creadas == [], "Fallo: Se esperaba que no hubieran creaciones."
 
-def test_jugador_bloqueado_carta_revelada_bloqueada(client, test_db):
+def test_jugador_bloqueado_carta_revelada_bloqueada(client, test_db, mock_timeGmt):
     '''Test sobre la no reposición de cartas de figura de un jugador bloqueado una única carta en la mano, la cual está bloqueada.'''
     
     partida, creador = crear_partida(test_db)
@@ -270,7 +253,7 @@ def test_jugador_bloqueado_carta_revelada_bloqueada(client, test_db):
     assert eliminadas == [], "Fallo: Se esperaba que no se eliminaran elementos."
     assert creadas == [], "Fallo: Se esperaba que no hubieran creaciones."
 
-def test_jugador_bloqueado_sin_reveladas(client, test_db):
+def test_jugador_bloqueado_sin_reveladas(client, test_db, mock_timeGmt):
     '''Test sobre la reposición de cartas de figura de un jugador bloqueado sin cartas en la mano.'''
 
     partida, creador = crear_partida(test_db)
@@ -302,8 +285,8 @@ def test_jugador_bloqueado_sin_reveladas(client, test_db):
         ('cartas_de_figura', 5): [('revelada', False, True)], 
         ('cartas_de_figura', 6): [('revelada', False, True)]}, \
             "Fallo: Se esperaba que solo se modificara el orden de los jugadores y 3 cartas (las que se revelaron)."
-    assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
-    assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
+    assert eliminadas == [], "Fallo: Se esperaba que no se eliminaran elementos."
+    assert creadas == [], "Fallo: Se esperaba que no hubieran creaciones."
 
 def test_partida_inexistente_404(client, test_db, test_ws_counts):
     '''Test sobre los mensajes de error ante el envío de terminar turno a una partida inexistente.'''
