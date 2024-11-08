@@ -151,7 +151,8 @@ def completar_figura_propia(db: Session, id_partida: int, id_jugador: int, figur
     
     unatomic_usar_figura(db, partida, jugador, figura_data)
     unatomic_aplicar_parciales(db, partida)
-      
+    
+    db.refresh(jugador)
     if (jugador.bloqueado and len(jugador.mano_figuras) == 1 and jugador.mano_figuras[0].bloqueada):
         jugador.mano_figuras[0].bloqueada = False
 

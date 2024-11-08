@@ -289,7 +289,7 @@ def test_usar_figura_con_bloqueada_y_libre(client, test_db, test_ws_counts):
         "carta_fig": "f1"
     }
     
-    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1", "f1"], n_movimientos_a_consumir=3, primera_carta_bloqueada=True)
+    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1", "f1", "f7"], n_movimientos_a_consumir=3, primera_carta_bloqueada=True)
     
     # Capturamos la BDD antes de los cambios
     captura_inicial = capturar_metadata(get_all_tables(test_db))
@@ -302,6 +302,67 @@ def test_usar_figura_con_bloqueada_y_libre(client, test_db, test_ws_counts):
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
 
     assert modificaciones == {('partidas', 1): [('color_prohibido', 0, 2)]}, "Fallo: Se esperaba otro conjunto de objetos modificados."
+    assert set(eliminadas) == set(
+        [
+            ("cartas_de_movimiento", 1),    # Cartas de movimiento falseadas
+            ("cartas_de_movimiento", 2),
+            ("cartas_de_movimiento", 3),
+            ("movimientos_parciales", 1),   # Movimientos parciales asociados a las cartas falseadas/consumidas
+            ("movimientos_parciales", 2),
+            ("movimientos_parciales", 3),
+            ("cartas_de_figura", 52),        # Carta de figura usada
+        ]
+    ), "Fallo: Se esperaba otro conjunto de objetos eliminados."
+    assert set(creadas) == set(), "Fallo: Se esperaba otro conjunto de objetos modificados."
+
+    # Chequeamos que se haya consumido una unica carta correctamente
+    check_cartas_figura_reveladas(jugador_del_turno, expected_codigos_figura=["f1", "f7"])
+    
+    # Ponemos cuantas veces se espera que se envie cada mensaje de ws
+    test_ws_counts[ACTUALIZAR_CARTAS_FIGURA] = 1
+    test_ws_counts[ACTUALIZAR_CARTAS_MOVIMIENTO] = 1
+    
+# ----------------------------------------------------------------
+
+def test_usar_figura_con_bloqueada_por_desbloquearse(client, test_db, test_ws_counts):
+    '''Test sobre el correcto funcionamiento al haber 2 figuras del mismo tipo en la mano, una bloqueada y la otra libre.'''
+    
+    # Tablero que deseamos que se utilice
+    tablero_mock = [
+        [2, 1, 2, 4, 1, 2],
+        [1, 2, 1, 4, 1, 2],
+        [1, 2, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2],
+        [1, 1, 3, 3, 1, 2],
+        [3, 3, 3, 4, 1, 2]
+    ]
+
+    # Diccionario con las casillas de las figuras formadas en el tablero del mock
+    figuras_formadas_en_mock = {
+        "figuras_a_resaltar": {
+            "f3": [[[5, 0], [5, 1], [5, 2], [4, 2], [4, 3]]]
+        }
+    }
+    
+    casillas_figura = listas_to_casillas_figura(figuras_formadas_en_mock["figuras_a_resaltar"]["f3"])[0]
+    request_body = {
+        "figura": casillas_figura,
+        "carta_fig": "f3"
+    }
+    
+    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1", "f3"], n_movimientos_a_consumir=3, primera_carta_bloqueada=True)
+    
+    # Capturamos la BDD antes de los cambios
+    captura_inicial = capturar_metadata(get_all_tables(test_db))
+    
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    check_response(response, status_code_esperado=200, respuesta_esperada=None)
+
+    # Capturamos la BDD luego de los cambios
+    captura_final = capturar_metadata(get_all_tables(test_db))
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
+
+    assert modificaciones == {('partidas', 1): [('color_prohibido', 0, 3)], ('cartas_de_figura', 51): [('bloqueada', True, False)]}, "Fallo: Se esperaba otro conjunto de objetos modificados (la carta que quedó sola debía desbloquearse)."
     assert set(eliminadas) == set(
         [
             ("cartas_de_movimiento", 1),    # Cartas de movimiento falseadas
