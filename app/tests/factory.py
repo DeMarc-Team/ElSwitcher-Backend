@@ -7,7 +7,9 @@ from models import (Partida,
                     CartaMovimiento,
                     MovimientoParcial
                     )
-from constantes_juego import N_CARTAS_FIGURA_TOTALES
+from constantes_juego import N_CARTAS_FIGURA_TOTALES, SEGUNDOS_TEMPORIZADOR_TURNO
+
+MOCK_GMT_TIME_ZT = "2024-11-03T15:30:00Z"
 
 class TemporizadorTurnoToTest(TemporizadorTurno):
     def limpiar_temporizadores(self):
@@ -152,6 +154,8 @@ def iniciar_partida(db: Session, partida: Partida) -> Partida:
     assert len(partida.jugadores) <= 4, "La partida no puede tener más de 4 jugadores"
 
     partida.iniciada = True
+    partida.inicio_turno = MOCK_GMT_TIME_ZT
+    partida.duracion_turno = SEGUNDOS_TEMPORIZADOR_TURNO
 
     numero_de_cartas_por_jugador = int(N_CARTAS_FIGURA_TOTALES/len(partida.jugadores))
     __repartir_cartas_figura(db, partida, 3, numero_de_cartas_por_jugador)

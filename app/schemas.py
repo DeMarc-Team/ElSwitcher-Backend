@@ -92,6 +92,10 @@ class BloquearFiguraData(BaseModel):
     figura: list[Casilla]
     carta_fig: str
 
+class ResponseCronometro(BaseModel):
+    inicio: str
+    duracion: int
+
 class RespuestaColorProhibido(BaseModel):
     color: Annotated[int, Field(ge=1, le=4)] | None
     

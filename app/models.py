@@ -100,7 +100,8 @@ class Partida(Base):
         # Retorna el jugador en la primera posición
         return self.jugadores[0].id_jugador
 
-
+    inicio_turno = mapped_column(String, nullable=False, default='0')
+    duracion_turno = mapped_column(Integer, nullable=False, default=0)
     tablero = mapped_column(String, nullable=False, default=random_tablero)
     color_prohibido = mapped_column(Integer, nullable=False , default=0)
     movimientos_parciales = relationship('MovimientoParcial', order_by='MovimientoParcial.orden')

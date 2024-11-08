@@ -1,5 +1,6 @@
 import crud.juego as juego_service
 import crud.turno as turno_service
+import crud.partidas as partida_service
 from websockets_manager.ws_partidas_manager import ws_partidas_manager
 from figuras import hallar_todas_las_figuras_en_tablero
 import json
@@ -21,7 +22,7 @@ class JuegoController:
 
     async def terminar_turno(self, id_partida, id_jugador):
         turno_service.verificar_paso_de_turno(self.db, id_partida, id_jugador)
-        await terminar_temporizador_del_turno(self.db, id_partida, id_jugador)
+        await terminar_temporizador_del_turno(self.db, id_partida)
 
     async def get_tablero(self, id_partida):
         """Obtiene el tablero de una partida."""
@@ -47,12 +48,11 @@ class JuegoController:
         return juego_service.get_movimientos_parciales(self.db, id_partida)
 
     async def completar_figura_propia(self, id_partida, id_jugador, figura_data):
-        eventos = juego_service.completar_figura_propia(self.db, id_partida, id_jugador, figura_data)
-        hay_ganador = eventos.get("hay_ganador")
-        if (hay_ganador):
-            id_ganador = hay_ganador.get("id_ganador")
-            nombre_ganador = hay_ganador.get("nombre_ganador")
-            await ws_partidas_manager.send_hay_ganador(id_partida, id_ganador, nombre_ganador)
+        juego_service.completar_figura_propia(self.db, id_partida, id_jugador, figura_data)
+        
+        if (ganador := juego_service.determinar_ganador_por_terminar_mazo(self.db, id_partida, id_jugador).get("ganador")):
+            await ws_partidas_manager.send_hay_ganador(id_partida, ganador.get("id"), ganador.get("nombre"))
+            partida_service.eliminar_partida(self.db, id_partida)
         else:
             await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
             await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
@@ -61,14 +61,19 @@ class JuegoController:
         juego_service.bloquear_carta_ajena(self.db, id_partida, id_jugador, bloqueo_data)
         await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
         await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
-            
+
+    async def get_cronometro(self, id_partida):
+        turno_service.verificar_partida_iniciada(id_partida)
+        inicio, duracion = turno_service.get_inicio_y_duracion_turno(id_partida)
+        return { "inicio": inicio, "duracion": duracion }
+
     async def get_color_prohibido(self, id_partida):
         color = juego_service.get_color_prohibido(id_partida)
         return {"color": color}
 
 
 
-async def terminar_turno(db, id_partida, id_jugador):
+async def terminar_turno(db, id_partida):
     temporizadores_turno.cancelar_temporizador_del_turno(id_partida)
     turno_service.terminar_turno(db, id_partida)
     await ws_partidas_manager.send_actualizar_turno(id_partida)
@@ -76,9 +81,8 @@ async def terminar_turno(db, id_partida, id_jugador):
     await iniciar_temporizador_turno(db, id_partida)
 
 async def iniciar_temporizador_turno(db, id_partida):
-    id_jugador = turno_service.get_id_jugador_turno(db, id_partida)
-    inicio, duracion = await temporizadores_turno.iniciar_temporizador_del_turno(id_partida, terminar_turno, (db, id_partida, id_jugador))
+    inicio, duracion = await temporizadores_turno.iniciar_temporizador_del_turno(id_partida, terminar_turno, (db, id_partida))
     await ws_partidas_manager.send_sincronizar_turno(id_partida, inicio, duracion)
     
-async def terminar_temporizador_del_turno(db, id_partida, id_jugador):
-    await temporizadores_turno.terminar_temporizador_del_turno(id_partida,terminar_turno,(db, id_partida, id_jugador))
+async def terminar_temporizador_del_turno(db, id_partida):
+    await temporizadores_turno.terminar_temporizador_del_turno(id_partida,terminar_turno,(db, id_partida))

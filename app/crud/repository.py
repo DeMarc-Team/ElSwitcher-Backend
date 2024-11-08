@@ -86,6 +86,55 @@ class PartidaRepo(BaseRepository):
         
         return partida.color_prohibido
 
+    def put_inicio_y_duracion_turno(self, partida_id, inicio_turno, duracion_turno):
+        """
+            Modificar el inicio y duracion del turno de una partida
+        """
+        try:
+            partida = self.get_by_id(partida_id)
+        except ResourceNotFoundError:
+            raise ResourceNotFoundError(f"No se encontro ninguna partida con ID {partida_id} al modificar el inicio del turno.")
+        
+        partida.inicio_turno = inicio_turno
+        partida.duracion_turno = duracion_turno
+        self.session.commit()
+    
+    def get_inicio_y_duracion_turno(self, partida_id):
+        """
+            Obtener el inicio y duracion del turno de una partida
+        """
+        try:
+            partida = self.get_by_id(partida_id)
+        except ResourceNotFoundError:
+            raise ResourceNotFoundError(f"No se encontro ninguna partida con ID {partida_id} al buscar el inicio y duracion del turno.")
+        
+        return partida.inicio_turno, partida.duracion_turno
+    
+    def get_iniciada(self, partida_id):
+        """
+            Obtener si una partida esta iniciada
+        """
+        try:
+            partida = self.get_by_id(partida_id)
+        except ResourceNotFoundError:
+            raise ResourceNotFoundError(f"No se encontro ninguna partida con ID {partida_id} al buscar si esta iniciada.")
+        
+        return partida.iniciada
+
+    def get_otro_jugador(self, partida_id, jugador_id):
+        """
+            Obtener el nombre e id de otro jugador de una partida
+        """
+        try:
+            partida = self.get_by_id(partida_id)
+        except ResourceNotFoundError:
+            raise ResourceNotFoundError(f"No se encontro ninguna partida con ID {partida_id} al buscar el otro jugador.")
+        
+        for jugador in partida.jugadores:
+            if jugador.id != jugador_id:
+                return jugador.nombre, jugador.id
+        return None
+
 class JugadoresRepo(BaseRepository):
     model = Jugador
 

@@ -15,6 +15,7 @@ from schemas import (
     MovimientoParcialData,
     CompletarFiguraData,
     BloquearFiguraData,
+    ResponseCronometro,
     RespuestaColorProhibido
 )
 
@@ -104,6 +105,13 @@ async def completar_figura_propia(id_partida: int, id_jugador: int, figura_data:
             tags=["Juego"])
 async def bloquear_carta_ajena(id_partida: int, id_jugador: int, bloqueo_data: BloquearFiguraData, controller: JuegoController = Depends(get_game_controller)):
     await controller.bloquear_carta_ajena(id_partida, id_jugador, bloqueo_data)
+
+@router.get('/{id_partida}/cronometro',
+            summary="Obtener el cronómetro de la partida",
+            response_model=ResponseCronometro,
+            tags=["Juego"])
+async def get_cronometro(id_partida: int, controller: JuegoController = Depends(get_game_controller)):
+    return await controller.get_cronometro(id_partida)
 
 @router.get('/{id_partida:int}/colorProhibido', summary="Obtiene el color prohibido", tags=["Juego"],response_model=RespuestaColorProhibido)
 async def get_color_prohibido(id_partida: int, controller: JuegoController = Depends(get_game_controller)):

@@ -205,8 +205,7 @@ def test_abandonar_partida_iniciada_ultimo_jugador_200(client, test_db, test_ws_
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
-    respuesta_esperada = {
-        'detail': 'El jugador abandonó la partida exitosamente'}
+    respuesta_esperada = {'detail': 'El jugador abandonó la partida exitosamente y se ha declarado un ganador'}
     check_response(response, 200, respuesta_esperada)
 
     # Verificamos que la base de datos se haya actualizado correctamente
@@ -250,7 +249,7 @@ async def test_integracion_abandonar_partida_iniciada_ultimo_jugador_200(client,
     test_ws_messages[HAY_GANADOR] = [{'partida_id': 1, 'jugador_id': jugador_ganador.id, 'nombre': jugador_ganador.nombre}]
     
     response = client.delete(test_db, f"/partidas/{id_partida}/jugadores/{get_jugador_sin_turno(test_db, partida).id}")
-    check_response(response, 200, {'detail': 'El jugador abandonó la partida exitosamente'})
+    check_response(response, 200, {'detail': 'El jugador abandonó la partida exitosamente y se ha declarado un ganador'})
 
     # Verificamos que la base de datos se haya actualizado correctamente
     assert get_all_tables(test_db) == [], f"Fallo: Se esperaba que la base de datos estuviera vacia, pero se obtuvo {get_all_tables()}"
@@ -264,10 +263,7 @@ async def test_abandonar_partida_en_el_turno_ultimo_jugador_200(client, test_db,
     '''Test de jugador abandonando una partida en su turno, quedando solo un jugador (ganando)'''
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws_messages[HAY_GANADOR] = [{'partida_id': 1, 'jugador_id': 2, 'nombre': 'Jugador2'}]
-    test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
-    test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}]
-    test_ws_messages[SINCRONIZAR_TURNO] = [{'partida_id': 1, 'inicio': mock_timeGmt, 'duracion': SEGUNDOS_TEMPORIZADOR_TURNO}]
-
+    
     # Inicializamos la precondicion
     partida, _ = crear_partida(test_db)
     unir_jugadores(test_db, partida,numero_de_jugadores-1)
@@ -279,8 +275,7 @@ async def test_abandonar_partida_en_el_turno_ultimo_jugador_200(client, test_db,
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
-    respuesta_esperada = {
-        'detail': 'El jugador abandonó la partida exitosamente'}
+    respuesta_esperada = {'detail': 'El jugador abandonó la partida exitosamente y se ha declarado un ganador'}
     check_response(response, 200, respuesta_esperada)
 
     # Verificamos que la base de datos se haya actualizado correctamente
@@ -309,17 +304,12 @@ async def test_integracion_abandonar_partida_en_el_turno_ultimo_jugador_200(clie
     # Abandonamos al jugador del turno
     ganador = get_jugador_sin_turno(test_db, partida)
     test_ws_messages[HAY_GANADOR] = [{'partida_id': 1, 'jugador_id': ganador.id, 'nombre': ganador.nombre}]
-    test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
-    test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}]
-    test_ws_messages[SINCRONIZAR_TURNO].extend([{'partida_id': 1, 'inicio': mock_timeGmt, 'duracion': SEGUNDOS_TEMPORIZADOR_TURNO}])
-    
 
     response = client.delete(test_db, f"/partidas/{id_partida}/jugadores/{partida.jugador_del_turno.id}")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
-    respuesta_esperada = {
-        'detail': 'El jugador abandonó la partida exitosamente'}
+    respuesta_esperada = {'detail': 'El jugador abandonó la partida exitosamente y se ha declarado un ganador'}
     check_response(response, 200, respuesta_esperada)
 
     # Verificamos que la base de datos se haya actualizado correctamente
