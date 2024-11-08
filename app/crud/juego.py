@@ -219,16 +219,6 @@ def unatomic_bloquear_figura(db: Session, partida: Partida, jugador: Jugador, bl
     jugador_a_bloquear.bloqueado = True
     db.flush()
 
-def __get_color_coordenadas(partida: Partida, coords_figura)->int:
-    '''
-    Dada una figura, retorna el color de la primera casilla en el tablero.
-    '''
-    import json
-    tablero = json.loads(partida.tablero)
-    coordenadas = list(coords_figura)
-    color = tablero[coordenadas[0][0]][coordenadas[0][1]]
-    return color
-
 def unatomic_aplicar_parciales(db: Session, partida: Partida):
     '''
     Aplica los movimientos parciales del jugador (NO HACE VERIFICACIONES DE PERMISOS, i.e, QUE EL JUGADOR TENGA EL TURNO).
@@ -390,3 +380,25 @@ def determinar_ganador_por_terminar_mazo(db: Session, id_partida: int, id_jugado
 
 def get_color_prohibido(id_partida):
     return PartidaRepo().get_color_prohibido(id_partida)
+
+def verificar_color_prohibido(id_partida: int, figura: list[Casilla]):
+    """
+    Verifica que la figura no tenga el color prohibido.
+    Si lo tiene, arroja una excepción ForbiddenError.
+    """
+    partida = PartidaRepo().get_by_id(id_partida)
+    color_prohibido = partida.color_prohibido
+    color_figura = __get_color_coordenadas(partida, casillas_to_coords_figura_set(figura))
+    if color_prohibido == color_figura:
+        raise ForbiddenError("La figura tiene el color prohibido.")
+    return False
+
+def __get_color_coordenadas(partida: Partida, coords_figura)->int:
+    '''
+    Dada una figura, retorna el color de la primera casilla en el tablero.
+    '''
+    import json
+    tablero = json.loads(partida.tablero)
+    coordenadas = list(coords_figura)
+    color = tablero[coordenadas[0][0]][coordenadas[0][1]]
+    return color

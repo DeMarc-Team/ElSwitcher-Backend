@@ -1,4 +1,4 @@
-from factory import crear_partida, unir_jugadores, iniciar_partida, establecer_tablero, cartear_figuras, listas_to_casillas_figura, falsear_movimientos_parciales, eliminar_cartas_figura_del_maso
+from factory import prohibir_color, crear_partida, unir_jugadores, iniciar_partida, establecer_tablero, cartear_figuras, listas_to_casillas_figura, falsear_movimientos_parciales, eliminar_cartas_figura_del_maso
 from verifications import check_response, check_cartas_figura_reveladas
 from tools import capturar_metadata, comparar_capturas, get_all_tables
 from websockets_manager.ws_partidas_manager import HAY_GANADOR, ACTUALIZAR_CARTAS_FIGURA, ACTUALIZAR_CARTAS_MOVIMIENTO
@@ -634,3 +634,48 @@ def test_integracion_bloquear_color(client, test_db, test_ws_messages):
         f"Se esperaba que se eliminen las cartas de figura y movimiento, pero se encontro {eliminadas}"
     
     assert creadas == [], f"No se esperaban creaciones, pero se encontro {creadas}"
+
+def test_usar_figura_color_prohibido_403(client, test_db, test_ws_counts):
+    '''Test de jugador del turno intentando usar una figura con color prohibido.'''
+    
+     # Tablero que deseamos que se utilice
+    tablero_mock = [
+        [2, 2, 2, 4, 1, 2],
+        [1, 2, 1, 4, 1, 2],
+        [1, 2, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2],
+        [1, 1, 1, 4, 1, 2]
+    ]
+
+    # Diccionario con las casillas de las figuras formadas en el tablero del mock
+    figuras_formadas_en_mock = {
+        "figuras_a_resaltar": {
+            "f1": [[[0, 1], [2, 1], [0, 0], [1, 1], [0, 2]]]
+        }
+    }
+
+    # Transformamos del formato de listas al esperado por el endpoint
+    casillas_figura = listas_to_casillas_figura(figuras_formadas_en_mock["figuras_a_resaltar"]["f1"])[0]
+    request_body = {
+        "figura": casillas_figura,
+        "carta_fig": "f1"
+    }
+
+    # Configuramos el escenario
+    partida, jugador_del_turno = configurar_test_figuras(test_db, tablero_mock, cartas_figura_carteadas=["f1"], n_movimientos_a_consumir=3)
+    
+    prohibir_color(test_db, partida, 2)
+
+    captura_inicial = capturar_metadata(get_all_tables(test_db))
+    response = client.put(test_db, f'/juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/tablero/figura', json=request_body)
+    respuesta_esperada = {'detail': 'La figura tiene el color prohibido.'}
+    check_response(response, status_code_esperado=403, respuesta_esperada=respuesta_esperada)
+
+    # Verificamos que no se haya realizado ningun cambio en la base de datos
+    captura_final = capturar_metadata(get_all_tables(test_db))
+    modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)
+
+    assert not modificaciones, f"Se encontraron modificaciones en tablas en la db: {modificaciones}"
+    assert not eliminadas, f"Se encontraron tablas eliminadas en la db: {eliminadas}"
+    assert not creadas, f"Se encontraron tablas creadas en la db: {creadas}"
