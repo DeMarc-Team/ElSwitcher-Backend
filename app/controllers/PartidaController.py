@@ -52,8 +52,11 @@ class PartidaController:
     async def get_jugadores(self, partida_id):
         return jugador_service.get_jugadores(self.db, partida_id)
 
-    async def join_to_partida(self, partida_id: int, nombre_jugador: str):
-        from models import Jugador # FIXME: Esto esta bien que se haga aca?
+    async def join_to_partida(self, partida_id: int, nombre_jugador: str, contraseña: str):
+        from models import Jugador
+
+        partida_service.validar_contraseña(contraseña, partida_id) # Si falla la validación se levanta una exepción y se devuelve forbidden
+        
         jugador_on_create_response = jugador_service.create_jugador(self.db, Jugador(nombre=nombre_jugador, partida_id=partida_id))
         await ws_home_manager.send_actualizar_partidas()
         await ws_partidas_manager.send_actualizar_sala_espera(partida_id)

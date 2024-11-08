@@ -31,6 +31,10 @@ class PartidaDetails2(BaseModel):
     espacios_disponibles: int
     #jugadores: list[jugador] = []
 
+class FromUnirsePartida(BaseModel):
+    nombre: str
+    contraseña: str | None
+
 class JugadorData(BaseModel):
     nombre: str
 
