@@ -122,3 +122,19 @@ def test_ws_messages():
                 f"send_{message_type} recibió: {actual_calls} pero esperaba {expected_messages}."
 
     yield from tester.test_ws_factory([], assert_message_calls)
+
+@pytest.fixture(scope='function')
+def test_ws_broadcast_messages():
+    def assert_broadcast_calls(test_ws, mocks):
+        for mock_name, mock in mocks.items():
+            actual_calls = tester.inspect_mock_calls(mock)
+            actual_calls = tester.parse_broadcast_calls(actual_calls)
+            expected_message = test_ws[mock_name]
+            
+            print(f"Llamadas actuales para '{mock_name}': {actual_calls}")
+            
+            # Usamos Counter para comparar las listas de diccionarios sin importar el orden
+            assert Counter(map(lambda x : str(x), actual_calls)) == Counter(map(lambda x : str(x), expected_message)), \
+                f"broadcast recibió: {actual_calls} pero esperaba {expected_message}."
+
+    yield from tester.test_broadcast_factory([], assert_broadcast_calls)
