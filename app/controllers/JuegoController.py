@@ -2,6 +2,7 @@ import crud.juego as juego_service
 import crud.turno as turno_service
 import crud.partidas as partida_service
 from websockets_manager.ws_partidas_manager import ws_partidas_manager
+from websockets_manager.ws_home_manager import ws_home_manager
 from figuras import hallar_todas_las_figuras_en_tablero
 import json
 
@@ -54,6 +55,7 @@ class JuegoController:
         if (ganador := juego_service.determinar_ganador_por_terminar_mazo(self.db, id_partida, id_jugador).get("ganador")):
             await ws_partidas_manager.send_hay_ganador(id_partida, ganador.get("id"), ganador.get("nombre"))
             partida_service.eliminar_partida(self.db, id_partida)
+            await ws_home_manager.send_actualizar_partidas_activas(id_partida)
         else:
             await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
             await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
