@@ -49,6 +49,7 @@ class JuegoController:
         return juego_service.get_movimientos_parciales(self.db, id_partida)
 
     async def completar_figura_propia(self, id_partida, id_jugador, figura_data):
+        juego_service.verificar_color_prohibido(id_partida, figura_data.figura)
         juego_service.completar_figura_propia(self.db, id_partida, id_jugador, figura_data)
         
         if (ganador := juego_service.determinar_ganador_por_terminar_mazo(self.db, id_partida, id_jugador).get("ganador")):
@@ -60,6 +61,7 @@ class JuegoController:
             await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
             
     async def bloquear_carta_ajena(self, id_partida, id_jugador, bloqueo_data):
+        juego_service.verificar_color_prohibido(id_partida, bloqueo_data.figura)
         juego_service.bloquear_carta_ajena(self.db, id_partida, id_jugador, bloqueo_data)
         await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
         await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
