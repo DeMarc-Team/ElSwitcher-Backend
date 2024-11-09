@@ -49,14 +49,14 @@ class JuegoController:
 
     async def completar_figura_propia(self, id_partida, id_jugador, figura_data):
         juego_service.completar_figura_propia(self.db, id_partida, id_jugador, figura_data)
-        
+
         if (ganador := juego_service.determinar_ganador_por_terminar_mazo(self.db, id_partida, id_jugador).get("ganador")):
             await ws_partidas_manager.send_hay_ganador(id_partida, ganador.get("id"), ganador.get("nombre"))
             partida_service.eliminar_partida(self.db, id_partida)
         else:
             await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
             await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
-            
+
     async def bloquear_carta_ajena(self, id_partida, id_jugador, bloqueo_data):
         juego_service.bloquear_carta_ajena(self.db, id_partida, id_jugador, bloqueo_data)
         await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
@@ -70,13 +70,14 @@ class JuegoController:
     async def get_color_prohibido(self, id_partida):
         color = juego_service.get_color_prohibido(id_partida)
         return {"color": color}
-    
-    async def post_chat_message(self, id_partida, jugador_id, mensajeRequest):
-        mensaje = mensajeRequest.message
-        
-        await ws_partidas_manager.send_sincronizar_mensaje(id_partida,jugador_id,mensaje)
-        
 
+    async def post_chat_message(self, id_partida, jugador_id, mensajeRequest):
+        nombre_jugador = juego_service.get_nombre_del_jugador(jugador_id)
+        mensaje = nombre_jugador + ": " + mensajeRequest.message
+
+        await ws_partidas_manager.send_sincronizar_mensaje(id_partida, jugador_id, mensaje)
+
+        return {"detail": "enviadazo"}
 
 
 async def terminar_turno(db, id_partida):
@@ -89,6 +90,6 @@ async def terminar_turno(db, id_partida):
 async def iniciar_temporizador_turno(db, id_partida):
     inicio, duracion = await temporizadores_turno.iniciar_temporizador_del_turno(id_partida, terminar_turno, (db, id_partida))
     await ws_partidas_manager.send_sincronizar_turno(id_partida, inicio, duracion)
-    
+
 async def terminar_temporizador_del_turno(db, id_partida):
     await temporizadores_turno.terminar_temporizador_del_turno(id_partida,terminar_turno,(db, id_partida))

@@ -4,7 +4,7 @@ from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida, Jugador, CartaMovimiento, MovimientoParcial
 from schemas import Casilla, CasillasMov, CompletarFiguraData, BloquearFiguraData
 from figuras import hallar_todas_las_figuras_en_tablero
-from crud.repository import PartidaRepo
+from crud.repository import PartidaRepo, JugadoresRepo
 
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (
@@ -24,6 +24,14 @@ def get_tablero(db: Session, partida_id: int):
         raise ResourceNotFoundError(f"Partida no encontrada")
 
     return juego.tablero
+
+def get_nombre_del_jugador(id_jugador):
+    try:
+        jugador = JugadoresRepo.get_by_id(id_jugador)
+    except ResourceNotFoundError:
+        raise ResourceNotFoundError(f"El jugador con ID {id_jugador} no participa de la partida")
+
+    return jugador.nombre
 
 
 def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: CasillasMov, db: Session):

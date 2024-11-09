@@ -103,7 +103,7 @@ class PartidasConnectionManager:
             "type_message": "USER"
         }
 
-        await self.broadcast(partida_id, WsMessage(action=MessageType.SINCRONIZAR_MENSAJE,data=str(data)))    
+        await self.broadcast(partida_id, WsMessage(action=MessageType.SINCRONIZAR_MENSAJE,data=str(data)))
 
     async def broadcast(self, partida_id: int, message: WsMessage):
         if partida_id in self.active_connections.keys():
