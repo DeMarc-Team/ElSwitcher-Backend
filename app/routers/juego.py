@@ -16,7 +16,8 @@ from schemas import (
     CompletarFiguraData,
     BloquearFiguraData,
     ResponseCronometro,
-    RespuestaColorProhibido
+    RespuestaColorProhibido,
+    PostMessage
 )
 
 Base.metadata.create_all(bind=engine)
@@ -116,3 +117,10 @@ async def get_cronometro(id_partida: int, controller: JuegoController = Depends(
 @router.get('/{id_partida:int}/colorProhibido', summary="Obtiene el color prohibido", tags=["Juego"],response_model=RespuestaColorProhibido)
 async def get_color_prohibido(id_partida: int, controller: JuegoController = Depends(get_game_controller)):
     return await controller.get_color_prohibido(id_partida)
+
+@router.post('/{partida_id}/jugadores/{id_jugador}/chat',
+             summary="Unirse a una partida",
+             description="Crea un nuevo jugador, para el usuario, en la partida especificada por partida_id.",
+             tags=["Jugadores"])
+async def post_chat_message(partida_id: int, id_jugador: int, mensajeRequest: PostMessage, controller: JuegoController = Depends(get_game_controller)):
+    return await controller.post_chat_message(partida_id, id_jugador, mensajeRequest)

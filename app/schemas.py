@@ -97,3 +97,6 @@ class RespuestaColorProhibido(BaseModel):
         if isinstance(value,int) and (1 <= value <= 4):
             return value
         return None
+
+class PostMessage(BaseModel):
+    message: str

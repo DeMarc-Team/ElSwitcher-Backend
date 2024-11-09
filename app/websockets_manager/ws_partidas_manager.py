@@ -12,6 +12,7 @@ class MessageType(Enum):
     HAY_GANADOR = "hay_ganador"
     PARTIDA_CANCELADA = "partida_cancelada"
     SINCRONIZAR_TURNO = "sincronizar_turno"
+    SINCRONIZAR_MENSAJE = "sincronizar_mensaje"
 
 ACTUALIZAR_SALA_ESPERA = MessageType.ACTUALIZAR_SALA_ESPERA.value
 ACTUALIZAR_TURNO = MessageType.ACTUALIZAR_TURNO.value
@@ -93,6 +94,16 @@ class PartidasConnectionManager:
     @safe_type_check
     async def send_partida_cancelada(self, partida_id: int):
         await self.broadcast(partida_id, WsMessage(action=MessageType.PARTIDA_CANCELADA))
+
+    @safe_type_check
+    async def send_sincronizar_mensaje(self, partida_id: int, jugador_id, mensaje):
+        data = {
+            "message": mensaje,
+            "id_jugador": jugador_id,
+            "type_message": "USER"
+        }
+
+        await self.broadcast(partida_id, WsMessage(action=MessageType.SINCRONIZAR_MENSAJE,data=str(data)))    
 
     async def broadcast(self, partida_id: int, message: WsMessage):
         if partida_id in self.active_connections.keys():

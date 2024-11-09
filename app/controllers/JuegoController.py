@@ -70,6 +70,12 @@ class JuegoController:
     async def get_color_prohibido(self, id_partida):
         color = juego_service.get_color_prohibido(id_partida)
         return {"color": color}
+    
+    async def post_chat_message(self, id_partida, jugador_id, mensajeRequest):
+        mensaje = mensajeRequest.message
+        
+        await ws_partidas_manager.send_sincronizar_mensaje(id_partida,jugador_id,mensaje)
+        
 
 
 
