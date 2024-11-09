@@ -84,7 +84,7 @@ def test_unirse_partida_404(client, test_db):
     
     # Verificamos la respuesta del servidor
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"
-    respuesta_esperada = {'detail': 'No hay ningun elemento con ID 1 en la tabla partidas.'}
+    respuesta_esperada = {'detail': 'Partida con ID 1 no encontrada.'}
     assert response.json() == respuesta_esperada, f"Fallo: Se esperaba {respuesta_esperada} como respuesta, pero se obtuvo {response.json()}"
 
     # Verificamos que no se haya actualizado la db
