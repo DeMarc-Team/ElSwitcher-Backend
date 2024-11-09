@@ -441,13 +441,10 @@ class WSManagerTester:
         for call in calls:
             # Obtener datos
             partida_id = call.get('partida_id', None)
-            
             action = call['message'].action.value
-
             data = call['message'].data
             if data is not None:
-                data = data.replace("'", '"')
-                data = json.loads(data)
+                data = json.loads(data.replace("'", '"'))
             
             # Crear diccionario
             parsed_call = {}
