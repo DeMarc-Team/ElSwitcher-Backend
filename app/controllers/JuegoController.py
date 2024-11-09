@@ -78,7 +78,7 @@ class JuegoController:
 
         await ws_partidas_manager.send_sincronizar_mensaje(id_partida, jugador_id, mensaje)
 
-        return {"detail": "enviadazo"}
+        return {"detail": f"Mensaje enviado correctamente por {nombre_jugador}"}
 
 
 async def terminar_turno(db, id_partida):
