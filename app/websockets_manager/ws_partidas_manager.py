@@ -1,4 +1,5 @@
 from fastapi import WebSocket
+import json
 from pydantic import BaseModel
 from enum import Enum
 from devtools.check_types import safe_type_check
@@ -22,6 +23,7 @@ ACTUALIZAR_TABLERO = MessageType.ACTUALIZAR_TABLERO.value
 ACTUALIZAR_CARTAS_MOVIMIENTO = MessageType.ACTUALIZAR_CARTAS_MOVIMIENTO.value
 ACTUALIZAR_CARTAS_FIGURA = MessageType.ACTUALIZAR_CARTAS_FIGURA.value
 SINCRONIZAR_TURNO = MessageType.SINCRONIZAR_TURNO.value
+SINCRONIZAR_MENSAJE = MessageType.SINCRONIZAR_MENSAJE.value
 
 class WsMessage(BaseModel):
     action: MessageType
@@ -103,7 +105,7 @@ class PartidasConnectionManager:
             "type_message": "USER"
         }
 
-        await self.broadcast(partida_id, WsMessage(action=MessageType.SINCRONIZAR_MENSAJE,data=str(data)))
+        await self.broadcast(partida_id, WsMessage(action=MessageType.SINCRONIZAR_MENSAJE,data=json.dumps(data)))
 
     async def broadcast(self, partida_id: int, message: WsMessage):
         if partida_id in self.active_connections.keys():
