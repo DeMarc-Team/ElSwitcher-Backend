@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 import random
 from itertools import product
 from collections import Counter
+import json
 #TODO: Separar en clases ESTATICAS los diferentes tipos de tools (si lo hacemos con capturar,... el import seria mas lindo)
 # Ya hay una clase creada pero deberia ser estatica
 
@@ -404,3 +405,57 @@ class WSManagerTester:
             print(test_ws)
             
             assert_func(test_ws, mocks)
+    
+    def test_broadcast_factory(self, default_value, assert_func):
+        test_ws = {
+            'home': default_value,
+            'partidas': default_value
+        }
+        with ExitStack() as stack:
+            mocks = {}
+            
+            original_func = getattr(ws_home_manager, 'broadcast', AsyncMock)
+            mocks['home'] = stack.enter_context(patch(f'{self.ws_home_manager_path}.broadcast', wraps=original_func))
+            
+            original_func = getattr(ws_partidas_manager, 'broadcast', AsyncMock)
+            mocks['partidas'] = stack.enter_context(patch(f'{self.ws_partidas_manager_path}.broadcast', wraps=original_func))
+                
+            yield test_ws
+            
+            assert_func(test_ws, mocks)
+    
+    def parse_broadcast_calls(self, calls):
+        '''
+        Recibe una lista de llamadas a un mock del tipo:
+        
+        [{'partida_id': int, 'message': WsMessage(action=<MessageType.ACCION: 'accion'>, 
+        data="{'campo1': any, 'campo2': any}")}]
+        
+        y devuelve una lista de diccionarios con los campos de las llamadas limpios y 
+        convertidos a diccionarios del tipo:
+        
+        [{'partida_id': int, 'message': {'action': 'accion', 'data': {'campo1': any, 'campo2': any}}
+        '''
+        parsed_calls = []
+        
+        for call in calls:
+            # Obtener datos
+            partida_id = call.get('partida_id', None)
+            
+            action = call['message'].action.value
+
+            data = call['message'].data
+            if data is not None:
+                data = data.replace("'", '"')
+                data = json.loads(data)
+            
+            # Crear diccionario
+            parsed_call = {}
+            if partida_id is not None:
+                parsed_call['partida_id'] = partida_id
+            parsed_call['message'] = {'action': action, 'data': data}
+            
+            parsed_calls.append(parsed_call)
+        
+        return parsed_calls
+        

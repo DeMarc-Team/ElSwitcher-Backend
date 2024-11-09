@@ -8,16 +8,20 @@ from constantes_juego import SEGUNDOS_TEMPORIZADOR_TURNO
 from tools import get_all_tables
 
 @pytest.mark.parametrize("numero_de_jugadores", [3, 4])
-def test_abandonar_partida_en_el_turno_200(client, test_db, test_ws_messages, numero_de_jugadores, mock_timeGmt):
+def test_abandonar_partida_en_el_turno_200(client, test_db, test_ws_broadcast_messages, numero_de_jugadores, mock_timeGmt):
     '''Test de jugador abandonando una partida en su turno'''
 
     # Ponemos cuantas veces se espera que se envie cada ws
-    test_ws_messages[ACTUALIZAR_SALA_ESPERA] = [{'partida_id': 1}]
-    test_ws_messages[ACTUALIZAR_TURNO] = [{'partida_id': 1}]
-    test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
-    test_ws_messages[ACTUALIZAR_TABLERO] = [{'partida_id': 1}, {'partida_id': 1}]
-    test_ws_messages[SINCRONIZAR_TURNO] = [{'partida_id': 1, 'inicio': mock_timeGmt, 'duracion': SEGUNDOS_TEMPORIZADOR_TURNO}]
-
+    test_ws_broadcast_messages['home'] = [
+        {'message': {'action': ACTUALIZAR_PARTIDAS, 'data': None}}]
+    test_ws_broadcast_messages['partidas'] = [
+        {'partida_id': 1, 'message': {'action': ACTUALIZAR_TURNO, 'data': None}},
+        {'partida_id': 1, 'message': {'action': ACTUALIZAR_TABLERO, 'data': None}},
+        {'partida_id': 1, 'message': {'action': ACTUALIZAR_TABLERO, 'data': None}},
+        {'partida_id': 1, 'message': {'action': ACTUALIZAR_SALA_ESPERA, 'data': None}},
+        {'partida_id': 1, 'message': {'action': SINCRONIZAR_TURNO, 'data': {
+            'duracion': 120, 'inicio': '2024-11-03T15:30:00Z'}}}]
+    
     # Inicializamos la precondicion
     partida, _ = crear_partida(db=test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores-1)
