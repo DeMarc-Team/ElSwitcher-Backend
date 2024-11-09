@@ -72,6 +72,7 @@ class JuegoController:
         return {"color": color}
 
     async def post_chat_message(self, id_partida, jugador_id, mensajeRequest):
+        juego_service.verificar_partida_existe_y_jugador_pertenece(id_partida, jugador_id)
         nombre_jugador = juego_service.get_nombre_del_jugador(jugador_id)
         mensaje = nombre_jugador + ": " + mensajeRequest.message
 

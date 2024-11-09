@@ -398,3 +398,19 @@ def determinar_ganador_por_terminar_mazo(db: Session, id_partida: int, id_jugado
 
 def get_color_prohibido(id_partida):
     return PartidaRepo().get_color_prohibido(id_partida)
+
+
+def verificar_partida_existe_y_jugador_pertenece(id_partida, jugador_id):
+    """
+        Si la partida no existe, o el jugador
+        no pertenece a la partida, lanza una excepción.
+    """
+    try:
+        PartidaRepo().get_by_id(id_partida)
+    except ResourceNotFoundError:
+        raise ResourceNotFoundError(f"Partida con ID {id_partida} no encontrada.")
+
+    try:
+        JugadoresRepo().get_by_id(jugador_id)
+    except ResourceNotFoundError:
+        raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {id_partida}.")
