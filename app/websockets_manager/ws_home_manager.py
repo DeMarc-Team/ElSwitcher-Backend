@@ -50,7 +50,7 @@ class HomeConnectionManager:
             "id_partida": id_partida
         }
         mensaje = WsMessage(action=MessageType.ACTUALIZAR_PARTIDAS_ACTIVAS, data=str(data))
-        await self.broadcast(id_partida, mensaje)
+        await self.broadcast(mensaje)
 
     async def send_actualizar_partidas(self):
         await self.broadcast(WsMessage(action=MessageType.ACTUALIZAR_PARTIDAS))

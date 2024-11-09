@@ -1,6 +1,6 @@
 import pytest
 
-from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
+from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS, ACTUALIZAR_PARTIDAS_ACTIVAS
 from websockets_manager.ws_partidas_manager import SINCRONIZAR_TURNO, ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, PARTIDA_CANCELADA, ACTUALIZAR_TABLERO
 from factory import crear_partida, unir_jugadores, iniciar_partida, siguiente_turno, test_temporizadores_turno, get_jugador_sin_turno
 from verifications import check_jugador_abandoned, check_partida_deletion, check_response
@@ -46,6 +46,7 @@ def test_abandonar_partida_no_iniciada_creador_200(client, test_db, test_ws_mess
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws_messages[ACTUALIZAR_PARTIDAS] = [{}]
     test_ws_messages[PARTIDA_CANCELADA] = [{'partida_id': 1}]
+    test_ws_messages[ACTUALIZAR_PARTIDAS_ACTIVAS] = [{'id_partida': 1}]
 
     # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
@@ -191,6 +192,7 @@ def test_abandonar_partida_iniciada_ultimo_jugador_200(client, test_db, test_ws_
     '''Test de jugador abandonando una partida iniciada y queda solo un jugador'''
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws_messages[HAY_GANADOR] = [{'partida_id': 1, 'jugador_id': 1, 'nombre': 'Creador'}]
+    test_ws_messages[ACTUALIZAR_PARTIDAS_ACTIVAS] = [{'id_partida': 1}]
 
     # Inicializamos la precondicion
     partida, creador = crear_partida(test_db)
@@ -247,6 +249,7 @@ async def test_integracion_abandonar_partida_iniciada_ultimo_jugador_200(client,
     # Hacemos que un jugador abandone la partida
     jugador_ganador = partida.jugador_del_turno
     test_ws_messages[HAY_GANADOR] = [{'partida_id': 1, 'jugador_id': jugador_ganador.id, 'nombre': jugador_ganador.nombre}]
+    test_ws_messages[ACTUALIZAR_PARTIDAS_ACTIVAS] = [{'id_partida': 1}]
     
     response = client.delete(test_db, f"/partidas/{id_partida}/jugadores/{get_jugador_sin_turno(test_db, partida).id}")
     check_response(response, 200, {'detail': 'El jugador abandonó la partida exitosamente y se ha declarado un ganador'})
@@ -263,6 +266,7 @@ async def test_abandonar_partida_en_el_turno_ultimo_jugador_200(client, test_db,
     '''Test de jugador abandonando una partida en su turno, quedando solo un jugador (ganando)'''
     # Ponemos cuantas veces se espera que se envie cada ws
     test_ws_messages[HAY_GANADOR] = [{'partida_id': 1, 'jugador_id': 2, 'nombre': 'Jugador2'}]
+    test_ws_messages[ACTUALIZAR_PARTIDAS_ACTIVAS] = [{'id_partida': 1}]
     
     # Inicializamos la precondicion
     partida, _ = crear_partida(test_db)
@@ -304,7 +308,8 @@ async def test_integracion_abandonar_partida_en_el_turno_ultimo_jugador_200(clie
     # Abandonamos al jugador del turno
     ganador = get_jugador_sin_turno(test_db, partida)
     test_ws_messages[HAY_GANADOR] = [{'partida_id': 1, 'jugador_id': ganador.id, 'nombre': ganador.nombre}]
-
+    test_ws_messages[ACTUALIZAR_PARTIDAS_ACTIVAS] = [{'id_partida': 1}]
+    
     response = client.delete(test_db, f"/partidas/{id_partida}/jugadores/{partida.jugador_del_turno.id}")
     print(f"Response: {response.json()}")
 

@@ -2,6 +2,7 @@ from factory import crear_partida, unir_jugadores, iniciar_partida, establecer_t
 from verifications import check_response, check_cartas_figura_reveladas
 from tools import capturar_metadata, comparar_capturas, get_all_tables
 from websockets_manager.ws_partidas_manager import HAY_GANADOR, ACTUALIZAR_CARTAS_FIGURA, ACTUALIZAR_CARTAS_MOVIMIENTO
+from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS_ACTIVAS
 
 def test_usar_figura_propia(client, test_db, test_ws_messages):
     # Ponemos cuantas veces se espera que se envie cada mensaje de ws
@@ -71,6 +72,8 @@ def test_usar_figura_propia_yganar(client, test_db, test_ws_messages):
     '''Test de jugador que completa una figura y gana la partida'''
 
     test_ws_messages[HAY_GANADOR] = [{'partida_id': 1, 'jugador_id': 1, 'nombre': 'Creador'}]
+    test_ws_messages[ACTUALIZAR_PARTIDAS_ACTIVAS] = [{'id_partida': 1}]
+    
     # Tablero que deseamos que se utilice
     tablero_mock = [
         [2, 2, 2, 4, 1, 2],
