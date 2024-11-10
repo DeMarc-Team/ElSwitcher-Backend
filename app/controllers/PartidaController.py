@@ -38,6 +38,7 @@ class PartidaController:
         if (ganador := partida_service.determinar_ganador_por_abandono(self.db, partida_id, jugador_id).get("ganador")):
             await ws_partidas_manager.send_hay_ganador(partida_id, ganador["id"], ganador["nombre"])
             partida_service.eliminar_partida(self.db, partida_id)
+            await ws_home_manager.send_actualizar_partidas_activas(partida_id)
             return {"detail": "El jugador abandonó la partida exitosamente y se ha declarado un ganador"}
         
         if (partida_service.es_su_turno(self.db, partida_id, jugador_id)):
@@ -49,6 +50,7 @@ class PartidaController:
             await ws_partidas_manager.send_partida_cancelada(partida_id)
             await ws_home_manager.send_actualizar_partidas()
             partida_service.eliminar_partida(self.db, partida_id)
+            await ws_home_manager.send_actualizar_partidas_activas(partida_id)
         else:
             await ws_home_manager.send_actualizar_partidas()
             await ws_partidas_manager.send_actualizar_sala_espera(partida_id)

@@ -2,11 +2,14 @@ from fastapi import WebSocket
 from pydantic import BaseModel
 from enum import Enum
 from uuid import uuid4
+from devtools.check_types import safe_type_check
 
 class MessageType(Enum):
     ACTUALIZAR_PARTIDAS = "actualizar_partidas"
+    ACTUALIZAR_PARTIDAS_ACTIVAS = "actualizar_partidas_activas"
 
 ACTUALIZAR_PARTIDAS = MessageType.ACTUALIZAR_PARTIDAS.value
+ACTUALIZAR_PARTIDAS_ACTIVAS = MessageType.ACTUALIZAR_PARTIDAS_ACTIVAS.value
 
 class WsMessage(BaseModel):
     action: MessageType
@@ -40,6 +43,14 @@ class HomeConnectionManager:
         await websocket.accept()
 
         return user_id
+    
+    @safe_type_check
+    async def send_actualizar_partidas_activas(self, id_partida: int):
+        data = {
+            "id_partida": id_partida
+        }
+        mensaje = WsMessage(action=MessageType.ACTUALIZAR_PARTIDAS_ACTIVAS, data=str(data))
+        await self.broadcast(mensaje)
 
     async def send_actualizar_partidas(self):
         await self.broadcast(WsMessage(action=MessageType.ACTUALIZAR_PARTIDAS))

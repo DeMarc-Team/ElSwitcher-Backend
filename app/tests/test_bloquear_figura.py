@@ -1,5 +1,3 @@
-import pytest
-
 from factory import (
     crear_partida,
     unir_jugadores,
@@ -8,6 +6,7 @@ from factory import (
     cartear_figuras,
     listas_to_casillas_figura,
     falsear_movimientos_parciales,
+    prohibir_color
 )
 from tools import capturar_metadata, comparar_capturas, get_all_tables
 from verifications import check_response
@@ -113,7 +112,7 @@ def test_bloquear_jugador_una_carta_403(client, test_db, test_ws_messages):
     assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
     assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
 
-def bloqueo_generico_test(client, test_db, mano_del_jugador_a_bloquear, n_movimientos_a_consumir, request_carta_fig, jugador_a_bloquear_bloqueado, status_code_esperado, respuesta_esperada):
+def bloqueo_generico_test(client, test_db, mano_del_jugador_a_bloquear, n_movimientos_a_consumir, request_carta_fig, jugador_a_bloquear_bloqueado, status_code_esperado, respuesta_esperada, color_prohibido=None):
     """
     Procedimiento genérico que testea una llamada al endpoint del bloqueo bajo el contexto especificado por los parámetros.
     """
@@ -144,6 +143,7 @@ def bloqueo_generico_test(client, test_db, mano_del_jugador_a_bloquear, n_movimi
         mano_del_jugador_a_bloquear,
         jugador_a_bloquear_bloqueado,
         n_movimientos_a_consumir,
+        color_prohibido,
     )
 
     # Capturamos la BDD antes de los cambios
@@ -163,7 +163,7 @@ def bloqueo_generico_test(client, test_db, mano_del_jugador_a_bloquear, n_movimi
 
     return comparar_capturas(captura_inicial, captura_final)
 
-def configurar_test_bloqueos(test_db, tablero_mock, mano_del_jugador_a_bloquear, jugador_a_bloquear_bloqueado=False, n_movimientos_a_consumir=0):
+def configurar_test_bloqueos(test_db, tablero_mock, mano_del_jugador_a_bloquear, jugador_a_bloquear_bloqueado=False, n_movimientos_a_consumir=0,color_prohibido=None):
     '''
     Configura un escenario medianamente general para los tests de completar figuras.
     
@@ -180,6 +180,8 @@ def configurar_test_bloqueos(test_db, tablero_mock, mano_del_jugador_a_bloquear,
     partida, _ = crear_partida(test_db)
     jugador_a_bloquear = unir_jugadores(test_db, partida, numero_de_jugadores=1)[0]
     iniciar_partida(test_db, partida)
+    if color_prohibido is not None:
+        prohibir_color(test_db, partida, color_prohibido)
     
     # Configuramos particularidades del jugador que posee el turno
     establecer_tablero(test_db, partida, tablero_mock)
@@ -195,3 +197,22 @@ def configurar_test_bloqueos(test_db, tablero_mock, mano_del_jugador_a_bloquear,
         falsear_movimientos_parciales(test_db, partida, movimientos_a_consumir)
 
     return partida, jugador_del_turno, jugador_a_bloquear
+
+def test_bloquear_figura_color_prohibido_403(client, test_db, test_ws_messages):
+    """
+    Test sobre el correcto comportamiento cuando se intenta bloquear con el color prohibido.
+    """
+
+    modificaciones, eliminadas, creadas = bloqueo_generico_test(client, test_db,
+        mano_del_jugador_a_bloquear=["f1", "f2"],
+        n_movimientos_a_consumir=2,
+        request_carta_fig="f1",
+        jugador_a_bloquear_bloqueado=False,
+        status_code_esperado=403,
+        respuesta_esperada={'detail': 'La figura tiene el color prohibido.'},
+        color_prohibido = 2,
+    )
+
+    assert set(modificaciones) == set(), "Fallo: Se esperaba que no hubieran modificaciones."
+    assert set(eliminadas) == set(), "Fallo: Se esperaba que no se eliminaran elementos."
+    assert set(creadas) == set(), "Fallo: Se esperaba que no hubieran creaciones."
