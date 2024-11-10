@@ -2,6 +2,7 @@ from fastapi import WebSocket
 from pydantic import BaseModel
 from enum import Enum
 from devtools.check_types import safe_type_check
+import logging
 
 class MessageType(Enum):
     ACTUALIZAR_SALA_ESPERA = "actualizar_sala_espera"
@@ -50,6 +51,8 @@ class PartidasConnectionManager:
         if partida_id not in self.active_connections.keys():
             self.active_connections[partida_id] = {}
         self.active_connections[partida_id][jugador_id] = websocket
+        logging.info(f"Jugador {jugador_id} conectado a la partida {partida_id}")
+
 
     @safe_type_check
     async def send_actualizar_sala_espera(self, partida_id: int):
@@ -98,11 +101,20 @@ class PartidasConnectionManager:
         if partida_id in self.active_connections.keys():
             for connection in self.active_connections[partida_id].values():
                 await connection.send_text(message.json())
+        else:
+            logging.warning(f"No se encontraron conexiones activas para la partida {partida_id}")
 
     def disconnect(self, partida_id: int, jugador_id: int):
-        self.active_connections[partida_id].pop(jugador_id)
-        if len(self.active_connections[partida_id]) == 0:
-            self.active_connections.pop(partida_id)
+        if partida_id in self.active_connections:
+            if jugador_id in self.active_connections[partida_id]:
+                self.active_connections[partida_id].pop(jugador_id)
+            else:
+                logging.warning(f"Jugador {jugador_id} no encontrado en la partida {partida_id}")
+            if len(self.active_connections[partida_id]) == 0:
+                del self.active_connections[partida_id]
+                logging.info(f"Jugador {jugador_id} desconectado.")
+        else:
+            logging.warning(f"Partida {partida_id} no encontrada")
 
 
 ws_partidas_manager = PartidasConnectionManager()
