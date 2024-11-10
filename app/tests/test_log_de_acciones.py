@@ -49,7 +49,7 @@ def test_log_abandonar_partida(client, test_db, test_ws_broadcast_messages, test
 def test_log_fin_de_turno(client, test_db, test_ws_broadcast_messages, test_ws_counts):
     with mock.patch('crud.TemporizadorTurno.TemporizadorTurno.get_gmt_zulu_time', return_value="esto esta mockeado"):
         test_ws_broadcast_messages['partidas'] = [
-            {'partida_id': 1, 'message': {'action': 'sincronizar_mensaje', 'data': {'message': 'El turno de Creador: Ha finalizado', 'id_jugador': 1, 'type_message': 'ACTION'}}},
+            {'partida_id': 1, 'message': {'action': 'sincronizar_mensaje', 'data': {'message': 'Creador: Ha finalizado el turno del jugador', 'id_jugador': 1, 'type_message': 'ACTION'}}},
             {'partida_id': 1, 'message': {'action': 'actualizar_turno', 'data': None}},
             {'partida_id': 1, 'message': {'action': 'actualizar_tablero', 'data': None}},
             {'partida_id': 1, 'message': {'action': 'sincronizar_turno', 'data': {'duracion': 120, 'inicio': 'esto esta mockeado'}}}

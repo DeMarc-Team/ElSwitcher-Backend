@@ -27,7 +27,6 @@ class PartidaDetails2(PartidaData):
     id_creador: int | None
     iniciada: bool
     espacios_disponibles: int
-    #jugadores: list[jugador] = []
 
 class JugadorData(BaseModel):
     nombre: str
