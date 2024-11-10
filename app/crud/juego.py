@@ -406,15 +406,6 @@ def verificar_color_prohibido(id_partida: int, figura: list[Casilla]):
         raise ForbiddenError("La figura tiene el color prohibido.")
     return False
 
-def __get_color_coordenadas(partida: Partida, coords_figura)->int:
-    '''
-    Dada una figura, retorna el color de la primera casilla en el tablero.
-    '''
-    import json
-    tablero = json.loads(partida.tablero)
-    coordenadas = list(coords_figura)
-    color = tablero[coordenadas[0][0]][coordenadas[0][1]]
-    return color
 
 
 def verificar_partida_existe_y_jugador_pertenece(id_partida, jugador_id):
@@ -431,17 +422,6 @@ def verificar_partida_existe_y_jugador_pertenece(id_partida, jugador_id):
         JugadoresRepo().get_by_id(jugador_id)
     except ResourceNotFoundError:
         raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {id_partida}.")
-def verificar_color_prohibido(id_partida: int, figura: list[Casilla]):
-    """
-    Verifica que la figura no tenga el color prohibido.
-    Si lo tiene, arroja una excepción ForbiddenError.
-    """
-    partida = PartidaRepo().get_by_id(id_partida)
-    color_prohibido = partida.color_prohibido
-    color_figura = __get_color_coordenadas(partida, casillas_to_coords_figura_set(figura))
-    if color_prohibido == color_figura:
-        raise ForbiddenError("La figura tiene el color prohibido.")
-    return False
 
 def __get_color_coordenadas(partida: Partida, coords_figura)->int:
     '''

@@ -3,8 +3,6 @@ import copy
 from models import Partida
 from factory import crear_partida, unir_jugadores, iniciar_partida, CartaMovimiento
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_TABLERO, ACTUALIZAR_CARTAS_MOVIMIENTO
-import json
-import mock
 
 
 def test_hacer_movimiento_200(client, test_db, test_ws_counts):
