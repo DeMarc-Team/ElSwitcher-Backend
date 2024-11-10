@@ -93,14 +93,14 @@ class TemporizadorTurno:
                 partida_id, terminar_turno, args, duracion))
             self.temporizadores[partida_id] = tarea
 
-            inicio_turno = self.__get_gmt_zulu_time()
+            inicio_turno = self.get_gmt_zulu_time()
             duracion_turno = SEGUNDOS_TEMPORIZADOR_TURNO
             
             PartidaRepo().put_inicio_y_duracion_turno(partida_id, inicio_turno, duracion_turno)
             
             return inicio_turno, duracion_turno
 
-    def __get_gmt_zulu_time(self) -> str:
+    def get_gmt_zulu_time(self) -> str:
         """Devuelve el tiempo actual en formato GMT/UTC Zulu como un string en la forma 'YYYY-MM-DDTHH:MM:SSZ'."""
         return time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 

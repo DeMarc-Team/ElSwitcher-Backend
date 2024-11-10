@@ -1,4 +1,5 @@
 from fastapi import WebSocket
+import json
 from pydantic import BaseModel
 from enum import Enum
 from devtools.check_types import safe_type_check
@@ -13,6 +14,7 @@ class MessageType(Enum):
     HAY_GANADOR = "hay_ganador"
     PARTIDA_CANCELADA = "partida_cancelada"
     SINCRONIZAR_TURNO = "sincronizar_turno"
+    SINCRONIZAR_MENSAJE = "sincronizar_mensaje"
 
 ACTUALIZAR_SALA_ESPERA = MessageType.ACTUALIZAR_SALA_ESPERA.value
 ACTUALIZAR_TURNO = MessageType.ACTUALIZAR_TURNO.value
@@ -22,6 +24,7 @@ ACTUALIZAR_TABLERO = MessageType.ACTUALIZAR_TABLERO.value
 ACTUALIZAR_CARTAS_MOVIMIENTO = MessageType.ACTUALIZAR_CARTAS_MOVIMIENTO.value
 ACTUALIZAR_CARTAS_FIGURA = MessageType.ACTUALIZAR_CARTAS_FIGURA.value
 SINCRONIZAR_TURNO = MessageType.SINCRONIZAR_TURNO.value
+SINCRONIZAR_MENSAJE = MessageType.SINCRONIZAR_MENSAJE.value
 
 class WsMessage(BaseModel):
     action: MessageType
@@ -64,7 +67,7 @@ class PartidasConnectionManager:
             "id": jugador_id,
             "nombre": nombre
         }
-        mensaje = WsMessage(action=MessageType.HAY_GANADOR, data=str(data))
+        mensaje = WsMessage(action=MessageType.HAY_GANADOR, data=json.dumps(data))
 
         await self.broadcast(partida_id, mensaje)
 
@@ -74,7 +77,7 @@ class PartidasConnectionManager:
             "duracion": duracion,
             "inicio": inicio
         }
-        mensaje = WsMessage(action=MessageType.SINCRONIZAR_TURNO, data=str(data))
+        mensaje = WsMessage(action=MessageType.SINCRONIZAR_TURNO, data=json.dumps(data))
         await self.broadcast(partida_id, mensaje)
 
     @safe_type_check
@@ -96,6 +99,26 @@ class PartidasConnectionManager:
     @safe_type_check
     async def send_partida_cancelada(self, partida_id: int):
         await self.broadcast(partida_id, WsMessage(action=MessageType.PARTIDA_CANCELADA))
+
+    @safe_type_check
+    async def send_sincronizar_mensaje(self, partida_id: int, jugador_id, mensaje):
+        data = {
+            "message": mensaje,
+            "id_jugador": jugador_id,
+            "type_message": "USER"
+        }
+
+        await self.broadcast(partida_id, WsMessage(action=MessageType.SINCRONIZAR_MENSAJE,data=json.dumps(data)))
+    
+    @safe_type_check
+    async def send_sincronizar_mensaje_log(self, partida_id: int, jugador_id, mensaje):
+        data = {
+            "message": mensaje,
+            "id_jugador": jugador_id,
+            "type_message": "ACTION"
+        }
+
+        await self.broadcast(partida_id, WsMessage(action=MessageType.SINCRONIZAR_MENSAJE,data=json.dumps(data)))
 
     async def broadcast(self, partida_id: int, message: WsMessage):
         if partida_id in self.active_connections.keys():

@@ -444,7 +444,7 @@ class WSManagerTester:
             action = call['message'].action.value
             data = call['message'].data
             if data is not None:
-                data = json.loads(data.replace("'", '"'))
+                data = json.loads(data)
             
             # Crear diccionario
             parsed_call = {}

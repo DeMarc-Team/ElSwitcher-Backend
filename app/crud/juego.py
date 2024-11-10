@@ -4,7 +4,7 @@ from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida, Jugador, CartaMovimiento, MovimientoParcial
 from schemas import Casilla, CasillasMov, CompletarFiguraData, BloquearFiguraData
 from figuras import hallar_todas_las_figuras_en_tablero
-from crud.repository import PartidaRepo
+from crud.repository import PartidaRepo, JugadoresRepo
 
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (
@@ -24,6 +24,14 @@ def get_tablero(db: Session, partida_id: int):
         raise ResourceNotFoundError(f"Partida no encontrada")
 
     return juego.tablero
+
+def get_nombre_del_jugador(id_jugador):
+    try:
+        jugador = JugadoresRepo.get_by_id(id_jugador)
+    except ResourceNotFoundError:
+        raise ResourceNotFoundError(f"El jugador con ID {id_jugador} no participa de la partida")
+
+    return jugador.nombre
 
 
 def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: CasillasMov, db: Session):
@@ -397,6 +405,23 @@ def verificar_color_prohibido(id_partida: int, figura: list[Casilla]):
     if color_prohibido == color_figura:
         raise ForbiddenError("La figura tiene el color prohibido.")
     return False
+
+
+
+def verificar_partida_existe_y_jugador_pertenece(id_partida, jugador_id):
+    """
+        Si la partida no existe, o el jugador
+        no pertenece a la partida, lanza una excepción.
+    """
+    try:
+        PartidaRepo().get_by_id(id_partida)
+    except ResourceNotFoundError:
+        raise ResourceNotFoundError(f"Partida con ID {id_partida} no encontrada.")
+
+    try:
+        JugadoresRepo().get_by_id(jugador_id)
+    except ResourceNotFoundError:
+        raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {id_partida}.")
 
 def __get_color_coordenadas(partida: Partida, coords_figura)->int:
     '''
