@@ -1,6 +1,7 @@
 
 from factory import crear_partida, unir_jugadores, iniciar_partida
 from tools import capturar_metadata as capturar, comparar_capturas, get_all_tables
+from verifications import check_response
 
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
 from websockets_manager.ws_partidas_manager import SINCRONIZAR_MENSAJE
@@ -14,7 +15,8 @@ def test_enviar_un_mensaje(client, test_db ,test_ws_broadcast_messages):
     
     captura_inicial = capturar(get_all_tables(test_db))
     
-    client.post(test_db, f"/juego/{partida.id}/jugadores/{creador.id}/chat", json={"message": "Soy el mas crack de la partida"})
+    respuesta = client.post(test_db, f"/juego/{partida.id}/jugadores/{creador.id}/chat", json={"message": "Soy el mas crack de la partida"})
+    check_response(respuesta, 200, {"detail": f"Mensaje enviado correctamente por Creador"})
 
     captura_final = capturar(get_all_tables(test_db))
     
@@ -42,12 +44,15 @@ def test_enviar_varios_mensajes(client, test_db ,test_ws_broadcast_messages):
     
     captura_inicial = capturar(get_all_tables(test_db))
     
-    client.post(test_db, f"/juego/{partida.id}/jugadores/{creador.id}/chat", json={"message": "Soy el mas crack de la partida"})
+    response = client.post(test_db, f"/juego/{partida.id}/jugadores/{creador.id}/chat", json={"message": "Soy el mas crack de la partida"})
+    check_response(response, 200, {"detail": f"Mensaje enviado correctamente por Creador"})
     for i in range(6):
         if (i % 2 == 0):
-            client.post(test_db, f"/juego/{partida.id}/jugadores/{creador.id}/chat", json={"message": f"No, yo soy el mas crack de la partida"})
+            response = client.post(test_db, f"/juego/{partida.id}/jugadores/{creador.id}/chat", json={"message": f"No, yo soy el mas crack de la partida"})
+            check_response(response, 200, {"detail": f"Mensaje enviado correctamente por Creador"})
         else:
-            client.post(test_db, f"/juego/{partida.id}/jugadores/{jugador2.id}/chat", json={"message": f"No, yo soy el mas crack de la partida"})
+            response = client.post(test_db, f"/juego/{partida.id}/jugadores/{jugador2.id}/chat", json={"message": f"No, yo soy el mas crack de la partida"})
+            check_response(response, 200, {"detail": f"Mensaje enviado correctamente por Jugador2"})
 
     captura_final = capturar(get_all_tables(test_db))
     modificaciones, eliminadas, creadas = comparar_capturas(captura_inicial, captura_final)

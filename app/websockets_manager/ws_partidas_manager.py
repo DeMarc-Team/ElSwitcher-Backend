@@ -117,16 +117,6 @@ class PartidasConnectionManager:
 
         await self.broadcast(partida_id, WsMessage(action=MessageType.SINCRONIZAR_MENSAJE,data=json.dumps(data)))
 
-    @safe_type_check
-    async def send_sincronizar_mensaje_log_(self, partida_id: int, jugador_id, nombre_jugador, mensaje):
-        data = {
-            "message": nombre_jugador + mensaje,
-            "id_jugador": jugador_id,
-            "type_message": "ACTION"
-        }
-
-        await self.broadcast(partida_id, WsMessage(action=MessageType.SINCRONIZAR_MENSAJE,data=json.dumps(data)))
-
     async def broadcast(self, partida_id: int, message: WsMessage):
         if partida_id in self.active_connections.keys():
             for connection in self.active_connections[partida_id].values():
