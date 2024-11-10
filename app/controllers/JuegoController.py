@@ -23,6 +23,9 @@ class JuegoController:
 
     async def terminar_turno(self, id_partida, id_jugador):
         turno_service.verificar_paso_de_turno(self.db, id_partida, id_jugador)
+
+        await log_action_fin_del_turno(id_partida, id_jugador)
+
         await terminar_temporizador_del_turno(self.db, id_partida)
 
     async def get_tablero(self, id_partida):
@@ -63,6 +66,7 @@ class JuegoController:
             partida_service.eliminar_partida(self.db, id_partida)
             await ws_home_manager.send_actualizar_partidas_activas(id_partida)
         else:
+            await log_action_completar_figura_propia(id_partida, id_jugador)
             await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
             await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
 
@@ -124,4 +128,16 @@ def log_action_bloqueo(id_partida, id_jugador):
     juego_service.verificar_partida_existe_y_jugador_pertenece(id_partida, id_jugador)
     nombre_jugador = juego_service.get_nombre_del_jugador(id_jugador)
     mensaje = "El jugador " + nombre_jugador + " ha bloqueado la carta de otro jugador"
+    return ws_partidas_manager.send_sincronizar_mensaje_log(id_partida, id_jugador, mensaje)
+
+def log_action_completar_figura_propia(id_partida, id_jugador):
+    juego_service.verificar_partida_existe_y_jugador_pertenece(id_partida, id_jugador)
+    nombre_jugador = juego_service.get_nombre_del_jugador(id_jugador)
+    mensaje = "El jugador " + nombre_jugador + " ha completado una de sus cartas de figura"
+    return ws_partidas_manager.send_sincronizar_mensaje_log(id_partida, id_jugador, mensaje)
+
+def log_action_fin_del_turno(id_partida, id_jugador):
+    juego_service.verificar_partida_existe_y_jugador_pertenece(id_partida, id_jugador)
+    nombre_jugador = juego_service.get_nombre_del_jugador(id_jugador)
+    mensaje = "El turno de " + nombre_jugador + " ha finalizado"
     return ws_partidas_manager.send_sincronizar_mensaje_log(id_partida, id_jugador, mensaje)
