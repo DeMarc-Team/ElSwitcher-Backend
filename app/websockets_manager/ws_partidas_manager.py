@@ -64,7 +64,7 @@ class PartidasConnectionManager:
             "id": jugador_id,
             "nombre": nombre
         }
-        mensaje = WsMessage(action=MessageType.HAY_GANADOR, data=str(data))
+        mensaje = WsMessage(action=MessageType.HAY_GANADOR, data=json.dumps(data))
 
         await self.broadcast(partida_id, mensaje)
 
@@ -74,7 +74,7 @@ class PartidasConnectionManager:
             "duracion": duracion,
             "inicio": inicio
         }
-        mensaje = WsMessage(action=MessageType.SINCRONIZAR_TURNO, data=str(data))
+        mensaje = WsMessage(action=MessageType.SINCRONIZAR_TURNO, data=json.dumps(data))
         await self.broadcast(partida_id, mensaje)
 
     @safe_type_check
