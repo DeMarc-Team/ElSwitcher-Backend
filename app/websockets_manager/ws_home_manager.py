@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from enum import Enum
 from uuid import uuid4
 from devtools.check_types import safe_type_check
+import json
 
 class MessageType(Enum):
     ACTUALIZAR_PARTIDAS = "actualizar_partidas"
@@ -49,7 +50,7 @@ class HomeConnectionManager:
         data = {
             "id_partida": id_partida
         }
-        mensaje = WsMessage(action=MessageType.ACTUALIZAR_PARTIDAS_ACTIVAS, data=str(data))
+        mensaje = WsMessage(action=MessageType.ACTUALIZAR_PARTIDAS_ACTIVAS, data=json.dumps(data))
         await self.broadcast(mensaje)
 
     async def send_actualizar_partidas(self):
