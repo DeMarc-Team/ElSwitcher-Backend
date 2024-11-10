@@ -4,23 +4,26 @@ from typing_extensions import Annotated
 class PartidaData(BaseModel):
     nombre_partida: str
     nombre_creador: str
+    privada: bool
+    contraseña: str | None = None
 
-class PartidaDetails(PartidaData):
+class PartidaDetails(BaseModel):
     id: int
     nombre_partida: str
     nombre_creador: str
     id_creador: int
     iniciada: bool
 
-class GetPartida(PartidaData): #Listar partidas
+class GetPartida(BaseModel): #Listar partidas
     id: int
     nombre_partida: str
     nombre_creador: str
     id_creador: int
     iniciada: bool
+    privada: bool
     numero_de_jugadores: int
 
-class PartidaDetails2(PartidaData):
+class PartidaDetails2(BaseModel):
     id: int
     nombre_partida: str
     nombre_creador: str
@@ -28,6 +31,10 @@ class PartidaDetails2(PartidaData):
     iniciada: bool
     espacios_disponibles: int
     #jugadores: list[jugador] = []
+
+class FromUnirsePartida(BaseModel):
+    nombre: str
+    contraseña: str = ""
 
 class JugadorData(BaseModel):
     nombre: str

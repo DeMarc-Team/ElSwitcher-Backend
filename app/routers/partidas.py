@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from models import Base
 from database import engine, get_db
 from controllers.PartidaController import PartidaController
-from schemas import PartidaData, GetPartida, PartidaDetails, PartidaDetails2, JugadorOnCreateResponse, JugadorData
+from schemas import PartidaData, GetPartida, PartidaDetails, PartidaDetails2, JugadorOnCreateResponse, JugadorData, FromUnirsePartida
 
 Base.metadata.create_all(bind=engine)
 
@@ -72,8 +72,8 @@ async def get_jugadores(partida_id: int, controller: PartidaController = Depends
              summary="Unirse a una partida",
              description="Crea un nuevo jugador, para el usuario, en la partida especificada por partida_id.",
              tags=["Jugadores"])
-async def join_to_partida(partida_id: int, jugador: JugadorData, controller: PartidaController = Depends(get_partida_controller)):
-    return await controller.join_to_partida(partida_id, jugador.nombre)
+async def join_to_partida(partida_id: int, datos_para_unirse: FromUnirsePartida, controller: PartidaController = Depends(get_partida_controller)):
+    return await controller.join_to_partida(partida_id, datos_para_unirse.nombre, datos_para_unirse.contraseña)
 
 
 # FIXME: Esto si quizas deberia ir en otro archivo

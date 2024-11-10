@@ -34,13 +34,22 @@ def get_partida_details(db: Session, id: int):
     return partidaDetails
 
 def create_partida(db: Session, partida: PartidaData):
-    new_partida = Partida(nombre_partida=partida.nombre_partida, nombre_creador=partida.nombre_creador)
+    
+    desambiguar_eleccion_de_privacidad(partida)
+    
+    new_partida = Partida(nombre_partida=partida.nombre_partida, nombre_creador=partida.nombre_creador, privada=partida.privada, contraseña=partida.contraseña)
     db.add(new_partida)
     db.flush()
     new_jugador = Jugador(nombre=partida.nombre_creador, es_creador=True, partida_id=new_partida.id)
     db.add(new_jugador)
     db.commit()
     return new_partida
+
+def desambiguar_eleccion_de_privacidad(partida: PartidaData):
+    if (partida.privada == False or partida.contraseña == None or partida.contraseña == ""):
+        partida.contraseña = ""
+        partida.privada = False
+
 
 def iniciar_partida(db: Session, id: int):
     partida = db.query(Partida).filter(Partida.id == id).first()
@@ -142,3 +151,11 @@ def eliminar_partida(db: Session, partida):
     temporizadores_turno.cancelar_temporizador_del_turno(partida.id)
     db.delete(partida)
     db.commit()
+    
+
+def validar_contraseña(contraseña,partida_id):
+    partida = PartidaRepo.get_by_id(partida_id)
+    if (partida.privada and partida.contraseña != contraseña):
+        raise ForbiddenError("La contraseña provista es incorrecta")
+    
+    return

@@ -50,6 +50,7 @@ def crear_partida(db: Session, nombre_partida: str = "Partida", nombre_creador: 
     partida = Partida(nombre_partida=nombre_partida,
                             nombre_creador=nombre_creador,
                             iniciada=False,
+                            privada=False,
                             tablero='[[2, 1, 3, 4, 2, 3], [4, 2, 1, 1, 3, 3], [2, 1, 3, 2, 3, 4], [4, 1, 1, 2, 2, 4], [1, 3, 1, 2, 1, 3], [2, 3, 4, 4, 4, 4]]')
     creador = Jugador(nombre=nombre_creador,
                       partidas=partida,
@@ -62,6 +63,38 @@ def crear_partida(db: Session, nombre_partida: str = "Partida", nombre_creador: 
 
     db.commit()
     return partida, creador
+
+def crear_partida_privada(db: Session, nombre_partida: str = "Partida", nombre_creador: str = "Creador") -> Partida:
+    '''
+    Función para crear una partida privada.
+
+    Devuelve la partida creada y el jugador creador.
+
+    Valores por defecto:
+    - nombre_partida = Partida
+    - nombre_creador = Creador
+    - iniciada = False
+    - tablero = '[[2, 1, 3, 4, 2, 3], [4, 2, 1, 1, 3, 3], [2, 1, 3, 2, 3, 4], [4, 1, 1, 2, 2, 4], [1, 3, 1, 2, 1, 3], [2, 3, 4, 4, 4, 4]]'
+    '''
+    partida = Partida(nombre_partida=nombre_partida,
+                            nombre_creador=nombre_creador,
+                            iniciada=False,
+                            privada=True,
+                            contraseña="ZXN0ZV9lc191bl9lYXN0ZXJfZWdnCg==",
+                            tablero='[[2, 1, 3, 4, 2, 3], [4, 2, 1, 1, 3, 3], [2, 1, 3, 2, 3, 4], [4, 1, 1, 2, 2, 4], [1, 3, 1, 2, 1, 3], [2, 3, 4, 4, 4, 4]]')
+                            
+    creador = Jugador(nombre=nombre_creador,
+                      partidas=partida,
+                      es_creador=True,
+                      orden=0)
+    partida.jugadores.append(creador)
+    
+    db.add(creador)
+    db.add(partida)
+
+    db.commit()
+    return partida, creador
+
 
 def prohibir_color(db: Session, partida: Partida, color: int):
     '''
