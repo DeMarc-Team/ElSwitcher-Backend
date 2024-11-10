@@ -131,11 +131,12 @@ class PartidasConnectionManager:
         if partida_id in self.active_connections:
             if jugador_id in self.active_connections[partida_id]:
                 self.active_connections[partida_id].pop(jugador_id)
+                logging.info(f"Jugador {jugador_id} desconectado.")
             else:
                 logging.warning(f"Jugador {jugador_id} no encontrado en la partida {partida_id}")
             if len(self.active_connections[partida_id]) == 0:
                 del self.active_connections[partida_id]
-                logging.info(f"Jugador {jugador_id} desconectado.")
+                logging.info(f"Se eliminaron todas las conexiones de la partida {partida_id}.")
         else:
             logging.warning(f"Partida {partida_id} no encontrada")
 
