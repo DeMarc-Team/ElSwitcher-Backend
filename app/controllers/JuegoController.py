@@ -115,29 +115,29 @@ async def terminar_temporizador_del_turno(db, id_partida):
 def log_action_movimiento(id_partida, id_jugador):
     juego_service.verificar_partida_existe_y_jugador_pertenece(id_partida, id_jugador)
     nombre_jugador = juego_service.get_nombre_del_jugador(id_jugador)
-    mensaje = "El jugador " + nombre_jugador + " ha movido ficha"
+    mensaje = nombre_jugador + ": Ha realizado un movimiento"
     return ws_partidas_manager.send_sincronizar_mensaje_log(id_partida, id_jugador, mensaje)
 
 def log_action_deshacer_movimiento(id_partida, id_jugador):
     juego_service.verificar_partida_existe_y_jugador_pertenece(id_partida, id_jugador)
     nombre_jugador = juego_service.get_nombre_del_jugador(id_jugador)
-    mensaje = "El jugador " + nombre_jugador + " ha deshecho su último movimiento"
+    mensaje = nombre_jugador + ": Ha deshecho su último movimiento"
     return ws_partidas_manager.send_sincronizar_mensaje_log(id_partida, id_jugador, mensaje)
 
 def log_action_bloqueo(id_partida, id_jugador):
     juego_service.verificar_partida_existe_y_jugador_pertenece(id_partida, id_jugador)
     nombre_jugador = juego_service.get_nombre_del_jugador(id_jugador)
-    mensaje = "El jugador " + nombre_jugador + " ha bloqueado la carta de otro jugador"
+    mensaje = nombre_jugador + ": Ha bloqueado la carta de otro jugador"
     return ws_partidas_manager.send_sincronizar_mensaje_log(id_partida, id_jugador, mensaje)
 
 def log_action_completar_figura_propia(id_partida, id_jugador):
     juego_service.verificar_partida_existe_y_jugador_pertenece(id_partida, id_jugador)
     nombre_jugador = juego_service.get_nombre_del_jugador(id_jugador)
-    mensaje = "El jugador " + nombre_jugador + " ha completado una de sus cartas de figura"
+    mensaje = nombre_jugador + ": Ha completado una de sus cartas de figura"
     return ws_partidas_manager.send_sincronizar_mensaje_log(id_partida, id_jugador, mensaje)
 
 def log_action_fin_del_turno(id_partida, id_jugador):
     juego_service.verificar_partida_existe_y_jugador_pertenece(id_partida, id_jugador)
     nombre_jugador = juego_service.get_nombre_del_jugador(id_jugador)
-    mensaje = "El turno de " + nombre_jugador + " ha finalizado"
+    mensaje = "El turno de " + nombre_jugador + ": Ha finalizado"
     return ws_partidas_manager.send_sincronizar_mensaje_log(id_partida, id_jugador, mensaje)
