@@ -20,7 +20,8 @@ def test_abandonar_partida_en_el_turno_200(client, test_db, test_ws_broadcast_me
         {'partida_id': 1, 'message': {'action': ACTUALIZAR_TABLERO, 'data': None}},
         {'partida_id': 1, 'message': {'action': ACTUALIZAR_SALA_ESPERA, 'data': None}},
         {'partida_id': 1, 'message': {'action': SINCRONIZAR_TURNO, 'data': {
-            'duracion': SEGUNDOS_TEMPORIZADOR_TURNO, 'inicio': mock_timeGmt}}}]
+            'duracion': SEGUNDOS_TEMPORIZADOR_TURNO, 'inicio': mock_timeGmt}}},
+        {'partida_id': 1, 'message': {'action': 'sincronizar_mensaje', 'data': {'message': 'Creador: Ha abandonado la partida', 'id_jugador': 1, 'type_message': 'ACTION'}}}]
     
     # Inicializamos la precondicion
     partida, _ = crear_partida(db=test_db)

@@ -2,11 +2,13 @@ import copy
 
 from models import Partida
 from factory import crear_partida, unir_jugadores, iniciar_partida, CartaMovimiento
-import json
-import mock
+from websockets_manager.ws_partidas_manager import ACTUALIZAR_TABLERO, ACTUALIZAR_CARTAS_MOVIMIENTO
 
 
-def test_hacer_movimiento_200(client, test_db):
+def test_hacer_movimiento_200(client, test_db, test_ws_counts):
+    test_ws_counts[ACTUALIZAR_TABLERO] = 1
+    test_ws_counts[ACTUALIZAR_CARTAS_MOVIMIENTO] = 1
+
     partida, creador = crear_partida(db=test_db, nombre_partida="partida_con_2_jugadores", nombre_creador="Creador")
     tablero_original = copy.copy(partida.tablero)
     tablero_esperado = '[[3, 1, 3, 4, 2, 3], [4, 2, 1, 1, 3, 3], [2, 1, 2, 2, 3, 4], [4, 1, 1, 2, 2, 4], [1, 3, 1, 2, 1, 3], [2, 3, 4, 4, 4, 4]]'

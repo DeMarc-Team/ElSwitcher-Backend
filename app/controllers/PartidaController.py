@@ -2,7 +2,7 @@ import crud.partidas as partida_service
 import crud.jugadores as jugador_service
 from websockets_manager.ws_home_manager import ws_home_manager
 from websockets_manager.ws_partidas_manager import ws_partidas_manager
-from controllers.JuegoController import iniciar_temporizador_turno, terminar_temporizador_del_turno
+from controllers.JuegoController import iniciar_temporizador_turno, terminar_temporizador_del_turno, log_action
 class PartidaController:
     def __init__(self, db):
         self.db = db
@@ -41,6 +41,7 @@ class PartidaController:
             await ws_home_manager.send_actualizar_partidas_activas(partida_id)
             return {"detail": "El jugador abandonó la partida exitosamente y se ha declarado un ganador"}
         
+        await log_action(partida_id, jugador_id, "Ha abandonado la partida")
         if (partida_service.es_su_turno(self.db, partida_id, jugador_id)):
             await terminar_temporizador_del_turno(self.db, partida_id)
         
