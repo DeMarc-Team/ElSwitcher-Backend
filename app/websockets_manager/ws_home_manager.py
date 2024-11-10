@@ -43,8 +43,6 @@ class HomeConnectionManager:
 
         # Aceptamos la conexion al final del todo, una vez que ya fue almacenada.
         await websocket.accept()
-        
-        logging.info(f"Usuario {user_id} conectado.")
 
         return user_id
     
