@@ -22,7 +22,8 @@ SQLALCHEMY_DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 
 # Configurar logging para que muestre solo los errores
 import logging
-logging.basicConfig()
+logging.getLogger().handlers.clear() # Para evitar que se dupliquen los logs
+logging.getLogger().level = logging.INFO
 logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING) # Si se quiere ver los queries, cambiar a INFO
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
