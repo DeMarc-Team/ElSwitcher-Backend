@@ -84,7 +84,7 @@ async def modificar_casillas(id_partida: int, id_jugador: int, coordenadas: Casi
                summary="Eliminar el último movimiento parcial de un jugador.",
                tags=["Juego"])
 async def deshacer_movimiento(id_partida: int, id_jugador: int, controller: JuegoController = Depends(get_game_controller)):
-    await controller.deshacer_movimiento(id_partida)
+    await controller.deshacer_movimiento(id_partida, id_jugador)
 
 @router.get('/{id_partida}/jugadores/{id_jugador}/mov-parciales',
                summary="Obtiene el stack de los movimientos parciales",

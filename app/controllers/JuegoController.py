@@ -37,11 +37,17 @@ class JuegoController:
 
     async def modificar_casillas(self, id_partida, id_jugador, coordenadas):
         juego_service.modificar_casillas(id_partida, id_jugador, coordenadas, self.db)
+        
+        await log_action_movimiento(id_partida, id_jugador)
+
         await ws_partidas_manager.send_actualizar_tablero(id_partida)
         await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
 
-    async def deshacer_movimiento(self, id_partida):
+    async def deshacer_movimiento(self, id_partida, id_jugador):
         juego_service.deshacer_movimiento(self.db, id_partida)
+
+        await log_action_deshacer_movimiento(id_partida, id_jugador)
+
         await ws_partidas_manager.send_actualizar_tablero(id_partida)
         await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
 
@@ -63,6 +69,9 @@ class JuegoController:
     async def bloquear_carta_ajena(self, id_partida, id_jugador, bloqueo_data):
         juego_service.verificar_color_prohibido(id_partida, bloqueo_data.figura)
         juego_service.bloquear_carta_ajena(self.db, id_partida, id_jugador, bloqueo_data)
+
+        await log_action_bloqueo(id_partida, id_jugador)
+
         await ws_partidas_manager.send_actualizar_cartas_figura(id_partida)
         await ws_partidas_manager.send_actualizar_cartas_movimiento(id_partida)
 
@@ -98,3 +107,21 @@ async def iniciar_temporizador_turno(db, id_partida):
 
 async def terminar_temporizador_del_turno(db, id_partida):
     await temporizadores_turno.terminar_temporizador_del_turno(id_partida,terminar_turno,(db, id_partida))
+
+def log_action_movimiento(id_partida, id_jugador):
+    juego_service.verificar_partida_existe_y_jugador_pertenece(id_partida, id_jugador)
+    nombre_jugador = juego_service.get_nombre_del_jugador(id_jugador)
+    mensaje = "El jugador " + nombre_jugador + " ha movido ficha"
+    return ws_partidas_manager.send_sincronizar_mensaje_log(id_partida, id_jugador, mensaje)
+
+def log_action_deshacer_movimiento(id_partida, id_jugador):
+    juego_service.verificar_partida_existe_y_jugador_pertenece(id_partida, id_jugador)
+    nombre_jugador = juego_service.get_nombre_del_jugador(id_jugador)
+    mensaje = "El jugador " + nombre_jugador + " ha deshecho su último movimiento"
+    return ws_partidas_manager.send_sincronizar_mensaje_log(id_partida, id_jugador, mensaje)
+
+def log_action_bloqueo(id_partida, id_jugador):
+    juego_service.verificar_partida_existe_y_jugador_pertenece(id_partida, id_jugador)
+    nombre_jugador = juego_service.get_nombre_del_jugador(id_jugador)
+    mensaje = "El jugador " + nombre_jugador + " ha bloqueado la carta de otro jugador"
+    return ws_partidas_manager.send_sincronizar_mensaje_log(id_partida, id_jugador, mensaje)
