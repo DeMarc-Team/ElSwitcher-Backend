@@ -1,6 +1,8 @@
 
 from factory import crear_partida, unir_jugadores, iniciar_partida
 from tools import capturar_metadata as capturar, comparar_capturas, get_all_tables
+from test_endpoint_jugar_carta_movimiento import agregar_m1_a_los_inventarios, jugar_carta_m1
+from test_bloquear_figura import bloqueo_generico_test
 from verifications import check_response
 
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS

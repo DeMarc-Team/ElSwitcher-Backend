@@ -6,7 +6,7 @@ import json
 import mock
 
 
-def test_hacer_movimiento_200(client, test_db):
+def test_hacer_movimiento_200(client, test_db, test_ws_count):
     partida, creador = crear_partida(db=test_db, nombre_partida="partida_con_2_jugadores", nombre_creador="Creador")
     tablero_original = copy.copy(partida.tablero)
     tablero_esperado = '[[3, 1, 3, 4, 2, 3], [4, 2, 1, 1, 3, 3], [2, 1, 2, 2, 3, 4], [4, 1, 1, 2, 2, 4], [1, 3, 1, 2, 1, 3], [2, 3, 4, 4, 4, 4]]'

@@ -141,3 +141,9 @@ def log_action_fin_del_turno(id_partida, id_jugador):
     nombre_jugador = juego_service.get_nombre_del_jugador(id_jugador)
     mensaje = "El turno de " + nombre_jugador + ": Ha finalizado"
     return ws_partidas_manager.send_sincronizar_mensaje_log(id_partida, id_jugador, mensaje)
+
+def log_abandona(id_partida, id_jugador):
+    juego_service.verificar_partida_existe_y_jugador_pertenece(id_partida, id_jugador)
+    nombre_jugador = juego_service.get_nombre_del_jugador(id_jugador)
+    mensaje = nombre_jugador + ": Ha abandonado la partida"
+    return ws_partidas_manager.send_sincronizar_mensaje_log(id_partida, id_jugador, mensaje)
