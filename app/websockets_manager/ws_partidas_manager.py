@@ -125,7 +125,7 @@ class PartidasConnectionManager:
             for connection in self.active_connections[partida_id].values():
                 await connection.send_text(message.json())
         else:
-            logging.warning(f"No se encontraron conexiones activas para la partida {partida_id}")
+            logging.warning(f"Broadcast fallido: No se encontraron conexiones activas para la partida {partida_id}")
 
     def disconnect(self, partida_id: int, jugador_id: int):
         if partida_id in self.active_connections:
@@ -133,12 +133,12 @@ class PartidasConnectionManager:
                 self.active_connections[partida_id].pop(jugador_id)
                 logging.info(f"Jugador {jugador_id} desconectado.")
             else:
-                logging.warning(f"Jugador {jugador_id} no encontrado en la partida {partida_id}")
+                logging.warning(f"Desconexión fallida: Jugador {jugador_id} no encontrado en la partida {partida_id}")
             if len(self.active_connections[partida_id]) == 0:
                 del self.active_connections[partida_id]
                 logging.info(f"Se eliminaron todas las conexiones de la partida {partida_id}.")
         else:
-            logging.warning(f"Partida {partida_id} no encontrada")
+            logging.warning(f"Desconexión fallida: Partida {partida_id} no encontrada")
 
 
 ws_partidas_manager = PartidasConnectionManager()

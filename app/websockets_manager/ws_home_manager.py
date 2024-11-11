@@ -66,7 +66,7 @@ class HomeConnectionManager:
             self.active_connections.pop(user_id)
             logging.info(f"Usuario {user_id} desconectado.")
         else:
-            logging.warning(f"Intento de desconexión fallido: Usuario {user_id} no encontrado.")
+            logging.warning(f"Desconexión fallida: Usuario {user_id} no encontrado.")
 
 
 
