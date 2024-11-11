@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from service.TemporizadorTurno import TemporizadorTurno
 import asyncio
-from DB.models import (Partida,
+from db.models import (Partida,
                     Jugador,
                     CartaFigura,
                     CartaMovimiento,

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from exceptions import ResourceNotFoundError, ForbiddenError
-from DB.models import Jugador
+from db.models import Jugador
 from schemas import JugadorData
 from service.partidas import get_partida_details
 

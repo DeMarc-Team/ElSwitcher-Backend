@@ -3,10 +3,10 @@ from service.juego import deshacer_movimiento
 import warnings # NOTE: Los warnings se usan para cosas que no deberian pasar, errores no esperados.
 
 from exceptions import ResourceNotFoundError, ForbiddenError
-from DB.models import Partida, Jugador, CartaMovimiento
+from db.models import Partida, Jugador, CartaMovimiento
 from schemas import TurnoDetails
 from constantes_juego import N_FIGURAS_REVELADAS
-from DB.repository import PartidaRepo
+from db.repository import PartidaRepo
 
 def get_inicio_y_duracion_turno(partida_id):
     """

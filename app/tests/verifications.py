@@ -1,4 +1,4 @@
-from DB.models import Jugador, Partida, CartaFigura
+from db.models import Jugador, Partida, CartaFigura
 
 # --------------------------------Response--------------------------------
 def check_response(response, status_code_esperado, respuesta_esperada):

@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.ext.orderinglist import ordering_list
 
 from service.figuras import SET_DE_CARTAS
-from DB.database import Base
+from db.database import Base
 
 # JUGADOR ------------------------------------------------------
 class Jugador(Base):

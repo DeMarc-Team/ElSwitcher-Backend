@@ -62,7 +62,7 @@ class PartidaController:
         return jugador_service.get_jugadores(self.db, partida_id)
 
     async def join_to_partida(self, partida_id: int, nombre_jugador: str, contraseña: str):
-        from DB.models import Jugador
+        from db.models import Jugador
 
         partida_service.validar_contraseña(contraseña, partida_id) # Si falla la validación se levanta una exepción y se devuelve forbidden
         
