@@ -1,5 +1,5 @@
 
-from models import Partida
+from db.models import Partida
 from factory import crear_partida, unir_jugadores, iniciar_partida
 from tools import get_all_tables, comparar_capturas, capturar_metadata as capturar, verificar_cantidad_tuplas, eliminar_tablas_laxas
 from verifications import check_response

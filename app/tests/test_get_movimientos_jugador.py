@@ -12,7 +12,7 @@ def test_get_cartas_de_movimiento_happy_path(client, test_db):
     )
 
     with mock.patch(
-        "models.CartaMovimiento.random_movimiento", mock.Mock(return_value="mov01")
+        "db.models.CartaMovimiento.random_movimiento", mock.Mock(return_value="mov01")
     ):
         iniciar_partida(db=test_db, partida=partida)
 

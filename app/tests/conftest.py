@@ -11,7 +11,7 @@ import os
 import sys # Estas dos lineas modifican las importanciones de los modulos en los tests
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 
-from database import Base, get_db
+from db.database import Base, get_db
 from main import app
 from tools import WSManagerTester; tester = WSManagerTester()
 from factory import test_temporizadores_turno, MOCK_GMT_TIME_ZT
@@ -66,14 +66,14 @@ def test_db():
     Base.metadata.create_all(bind=engine)
     # Creamos una nueva sesión de base de datos para cada test
     db = TestingSessionLocal()
-    with patch('crud.repository.BaseRepository.session', db): # Para que repository use la misma session que el test
+    with patch('db.repository.BaseRepository.session', db): # Para que repository use la misma session que el test
         yield db
     db.close()
 
 @pytest.fixture(scope='function', autouse=True)
 def mock_dict_temporizadores_turno():
     # Mockeamos el diccionario del temporizador de turno
-    with patch("crud.TemporizadorTurno.temporizadores_turno", test_temporizadores_turno):
+    with patch("services.TemporizadorTurno.temporizadores_turno", test_temporizadores_turno):
         yield
         test_temporizadores_turno.limpiar_temporizadores()
 

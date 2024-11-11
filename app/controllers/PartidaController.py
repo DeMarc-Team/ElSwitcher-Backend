@@ -1,5 +1,5 @@
-import crud.partidas as partida_service
-import crud.jugadores as jugador_service
+import services.partidas as partida_service
+import services.jugadores as jugador_service
 from websockets_manager.ws_home_manager import ws_home_manager
 from websockets_manager.ws_partidas_manager import ws_partidas_manager
 from controllers.JuegoController import iniciar_temporizador_turno, terminar_temporizador_del_turno, log_action
@@ -62,7 +62,7 @@ class PartidaController:
         return jugador_service.get_jugadores(self.db, partida_id)
 
     async def join_to_partida(self, partida_id: int, nombre_jugador: str, contraseña: str):
-        from models import Jugador
+        from db.models import Jugador
 
         partida_service.validar_contraseña(contraseña, partida_id) # Si falla la validación se levanta una exepción y se devuelve forbidden
         

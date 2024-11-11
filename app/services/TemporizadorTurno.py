@@ -4,7 +4,7 @@ import warnings
 
 from constantes_juego import SEGUNDOS_TEMPORIZADOR_TURNO
 from exceptions import ResourceNotFoundError, ForbiddenError
-from crud.repository import PartidaRepo
+from db.repository import PartidaRepo
 
 # NOTE: Ningun warning deberia suceder en produccion.
 

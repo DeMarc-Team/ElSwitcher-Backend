@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session
 
 from exceptions import ResourceNotFoundError, ForbiddenError
-from models import Partida, Jugador, CartaMovimiento, MovimientoParcial
+from db.models import Partida, Jugador, CartaMovimiento, MovimientoParcial
 from schemas import Casilla, CasillasMov, CompletarFiguraData, BloquearFiguraData
-from figuras import hallar_todas_las_figuras_en_tablero
-from crud.repository import PartidaRepo, JugadoresRepo
+from services.figuras import hallar_todas_las_figuras_en_tablero
+from db.repository import PartidaRepo, JugadoresRepo
 
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (
@@ -35,12 +35,12 @@ def get_nombre_del_jugador(id_jugador):
 
 
 def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: CasillasMov, db: Session):
-    from movimientos import swapear_en_tablero, is_valid_move
+    from services.movimientos import swapear_en_tablero, is_valid_move
     import json
 
     juego = db.query(Partida).filter(Partida.id == id_partida).first()
 
-    if (juego == None): # Esto no habria que comporbarlo si crud tuviera un buen metodo get_juego
+    if (juego == None): # Esto no habria que comporbarlo si service tuviera un buen metodo get_juego
         raise ResourceNotFoundError(f"Partida no encontrada")
     
     if (juego.jugador_del_turno.id_jugador != id_jugador):
@@ -90,7 +90,7 @@ def desempaquetar_coords(coordenadas_y_carta):
     return origen,destino,mov
 
 def matchear_obtener_carta(codigo_movimiento):
-    from movimientos import SET_DE_MOVIMIENTOS
+    from services.movimientos import SET_DE_MOVIMIENTOS
     mov = next((carta for carta in SET_DE_MOVIMIENTOS if carta.movimiento == codigo_movimiento), None)
     if not mov:
         raise ResourceNotFoundError(f"Movimiento con codeMove {codigo_movimiento} no encontrado")
@@ -321,7 +321,7 @@ def casillas_to_coords_figura_set(casillas_figura):
 
 def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
     
-    from crud.partidas import get_partida_details # FIXME: arreglar esta chanchada con el repository
+    from services.partidas import get_partida_details # FIXME: arreglar esta chanchada con el repository
     partida = get_partida_details(db, partida_id) # raises ResourceNotFoundError if not found
     
     if (not partida):
@@ -356,7 +356,7 @@ def deshacer_movimiento(db: Session, id_partida, atomic=True):
     origen = ast.literal_eval(ultimo_movimiento.origen) # Estas tuplas se guardan como strings en la base de datos
     destino = ast.literal_eval(ultimo_movimiento.destino)
 
-    from movimientos import swapear_en_tablero
+    from services.movimientos import swapear_en_tablero
     import json
 
     tablero = json.loads(partida.tablero)

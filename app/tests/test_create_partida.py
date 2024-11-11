@@ -1,4 +1,4 @@
-from models import Partida, Jugador
+from db.models import Partida, Jugador
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
 
 def test_create_partida_publica(client, test_db, test_ws_messages):

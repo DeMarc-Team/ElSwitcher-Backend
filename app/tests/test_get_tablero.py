@@ -23,7 +23,7 @@ resaltadas_en_el_mock = {
     }
 }
 
-@mock.patch('crud.juego.get_tablero', mock.Mock(return_value=tablero_mock))
+@mock.patch('services.juego.get_tablero', mock.Mock(return_value=tablero_mock))
 def test_get_tablero_200(client, test_db):
     '''Test para obtener el tablero de una partida.'''
 
