@@ -1,8 +1,8 @@
-from database import engine, get_db, localSession
+from db.database import engine, get_db, localSession
 from exceptions import ResourceNotFoundError, ForbiddenError
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-from models import Partida, Jugador, CartaFigura, CartaMovimiento
+from db.models import Partida, Jugador, CartaFigura, CartaMovimiento
 import os
 
 _engine = engine

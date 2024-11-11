@@ -11,7 +11,7 @@ def test_get_cartas_figura_happy_path(client, test_db):
         db=test_db, partida=partida, numero_de_jugadores=2
     )
 
-    with mock.patch("models.CartaFigura.random_figura", return_value="fig01"):
+    with mock.patch("db.models.CartaFigura.random_figura", return_value="fig01"):
         iniciar_partida(db=test_db, partida=partida)
 
     for j in jugadores:
