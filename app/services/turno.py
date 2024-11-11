@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from service.juego import deshacer_movimiento
+from services.juego import deshacer_movimiento
 import warnings # NOTE: Los warnings se usan para cosas que no deberian pasar, errores no esperados.
 
 from exceptions import ResourceNotFoundError, ForbiddenError

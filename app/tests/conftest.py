@@ -72,7 +72,7 @@ def test_db():
 @pytest.fixture(scope='function', autouse=True)
 def mock_dict_temporizadores_turno():
     # Mockeamos el diccionario del temporizador de turno
-    with patch("service.TemporizadorTurno.temporizadores_turno", test_temporizadores_turno):
+    with patch("services.TemporizadorTurno.temporizadores_turno", test_temporizadores_turno):
         yield
         test_temporizadores_turno.limpiar_temporizadores()
 

@@ -1,5 +1,5 @@
 import pytest
-from service.movimientos import SET_DE_MOVIMIENTOS, is_valid_move, swapear_en_tablero
+from services.movimientos import SET_DE_MOVIMIENTOS, is_valid_move, swapear_en_tablero
 
 @pytest.fixture
 def tablero():
