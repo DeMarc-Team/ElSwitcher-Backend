@@ -43,6 +43,7 @@ class HomeConnectionManager:
 
         # Aceptamos la conexion al final del todo, una vez que ya fue almacenada.
         await websocket.accept()
+        logging.info(f"Usuario conectado al home.")
 
         return user_id
     
@@ -64,9 +65,9 @@ class HomeConnectionManager:
     def disconnect(self, user_id: int):
         if user_id in self.active_connections:
             self.active_connections.pop(user_id)
-            logging.info(f"Usuario {user_id} desconectado.")
+            logging.info(f"Usuario desconectado del home.")
         else:
-            logging.warning(f"Desconexión fallida: Usuario {user_id} no encontrado.")
+            logging.warning(f"Desconexión fallida del home: Usuario {user_id} no encontrado.")
 
 
 
