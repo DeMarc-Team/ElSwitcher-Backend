@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session
 
 from exceptions import ResourceNotFoundError, ForbiddenError
-from models import Partida, Jugador, CartaMovimiento, MovimientoParcial
+from DB.models import Partida, Jugador, CartaMovimiento, MovimientoParcial
 from schemas import Casilla, CasillasMov, CompletarFiguraData, BloquearFiguraData
 from figuras import hallar_todas_las_figuras_en_tablero
-from service.repository import PartidaRepo, JugadoresRepo
+from DB.repository import PartidaRepo, JugadoresRepo
 
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (

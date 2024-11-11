@@ -3,8 +3,8 @@ from fastapi import (
     Depends
 )
 from sqlalchemy.orm import Session
-from database import engine, get_db
-from models import Base
+from DB.database import engine, get_db
+from DB.models import Base
 from controllers.JuegoController import JuegoController
 from schemas import (
     CartaFiguraData,

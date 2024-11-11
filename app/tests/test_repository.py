@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from service.repository import BaseRepository, PartidaRepo, JugadoresRepo, CartasFiguraRepo, CartasMovimientoRepo, session
+from DB.repository import BaseRepository, PartidaRepo, JugadoresRepo, CartasFiguraRepo, CartasMovimientoRepo, session
 from factory import crear_partida, unir_jugadores, iniciar_partida
-from models import Partida, Jugador, CartaFigura, CartaMovimiento
+from DB.models import Partida, Jugador, CartaFigura, CartaMovimiento
 
 
 def test_get_partida_by_id(test_db):

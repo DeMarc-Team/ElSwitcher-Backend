@@ -1,6 +1,6 @@
 import copy
 
-from models import Partida
+from DB.models import Partida
 from factory import crear_partida, unir_jugadores, iniciar_partida, CartaMovimiento
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_TABLERO, ACTUALIZAR_CARTAS_MOVIMIENTO
 

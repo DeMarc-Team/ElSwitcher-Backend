@@ -1,7 +1,7 @@
 from sqlalchemy import inspect
 from sqlalchemy.sql import text
-from models import Base, Partida, Jugador 
-from database import engine
+from DB.models import Base, Partida, Jugador 
+from DB.database import engine
 
 def verificar_permisos(inspector, engine):
     """Verifica si se tienen permisos para acceder a la base de datos y realiza comprobaciones adicionales."""

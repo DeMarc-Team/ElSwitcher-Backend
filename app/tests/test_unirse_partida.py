@@ -1,4 +1,4 @@
-from models import Jugador, Partida
+from DB.models import Jugador, Partida
 from factory import crear_partida, crear_partida_privada, unir_jugadores, iniciar_partida
 from websockets_manager.ws_home_manager import ACTUALIZAR_PARTIDAS
 from websockets_manager.ws_partidas_manager import ACTUALIZAR_SALA_ESPERA, ACTUALIZAR_TURNO, HAY_GANADOR, PARTIDA_CANCELADA, ACTUALIZAR_TABLERO

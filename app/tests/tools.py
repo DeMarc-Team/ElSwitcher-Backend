@@ -1,6 +1,6 @@
 import re
 from sqlalchemy import inspect
-from database import Base
+from DB.database import Base
 from sqlalchemy.orm import Session
 import random
 from itertools import product

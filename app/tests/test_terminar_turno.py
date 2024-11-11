@@ -147,13 +147,13 @@ async def test_reponer_cartas_movimiento(client, test_db):
     
     partida, _ = crear_partida(test_db)
     unir_jugadores(test_db, partida, numero_de_jugadores=2)
-    with mock.patch("models.CartaMovimiento.random_movimiento", return_value="m1"):
+    with mock.patch("DB.models.CartaMovimiento.random_movimiento", return_value="m1"):
         iniciar_partida(db=test_db, partida=partida)
     jugador_del_turno = partida.jugador_del_turno
 
     consumir_carta_movimiento(test_db, jugador_del_turno, "m1", cantidad=2)
     
-    with mock.patch("models.CartaMovimiento.random_movimiento", mock.Mock(side_effect=["m2", "m3"])):
+    with mock.patch("DB.models.CartaMovimiento.random_movimiento", mock.Mock(side_effect=["m2", "m3"])):
         response = client.put(test_db, f'juego/{partida.id}/jugadores/{jugador_del_turno.id_jugador}/turno')
         await test_temporizadores_turno.wait_for_all_tasks()
         assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}."

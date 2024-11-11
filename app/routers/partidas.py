@@ -5,8 +5,8 @@ from fastapi import (
     WebSocketDisconnect
 )
 from sqlalchemy.orm import Session
-from models import Base
-from database import engine, get_db
+from DB.models import Base
+from DB.database import engine, get_db
 from controllers.PartidaController import PartidaController
 from schemas import PartidaData, GetPartida, PartidaDetails, PartidaDetails2, JugadorOnCreateResponse, JugadorData, FromUnirsePartida
 
