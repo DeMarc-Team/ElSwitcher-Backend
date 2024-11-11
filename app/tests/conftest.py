@@ -65,14 +65,14 @@ def test_db():
     Base.metadata.create_all(bind=engine)
     # Creamos una nueva sesión de base de datos para cada test
     db = TestingSessionLocal()
-    with patch('crud.repository.BaseRepository.session', db): # Para que repository use la misma session que el test
+    with patch('service.repository.BaseRepository.session', db): # Para que repository use la misma session que el test
         yield db
     db.close()
 
 @pytest.fixture(scope='function', autouse=True)
 def mock_dict_temporizadores_turno():
     # Mockeamos el diccionario del temporizador de turno
-    with patch("crud.TemporizadorTurno.temporizadores_turno", test_temporizadores_turno):
+    with patch("service.TemporizadorTurno.temporizadores_turno", test_temporizadores_turno):
         yield
         test_temporizadores_turno.limpiar_temporizadores()
 

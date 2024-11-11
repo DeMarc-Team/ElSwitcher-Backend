@@ -1,5 +1,5 @@
-import crud.partidas as partida_service
-import crud.jugadores as jugador_service
+import service.partidas as partida_service
+import service.jugadores as jugador_service
 from websockets_manager.ws_home_manager import ws_home_manager
 from websockets_manager.ws_partidas_manager import ws_partidas_manager
 from controllers.JuegoController import iniciar_temporizador_turno, terminar_temporizador_del_turno, log_action

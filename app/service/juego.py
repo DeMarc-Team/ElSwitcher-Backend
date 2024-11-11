@@ -4,7 +4,7 @@ from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida, Jugador, CartaMovimiento, MovimientoParcial
 from schemas import Casilla, CasillasMov, CompletarFiguraData, BloquearFiguraData
 from figuras import hallar_todas_las_figuras_en_tablero
-from crud.repository import PartidaRepo, JugadoresRepo
+from service.repository import PartidaRepo, JugadoresRepo
 
 def get_movimientos_jugador(db: Session, partida_id: int, jugador_id: int):
     jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (
@@ -40,7 +40,7 @@ def modificar_casillas(id_partida: int, id_jugador: int, coordenadas_y_carta: Ca
 
     juego = db.query(Partida).filter(Partida.id == id_partida).first()
 
-    if (juego == None): # Esto no habria que comporbarlo si crud tuviera un buen metodo get_juego
+    if (juego == None): # Esto no habria que comporbarlo si service tuviera un buen metodo get_juego
         raise ResourceNotFoundError(f"Partida no encontrada")
     
     if (juego.jugador_del_turno.id_jugador != id_jugador):
@@ -321,7 +321,7 @@ def casillas_to_coords_figura_set(casillas_figura):
 
 def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
     
-    from crud.partidas import get_partida_details # FIXME: arreglar esta chanchada con el repository
+    from service.partidas import get_partida_details # FIXME: arreglar esta chanchada con el repository
     partida = get_partida_details(db, partida_id) # raises ResourceNotFoundError if not found
     
     if (not partida):

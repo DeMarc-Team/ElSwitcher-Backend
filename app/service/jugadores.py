@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Jugador
 from schemas import JugadorData
-from crud.partidas import get_partida_details
+from service.partidas import get_partida_details
 
 def create_jugador(db: Session, jugador: JugadorData):
     

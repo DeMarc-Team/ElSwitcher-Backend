@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session
-from crud.juego import deshacer_movimiento
+from service.juego import deshacer_movimiento
 import warnings # NOTE: Los warnings se usan para cosas que no deberian pasar, errores no esperados.
 
 from exceptions import ResourceNotFoundError, ForbiddenError
 from models import Partida, Jugador, CartaMovimiento
 from schemas import TurnoDetails
 from constantes_juego import N_FIGURAS_REVELADAS
-from crud.repository import PartidaRepo
+from service.repository import PartidaRepo
 
 def get_inicio_y_duracion_turno(partida_id):
     """

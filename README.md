@@ -83,7 +83,7 @@ ElSwitcher-Backend
     │  main.py => archivo que determina la ejecución principal
     │  database.py => módulo que configura la conexión con la base de datos.
     │
-    └───crud => implementaciones de las consultas/operaciones de datos del sistema.
+    └───service => implementaciones de las consultas/operaciones de datos del sistema.
     │   │  module1.py => operaciones de module1
     │   │  ...
     │   └──moduleN.py => operaciones de moduleN
