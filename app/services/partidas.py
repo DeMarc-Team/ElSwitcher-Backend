@@ -4,9 +4,10 @@ from random import shuffle
 
 from exceptions import ResourceNotFoundError, ForbiddenError
 from schemas import PartidaData
-from models import Jugador, CartaFigura, CartaMovimiento, Partida
-from crud.juego import terminar_turno
+from db.models import Jugador, CartaFigura, CartaMovimiento, Partida
 from constantes_juego import N_CARTAS_FIGURA_TOTALES, N_FIGURAS_REVELADAS
+from services.TemporizadorTurno import temporizadores_turno
+from db.repository import PartidaRepo
 
 def get_id_creador(db: Session, partida_id):
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
@@ -33,13 +34,22 @@ def get_partida_details(db: Session, id: int):
     return partidaDetails
 
 def create_partida(db: Session, partida: PartidaData):
-    new_partida = Partida(nombre_partida=partida.nombre_partida, nombre_creador=partida.nombre_creador)
+    
+    desambiguar_eleccion_de_privacidad(partida)
+    
+    new_partida = Partida(nombre_partida=partida.nombre_partida, nombre_creador=partida.nombre_creador, privada=partida.privada, contraseña=partida.contraseña)
     db.add(new_partida)
     db.flush()
     new_jugador = Jugador(nombre=partida.nombre_creador, es_creador=True, partida_id=new_partida.id)
     db.add(new_jugador)
     db.commit()
     return new_partida
+
+def desambiguar_eleccion_de_privacidad(partida: PartidaData):
+    if (partida.privada == False or partida.contraseña == None or partida.contraseña == ""):
+        partida.contraseña = ""
+        partida.privada = False
+
 
 def iniciar_partida(db: Session, id: int):
     partida = db.query(Partida).filter(Partida.id == id).first()
@@ -62,21 +72,6 @@ def iniciar_partida(db: Session, id: int):
         jugador.orden = partida.jugadores.index(jugador)
     db.commit()
 
-def get_cartas_figura_jugador(db: Session, partida_id, jugador_id):
-    
-    partida = get_partida_details(db, partida_id) # raises ResourceNotFoundError if not found
-    
-    if (not partida):
-        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
-    
-    jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
-    if (not jugador):
-        raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
-    
-    mano_del_jugador = [figura_revelada for figura_revelada in jugador.mazo_cartas_de_figura if figura_revelada.revelada]
-
-    return mano_del_jugador
-
 def _repartir_cartas_figura(db: Session, partida, n_cartas_por_jugador=22, n_cartas_reveladas=N_FIGURAS_REVELADAS):
     for jugador in partida.jugadores:
         for i in range(n_cartas_por_jugador-n_cartas_reveladas):
@@ -93,20 +88,11 @@ def _repartir_cartas_movimiento(db: Session, partida, n_cartas_por_jugador=3):
             new_carta = CartaMovimiento(jugador_id=jugador.id_jugador)
             db.add(new_carta)
 
-def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
+def abandonar_partida(db: Session, partida_id: int, jugador_id: int)->bool:
     '''
-    Pasa el turno y elimina al jugador de la partida.
-    
-    Si hay un ganador,
-    - Elimina la partida.
-    - Devuelve {"hay_ganador" : {"id_ganador" : id_ganador, "nombre_ganador" : nombre_ganador}, "partida_cancelada" : None}
-    
-    Si el creador abandona la partida antes de iniciarla,
-    - Elimina la partida.
-    - Devuelve {"partida_cancelada" : { "id" : id_partida }, "hay_ganador" : None}
-    
-    Si no,
-    - Devuelve {"hay_ganador" : None, "partida_cancelada" : None}
+    Elimina al jugador de la partida.
+
+    :return: True si la partida fue cancelada, False en caso contrario.
     '''
     partida = db.query(Partida).filter(Partida.id == partida_id).first()
     if (not partida):
@@ -117,55 +103,59 @@ def abandonar_partida(db: Session, partida_id: int, jugador_id: int):
     if (not jugador):
         raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
     
-    if (partida.iniciada and jugador == partida.jugador_del_turno):
-        terminar_turno(db, partida_id, jugador_id)
-    
     partida.jugadores.remove(jugador)
     db.delete(jugador)
     db.commit()
 
-    return {**hay_ganador(db, partida), **__partida_cancelada(db, partida, jugador, id_creador)}
+    return not partida.iniciada and jugador.id_jugador == id_creador
 
-def __partida_cancelada(db: Session, partida: Partida, jugador: Jugador, id_creador: int):
-    if (not partida.iniciada and jugador.id_jugador == id_creador):
-        db.delete(partida)
-        db.commit()
-        return {"partida_cancelada" : {"id" : partida.id}}
-    return {"partida_cancelada" : None}
-
-def hay_ganador(db: Session, partida: Partida = None):
-    '''
-    En la partida pasada por parametro, verifica si hay un ganador y lo
-    devuelve.
-
-    Un jugador gana si cumple alguna de las siguientes condiciones en orden
-    de prioridad:
-
-    1. Se queda en su turno sin cartas de figura en su maso.
-    2. Es el único jugador en la partida.
-
-    Retorna un diccionario con la siguiente estructura:
-    - Si hay un ganador:
-        {"hay_ganador" : {"id_ganador" : id_ganador, "nombre_ganador" : nombre_ganador}}
-    - Si no hay un ganador:
-        {"hay_ganador" : None}
-    '''
-    db.refresh(partida)
-    id_ganador = None
-    nombre_ganador = None
-    if (partida.iniciada):
-        if (partida.jugador_del_turno.numero_de_cartas_figura == 0):
-            id_ganador = partida.jugador_del_turno.id_jugador
-            nombre_ganador = partida.jugador_del_turno.nombre
-        elif (len(partida.jugadores) == 1):
-            id_ganador = partida.jugadores[0].id_jugador
-            nombre_ganador = partida.jugadores[0].nombre
+def es_su_turno(db: Session, partida_id: int, jugador_id: int)->bool:
+    """
+    Devuelve True si es el turno del jugador en la partida, False en caso contrario.
+    """
+    partida = db.query(Partida).filter(Partida.id == partida_id).first()
+    if (not partida):
+        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
     
-    # Aca pueden ir mas verificaciones para determinar si hay un ganador
+    jugador = db.query(Jugador).filter((Jugador.partida_id == partida_id) & (Jugador.id_jugador == jugador_id)).first()
+    if (not jugador):
+        raise ResourceNotFoundError(f"Jugador con ID {jugador_id} no encontrado en la partida con ID {partida_id}.")
+    
+    return partida.iniciada and jugador.id == partida.jugador_del_turno.id
 
-    if (id_ganador is not None):
-        db.delete(partida)  
-        db.commit()
-        return {"hay_ganador" : {"id_ganador" : id_ganador, "nombre_ganador" : nombre_ganador}}
+def determinar_ganador_por_abandono(db: Session,partida_id: int, jugador_id: int):
+    """
+    Si hay dos jugadores en la partida, devuelve el nombre e id del jugador con id distinto 
+    al pasado por parametro.
+    
+    Retorna 
+        Si habra un ganador: {'ganador' : {'id' : id_ganador, 'nombre' : nombre_ganador}}
+        Si no habra un ganador: {'ganador' : None}
+    """
+    partida = db.get(Partida, partida_id)
+    if (not partida):
+        raise ResourceNotFoundError(f"Partida con ID {partida_id} no encontrada.")
+    if (partida.iniciada and len(partida.jugadores) == 2):
+        nombre_ganador, id_ganador = PartidaRepo().get_otro_jugador(partida_id, jugador_id)
+        return {'ganador' : {'id' : id_ganador, 'nombre' : nombre_ganador}}
+    return {'ganador' : None}
 
-    return {"hay_ganador" : None}
+def eliminar_partida(db: Session, partida):
+    '''
+    Elimina la partida de la base de datos.
+    
+    :param partida: Partida o id de la partida a eliminar.
+    '''
+    if not isinstance(partida, Partida):
+        partida = db.get(Partida, partida)
+    temporizadores_turno.cancelar_temporizador_del_turno(partida.id)
+    db.delete(partida)
+    db.commit()
+    
+
+def validar_contraseña(contraseña,partida_id):
+    partida = PartidaRepo.get_by_id(partida_id)
+    if (partida.privada and partida.contraseña != contraseña):
+        raise ForbiddenError("La contraseña provista es incorrecta")
+    
+    return

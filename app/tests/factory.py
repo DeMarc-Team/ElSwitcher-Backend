@@ -1,11 +1,39 @@
 from sqlalchemy.orm import Session
-from models import (Partida,
+from services.TemporizadorTurno import TemporizadorTurno
+import asyncio
+from db.models import (Partida,
                     Jugador,
                     CartaFigura,
                     CartaMovimiento,
                     MovimientoParcial
                     )
-from constantes_juego import N_CARTAS_FIGURA_TOTALES
+from constantes_juego import N_CARTAS_FIGURA_TOTALES, SEGUNDOS_TEMPORIZADOR_TURNO
+
+MOCK_GMT_TIME_ZT = "2024-11-03T15:30:00Z"
+
+class TemporizadorTurnoToTest(TemporizadorTurno):
+    def limpiar_temporizadores(self):
+        """
+        Cancela todos los temporizadores activos.
+        """
+        for partida_id, tarea in list(self.temporizadores.items()):
+            tarea.cancel()
+        self.temporizadores.clear()
+        print("Todos los temporizadores han sido cancelados.")
+        
+    async def wait_for_all_tasks(self):
+        """
+        Espera a que todos los temporizadores activos y las tareas pendientes terminen.
+        """
+        async with self.lock:
+            while self.temporizadores:
+                await asyncio.sleep(1)
+            tareas_pendientes = [t for t in asyncio.all_tasks() if t is not asyncio.current_task() and not t.cancelled()]
+            if tareas_pendientes:
+                await asyncio.gather(*tareas_pendientes)
+
+        
+test_temporizadores_turno = TemporizadorTurnoToTest()
 
 def crear_partida(db: Session, nombre_partida: str = "Partida", nombre_creador: str = "Creador") -> Partida:
     '''
@@ -22,6 +50,7 @@ def crear_partida(db: Session, nombre_partida: str = "Partida", nombre_creador: 
     partida = Partida(nombre_partida=nombre_partida,
                             nombre_creador=nombre_creador,
                             iniciada=False,
+                            privada=False,
                             tablero='[[2, 1, 3, 4, 2, 3], [4, 2, 1, 1, 3, 3], [2, 1, 3, 2, 3, 4], [4, 1, 1, 2, 2, 4], [1, 3, 1, 2, 1, 3], [2, 3, 4, 4, 4, 4]]')
     creador = Jugador(nombre=nombre_creador,
                       partidas=partida,
@@ -35,6 +64,48 @@ def crear_partida(db: Session, nombre_partida: str = "Partida", nombre_creador: 
     db.commit()
     return partida, creador
 
+def crear_partida_privada(db: Session, nombre_partida: str = "Partida", nombre_creador: str = "Creador") -> Partida:
+    '''
+    Función para crear una partida privada.
+
+    Devuelve la partida creada y el jugador creador.
+
+    Valores por defecto:
+    - nombre_partida = Partida
+    - nombre_creador = Creador
+    - iniciada = False
+    - tablero = '[[2, 1, 3, 4, 2, 3], [4, 2, 1, 1, 3, 3], [2, 1, 3, 2, 3, 4], [4, 1, 1, 2, 2, 4], [1, 3, 1, 2, 1, 3], [2, 3, 4, 4, 4, 4]]'
+    '''
+    partida = Partida(nombre_partida=nombre_partida,
+                            nombre_creador=nombre_creador,
+                            iniciada=False,
+                            privada=True,
+                            contraseña="ZXN0ZV9lc191bl9lYXN0ZXJfZWdnCg==",
+                            tablero='[[2, 1, 3, 4, 2, 3], [4, 2, 1, 1, 3, 3], [2, 1, 3, 2, 3, 4], [4, 1, 1, 2, 2, 4], [1, 3, 1, 2, 1, 3], [2, 3, 4, 4, 4, 4]]')
+                            
+    creador = Jugador(nombre=nombre_creador,
+                      partidas=partida,
+                      es_creador=True,
+                      orden=0)
+    partida.jugadores.append(creador)
+    
+    db.add(creador)
+    db.add(partida)
+
+    db.commit()
+    return partida, creador
+
+
+def prohibir_color(db: Session, partida: Partida, color: int):
+    '''
+    Procedimiento para prohibir un color en una partida.
+    '''
+    assert partida.iniciada == True, "La partida no ha sido iniciada"
+    assert color != partida.color_prohibido, "El color ya está prohibido"
+    assert partida.numero_de_jugadores > 1, "La partida debe tener al menos 2 jugadores para poder prohibir un color"
+    
+    partida.color_prohibido = color
+    db.commit()
 
 def unir_jugadores(db: Session, partida: Partida , numero_de_jugadores: int = 1) -> Jugador:
     '''
@@ -83,6 +154,8 @@ def iniciar_partida(db: Session, partida: Partida) -> Partida:
     assert len(partida.jugadores) <= 4, "La partida no puede tener más de 4 jugadores"
 
     partida.iniciada = True
+    partida.inicio_turno = MOCK_GMT_TIME_ZT
+    partida.duracion_turno = SEGUNDOS_TEMPORIZADOR_TURNO
 
     numero_de_cartas_por_jugador = int(N_CARTAS_FIGURA_TOTALES/len(partida.jugadores))
     __repartir_cartas_figura(db, partida, 3, numero_de_cartas_por_jugador)
@@ -166,6 +239,19 @@ def siguiente_turno(db: Session, partida: Partida):
 
     db.commit()
 
+def get_jugador_sin_turno(db: Session, partida: Partida):
+    '''
+    Función para obtener un jugador sin turno de una partida.
+    '''
+    
+    assert partida.iniciada == True, "La partida no ha sido iniciada"
+    assert len(partida.jugadores) > 1, "La partida debe tener al menos 2 jugadores para poder obtener el jugador sin turno"
+    
+    id_jugador_del_turno = partida.jugador_del_turno.id
+    for jugador in partida.jugadores:
+        if jugador.id != id_jugador_del_turno:
+            return jugador
+
 def consumir_carta_movimiento(db: Session, jugador: Jugador, mov: str, cantidad=1):
     '''
     Procedimiento para eliminar los primeros "cantidad" de movimientos de la mano del jugador que son del tipo "mov".
@@ -216,8 +302,8 @@ def establecer_tablero(db: Session, partida: Partida, tablero: list[list[int]]):
     
     db.commit()
     
-def cartear_figuras(db: Session, jugador: Jugador, figs: list[str]):
-    assert len(figs) > 0, "Se requiere al menos una carta."
+def cartear_figuras(db: Session, jugador: Jugador, figs: list[str], primera_figura_bloqueada=False):
+    assert len(figs) >= 0, "Se requiere una cantidad no negativa de cartas."
     assert len(figs) <= 3, "Se puede cartar una única mano de figuras (3 cartas)."
     
     figuras_reveladas = [figura for figura in jugador.mazo_cartas_de_figura if figura.revelada]
@@ -227,6 +313,10 @@ def cartear_figuras(db: Session, jugador: Jugador, figs: list[str]):
         db.commit()
     
     nuevas_figuras = [CartaFigura(figura=fig) for fig in figs]
+    
+    if (len(figs) != 0 and primera_figura_bloqueada):
+        nuevas_figuras[0].bloqueada = True
+        jugador.bloqueado = True
     
     jugador.mazo_cartas_de_figura.extend(nuevas_figuras)
     

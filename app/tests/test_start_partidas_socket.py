@@ -1,9 +1,9 @@
 import pytest
 import mock
-from tests_setup import client
+
 from websockets_manager.ws_partidas_manager import ws_partidas_manager, WsMessage, MessageType
 
-def test_start_partidas_socket():
+def test_start_partidas_socket(client):
     """
     Test que prueba el establecimiento y almacenamiento de una conexion por medio de websockets orientada a cada partida en específico.
     """

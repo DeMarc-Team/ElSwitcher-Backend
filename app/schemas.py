@@ -1,32 +1,39 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
+from typing_extensions import Annotated
 
 class PartidaData(BaseModel):
     nombre_partida: str
     nombre_creador: str
+    privada: bool
+    contraseña: str | None = None
 
-class PartidaDetails(PartidaData):
+class PartidaDetails(BaseModel):
     id: int
     nombre_partida: str
     nombre_creador: str
     id_creador: int
     iniciada: bool
 
-class GetPartida(PartidaData): #Listar partidas
+class GetPartida(BaseModel): #Listar partidas
     id: int
     nombre_partida: str
     nombre_creador: str
     id_creador: int
     iniciada: bool
+    privada: bool
     numero_de_jugadores: int
 
-class PartidaDetails2(PartidaData):
+class PartidaDetails2(BaseModel):
     id: int
     nombre_partida: str
     nombre_creador: str
     id_creador: int | None
     iniciada: bool
     espacios_disponibles: int
-    #jugadores: list[jugador] = []
+
+class FromUnirsePartida(BaseModel):
+    nombre: str
+    contraseña: str = ""
 
 class JugadorData(BaseModel):
     nombre: str
@@ -54,7 +61,7 @@ class TurnoDetails(BaseModel):
 
 class CartaFiguraData(BaseModel):
     figura: str
-    revelada: bool
+    bloqueada: bool
 
 class CartaMovimientoData(BaseModel):
     movimiento: str
@@ -79,3 +86,23 @@ class CompletarFiguraData(BaseModel):
     figura: list[Casilla]
     carta_fig: str
     
+class BloquearFiguraData(BaseModel):
+    id_jugador_bloqueado: int
+    figura: list[Casilla]
+    carta_fig: str
+
+class ResponseCronometro(BaseModel):
+    inicio: str
+    duracion: int
+
+class RespuestaColorProhibido(BaseModel):
+    color: Annotated[int, Field(ge=1, le=4)] | None
+    
+    @field_validator("color", mode="before")
+    def validate_color(cls, value):
+        if isinstance(value,int) and (1 <= value <= 4):
+            return value
+        return None
+
+class PostMessage(BaseModel):
+    message: str

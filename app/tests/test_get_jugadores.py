@@ -1,13 +1,12 @@
-from tests_setup import client
 from factory import crear_partida, unir_jugadores
 
-def test_get_jugadores_200(test_db):
+def test_get_jugadores_200(client, test_db):
     '''Test para obtener los jugadores de una partida existente.'''
     partida, _ = crear_partida(db=test_db,nombre_partida="nombre_partida", nombre_creador="Creador")
     unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=2)
     
     # Llamamos al endpoint para obtener jugadores de la partida con ID 1 (existente)
-    response = client.get(f"partidas/1/jugadores")
+    response = client.get(test_db, f"partidas/1/jugadores")
     print(f"Response: {response.json()}")
 
     # Verificamos que la respuesta sea la esperada
@@ -20,10 +19,10 @@ def test_get_jugadores_200(test_db):
 
 # ----------------------------------------------------------------
 
-def test_get_jugadores_404(test_db):
+def test_get_jugadores_404(client, test_db):
     '''Test para obtener los jugadores de una partida que no existe.'''
     id_partida = 1
-    response = client.get(f"partidas/{id_partida}/jugadores")
+    response = client.get(test_db, f"partidas/{id_partida}/jugadores")
     print(f"Response: {response.json()}")
     
     assert response.status_code == 404, f"Fallo: Se esperaba el estado 404, pero se obtuvo {response.status_code}"

@@ -1,10 +1,13 @@
 import re
 from sqlalchemy import inspect
-from database import Base
+from db.database import Base
 from sqlalchemy.orm import Session
 import random
 from itertools import product
-#TODO: Separar en clases los diferentes tipos de tools (si lo hacemos con capturar,... el import seria mas lindo)
+from collections import Counter
+import json
+#TODO: Separar en clases ESTATICAS los diferentes tipos de tools (si lo hacemos con capturar,... el import seria mas lindo)
+# Ya hay una clase creada pero deberia ser estatica
 
 #TODO: Que se fijen todos los valores menos dos al azar y que esos varien solamente n veces?
 # (pseudoTesting de a pares)
@@ -29,21 +32,14 @@ def seleccionar_parametros(parametros:list, numero_a_seleccionar:int=None)->list
 
 # Para la base de datos:
 
-def get_all_tables(session: Session, hacer_commit:bool = False) -> list:
+def get_all_tables(session: Session) -> list:
     '''
     Devuelve una lista con todas las instancias de todas las tablas de la base de datos.
     Se puede pasar directo a capturar_metadata, capturar_str o capturar_metadata_str para capturar toda la db.
-    
-    IMPORTANTE: Se hace commit de la db si no se aclara lo contrario.
     '''
-
-    if hacer_commit:
-        session.commit()
-
     all_instances = []
     
-    # Iterar sobre las clases mapeadas en la metadata de Base
-    for mapper in Base.registry.mappers:
+    for mapper in Base.registry.mappers: # Iterar sobre las clases mapeadas en la metadata de Base
         instances = session.query(mapper.class_).all()
         all_instances.extend(instances)
     
@@ -73,7 +69,7 @@ def capturar_metadata(objetos: list) -> dict:
             # Verifica si la columna es una clave foránea
             if column.foreign_keys:
                 # Si es una ForeignKey, maneja de manera especial si es necesario
-                metadata[obj.__tablename__, obj.id][f'{column_name} (FK)'] = f'{column_value}'
+                metadata[obj.__tablename__, obj.id][f'{column_name} (FK)'] = column_value
             else:
                 # Agrega la columna y su valor al diccionario de metadata
                 metadata[obj.__tablename__, obj.id][column_name] = column_value
@@ -278,6 +274,63 @@ def verificar_tuplas(entrada:list, validos:list)->bool:
         return False
     return True
 
+def verificar_cantidad_tuplas(entrada:list, validos:list)->bool:
+    """
+    Recibe un array de entrada del estilo [(str, ?), (str, ?, ?), ...]
+    y un array de strings validos del estilo [('str',cantidad), ('str',cantidad), ...]
+    Devuelve True si todas las entrada tienen la cantidad esperada de strings en validos 
+    y todos los strings en validos estan en entrada.
+    """
+    # Contar las ocurrencias de cada clave en entrada
+    contador_entrada = Counter(tupla[0] for tupla in entrada)
+    set_validos = set(tupla[0] for tupla in validos)
+
+    # Verificar si todas las claves válidas están presentes en entrada
+    if not set_validos.issubset(contador_entrada.keys()):
+        diferencia = set_validos - set(contador_entrada.keys())
+        print(f'Error: Las claves {diferencia} no son válidas.')
+        return False
+    
+    # Verificar si la cantidad de claves en entrada coincide con la cantidad esperada
+    for clave, cantidad in validos:
+        if contador_entrada[clave] != cantidad:
+            print(f'Error: La cantidad de claves {clave} es {contador_entrada[clave]}, se esperaba {cantidad}.')
+            return False
+            
+    return True
+    
+def ignorar_valores_de_campos_laxos(modificaciones: dict, campos_laxos: dict):
+    '''
+    Marca con 'ignoradas' los cambios en los campos especificados en 'campos_laxos' de las tablas especificadas en 
+    'modificaciones'.
+    Ejemplo:
+    > modificaciones = {('partidas', 1): [('duracion_turno', 0, 60), ('iniciada', False, True)]}
+    > campos_laxos = {'partidas': ['duracion_turno']}
+    > ignorar_valores_de_campos_laxos(modificaciones, campos_laxos)
+    > modificaciones == {('partidas', 1): [('duracion_turno', 'ignorado'), ('iniciada', False, True)]}
+    '''
+    for tabla_id, cambios in modificaciones.items():
+        tabla_nombre = tabla_id[0]
+        if tabla_nombre in campos_laxos:
+            for i, cambio in enumerate(cambios):
+                for campo in campos_laxos[tabla_nombre]:
+                    if cambio[0] == campo:
+                        cambios[i] = (cambio[0], 'ignorado')
+                        break
+
+def eliminar_tablas_laxas(modificaciones: dict, tablas_laxas: list):
+    '''
+    Elimina las tablas especificadas en 'tablas_laxas' de 'modificaciones'.
+    Ejemplo:
+    > modificaciones = {('partidas', 1): [('duracion_turno', 0, 60), ('iniciada', False, True)]}
+    > tablas_laxas = ['partidas']
+    > eliminar_tablas_laxas(modificaciones, tablas_laxas)
+    > modificaciones == {}
+    '''
+    claves_a_eliminar = [tabla_id for tabla_id in modificaciones if tabla_id[0] in tablas_laxas]
+    for tabla_id in claves_a_eliminar:
+        modificaciones.pop(tabla_id)
+        
 #TODO: Agregar en las de especificar que se pueda pasar para cada str un numero de veces que
 # se debe repetir (incluyendo 0). Usar from collections import Counter
 def verificar_diccionarios(entrada:dict, validos:dict)->bool:
@@ -300,3 +353,106 @@ def verificar_diccionarios(entrada:dict, validos:dict)->bool:
             return False
     return True
 
+
+from websockets_manager.ws_home_manager import MessageType as MThome, ws_home_manager, WsMessage as WsHomeMessage
+from websockets_manager.ws_partidas_manager import MessageType as MTpartidas, ws_partidas_manager, WsMessage as WsPartidasMessage
+from inspect import signature
+from unittest.mock import patch, AsyncMock
+from contextlib import ExitStack
+class WSManagerTester:
+    def __init__(self):
+        self.ws_home_manager_path = 'websockets_manager.ws_home_manager.ws_home_manager'
+        self.ws_partidas_manager_path = 'websockets_manager.ws_partidas_manager.ws_partidas_manager'
+
+    def inspect_mock_calls(self, mock):
+        # Obtener la firma original de la función mockeada
+        sig = signature(mock._mock_wraps) if mock._mock_wraps else None
+        llamadas = []
+        for call in mock.call_args_list:
+            parametros_llamada = {}
+            
+            # Mapear args y kwargs
+            if sig:
+                bound_args = sig.bind(*call.args, **call.kwargs)
+                bound_args.apply_defaults()  # Completa con valores predeterminados si los hay
+                parametros_llamada = {k: v for k, v in bound_args.arguments.items()}
+            else:
+                # Si no hay firma, se usan las posiciones y kwargs
+                parametros_llamada = {f"arg_{i}": arg for i, arg in enumerate(call.args)}
+                parametros_llamada.update(call.kwargs)
+            llamadas.append(parametros_llamada)
+        return llamadas
+
+    def test_ws_factory(self, default_value, assert_func):
+        # Generar diccionario automáticamente
+        home_ws = {message_type.value: default_value for message_type in MThome}
+        partidas_ws = {message_type.value: default_value for message_type in MTpartidas}
+        assert len(set(home_ws.keys()).intersection(partidas_ws.keys())) == 0, \
+            "Los diccionarios de mensajes de home y partidas no deben tener claves en común."
+        test_ws = {**home_ws, **partidas_ws}
+        
+        with ExitStack() as stack:
+            mocks = {}
+            for message_type in MThome:
+                original_func = getattr(ws_home_manager, f'send_{message_type.value}', AsyncMock)
+                mocks[message_type.value] = stack.enter_context(patch(f'{self.ws_home_manager_path}.send_{message_type.value}', wraps=original_func))
+            
+            for message_type in MTpartidas:
+                original_func = getattr(ws_partidas_manager, f'send_{message_type.value}', AsyncMock)
+                mocks[message_type.value] = stack.enter_context(patch(f'{self.ws_partidas_manager_path}.send_{message_type.value}', wraps=original_func))
+
+            yield test_ws
+            print(test_ws)
+            
+            assert_func(test_ws, mocks)
+    
+    def test_broadcast_factory(self, default_value, assert_func):
+        test_ws = {
+            'home': default_value,
+            'partidas': default_value
+        }
+        with ExitStack() as stack:
+            mocks = {}
+            
+            original_func = getattr(ws_home_manager, 'broadcast', AsyncMock)
+            mocks['home'] = stack.enter_context(patch(f'{self.ws_home_manager_path}.broadcast', wraps=original_func))
+            
+            original_func = getattr(ws_partidas_manager, 'broadcast', AsyncMock)
+            mocks['partidas'] = stack.enter_context(patch(f'{self.ws_partidas_manager_path}.broadcast', wraps=original_func))
+                
+            yield test_ws
+            
+            assert_func(test_ws, mocks)
+    
+    def parse_broadcast_calls(self, calls):
+        '''
+        Recibe una lista de llamadas a un mock del tipo:
+        
+        [{'partida_id': int, 'message': WsMessage(action=<MessageType.ACCION: 'accion'>, 
+        data="{'campo1': any, 'campo2': any}")}]
+        
+        y devuelve una lista de diccionarios con los campos de las llamadas limpios y 
+        convertidos a diccionarios del tipo:
+        
+        [{'partida_id': int, 'message': {'action': 'accion', 'data': {'campo1': any, 'campo2': any}}
+        '''
+        parsed_calls = []
+        
+        for call in calls:
+            # Obtener datos
+            partida_id = call.get('partida_id', None)
+            action = call['message'].action.value
+            data = call['message'].data
+            if data is not None:
+                data = json.loads(data)
+            
+            # Crear diccionario
+            parsed_call = {}
+            if partida_id is not None:
+                parsed_call['partida_id'] = partida_id
+            parsed_call['message'] = {'action': action, 'data': data}
+            
+            parsed_calls.append(parsed_call)
+        
+        return parsed_calls
+        

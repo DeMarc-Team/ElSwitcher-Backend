@@ -1,11 +1,10 @@
-from database import Base
-from exceptions import ResourceNotFoundError
-
 from sqlalchemy import Integer, Boolean, String, ForeignKey
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.ext.orderinglist import ordering_list
-from figuras import SET_DE_CARTAS
+
+from services.figuras import SET_DE_CARTAS
+from db.database import Base
 
 # JUGADOR ------------------------------------------------------
 class Jugador(Base):
@@ -24,6 +23,7 @@ class Jugador(Base):
         'CartaFigura', back_populates='poseida_por', cascade="all, delete-orphan")
     mano_movimientos: Mapped[list['CartaMovimiento']] = relationship(
         'CartaMovimiento', back_populates='movimientos_de', cascade="all, delete-orphan")
+    bloqueado: Mapped[Boolean] = mapped_column(Boolean, default=False)
     
     @hybrid_property
     def numero_de_cartas_figura(self) -> int:
@@ -32,6 +32,10 @@ class Jugador(Base):
     @hybrid_property
     def id(self) -> int:
         return self.id_jugador
+    
+    @hybrid_property
+    def mano_figuras(self) -> list['CartaFigura']:
+        return [carta for carta in self.mazo_cartas_de_figura if carta.revelada]
         
     def __str__(self):  # pragma: no cover
         return (f"<Jugador(id_jugador={self.id_jugador}, nombre={self.nombre}, "
@@ -69,6 +73,9 @@ class Partida(Base):
     jugadores: Mapped[list[Jugador]] = relationship(
         'Jugador', back_populates='partidas', cascade="all", order_by='Jugador.orden', collection_class=ordering_list('orden'))
     
+    privada = mapped_column(Boolean, nullable=False, default=False)
+    contraseña = mapped_column(String(255), nullable=False, default='')
+
     @hybrid_property
     def numero_de_jugadores(self) -> int:
         return len(self.jugadores)
@@ -93,9 +100,10 @@ class Partida(Base):
         # Retorna el jugador en la primera posición
         return self.jugadores[0].id_jugador
 
-
+    inicio_turno = mapped_column(String, nullable=False, default='0')
+    duracion_turno = mapped_column(Integer, nullable=False, default=0)
     tablero = mapped_column(String, nullable=False, default=random_tablero)
-
+    color_prohibido = mapped_column(Integer, nullable=False , default=0)
     movimientos_parciales = relationship('MovimientoParcial', order_by='MovimientoParcial.orden')
 
     def __str__(self):  # pragma: no cover
@@ -119,6 +127,7 @@ class CartaFigura(Base):
     figura: Mapped[str] = mapped_column(
         String, nullable=False, default=lambda: CartaFigura.random_figura())
     revelada: Mapped[Boolean] = mapped_column(Boolean, default=True)
+    bloqueada: Mapped[Boolean] = mapped_column(Boolean, default=False)
 
     # Las relaciones necesitan que exista además una foreign key
     poseida_por = relationship(
@@ -140,7 +149,7 @@ class CartaMovimiento(Base):
 
     def random_movimiento():
         import random
-        from movimientos import SET_DE_MOVIMIENTOS
+        from services.movimientos import SET_DE_MOVIMIENTOS
         return random.choice([carta_mov.movimiento for carta_mov in SET_DE_MOVIMIENTOS])
 
     movimiento: Mapped[str] = mapped_column(

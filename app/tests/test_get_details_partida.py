@@ -1,7 +1,6 @@
-from tests_setup import client
 from factory import crear_partida, unir_jugadores, iniciar_partida, abandonar_partida
 
-def test_get_details_partida_sin_creador_200(test_db):
+def test_get_details_partida_sin_creador_200(client, test_db):
     '''
     Elimina al creador de una partida iniciada y prueba que
     se pueda obtener los detalles de la partida y sean correctos.
@@ -11,7 +10,7 @@ def test_get_details_partida_sin_creador_200(test_db):
     iniciar_partida(test_db, partida)
     abandonar_partida(test_db, partida, creador)
    
-    response = client.get(f"partidas/{partida.id}")
+    response = client.get(test_db, f"partidas/{partida.id}")
     print(f"Response: {response.json()}")
     assert response.status_code == 200, f"Fallo: Se esperaba el estado 200, pero se obtuvo {response.status_code}"
     respuesta_esperada = {'nombre_partida': 'Partida',
@@ -23,11 +22,11 @@ def test_get_details_partida_sin_creador_200(test_db):
 
 # ----------------------------------------------------------------
 
-def test_get_details_partida_200(test_db):
+def test_get_details_partida_200(client, test_db):
     partida, _ = crear_partida(db=test_db,nombre_partida="partida_details", nombre_creador="Creador")
     unir_jugadores(db=test_db, partida=partida, numero_de_jugadores=1)
 
-    response = client.get("partidas/1") 
+    response = client.get(test_db, "partidas/1") 
     print(f"Response: {response.json()}")
 
 
@@ -42,9 +41,9 @@ def test_get_details_partida_200(test_db):
 
 # ----------------------------------------------------------------
 
-def test_get_details_partida_404(test_db):
+def test_get_details_partida_404(client, test_db):
     id_partida = 1
-    response = client.get(f"partidas/{id_partida}") 
+    response = client.get(test_db, f"partidas/{id_partida}") 
     print(f"Response: {response.json()}")
     
     

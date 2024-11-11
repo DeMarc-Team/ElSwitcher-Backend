@@ -2,11 +2,16 @@ from fastapi import WebSocket
 from pydantic import BaseModel
 from enum import Enum
 from uuid import uuid4
+from devtools.check_types import safe_type_check
+import logging
+import json
 
 class MessageType(Enum):
     ACTUALIZAR_PARTIDAS = "actualizar_partidas"
+    ACTUALIZAR_PARTIDAS_ACTIVAS = "actualizar_partidas_activas"
 
 ACTUALIZAR_PARTIDAS = MessageType.ACTUALIZAR_PARTIDAS.value
+ACTUALIZAR_PARTIDAS_ACTIVAS = MessageType.ACTUALIZAR_PARTIDAS_ACTIVAS.value
 
 class WsMessage(BaseModel):
     action: MessageType
@@ -38,8 +43,17 @@ class HomeConnectionManager:
 
         # Aceptamos la conexion al final del todo, una vez que ya fue almacenada.
         await websocket.accept()
+        logging.info(f"Usuario conectado al home.")
 
         return user_id
+    
+    @safe_type_check
+    async def send_actualizar_partidas_activas(self, id_partida: int):
+        data = {
+            "id_partida": id_partida
+        }
+        mensaje = WsMessage(action=MessageType.ACTUALIZAR_PARTIDAS_ACTIVAS, data=json.dumps(data))
+        await self.broadcast(mensaje)
 
     async def send_actualizar_partidas(self):
         await self.broadcast(WsMessage(action=MessageType.ACTUALIZAR_PARTIDAS))
@@ -49,7 +63,12 @@ class HomeConnectionManager:
             await connection.send_text(message.json())
 
     def disconnect(self, user_id: int):
-        self.active_connections.pop(user_id)
+        if user_id in self.active_connections:
+            self.active_connections.pop(user_id)
+            logging.info(f"Usuario desconectado del home.")
+        else:
+            logging.warning(f"Desconexión fallida del home: Usuario {user_id} no encontrado.")
+
 
 
 ws_home_manager = HomeConnectionManager()
