@@ -3,6 +3,13 @@ from fastapi import FastAPI
 from routers import partidas, juego
 from fastapi.middleware.cors import CORSMiddleware
 from exceptions import ResourceNotFoundError, ForbiddenError, resource_not_found_handler, forbidden_error_handler
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    handlers=[logging.StreamHandler()]
+)
+
 
 app = FastAPI()
 
