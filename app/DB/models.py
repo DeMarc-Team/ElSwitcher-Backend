@@ -3,7 +3,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.ext.orderinglist import ordering_list
 
-from figuras import SET_DE_CARTAS
+from service.figuras import SET_DE_CARTAS
 from DB.database import Base
 
 # JUGADOR ------------------------------------------------------
@@ -149,7 +149,7 @@ class CartaMovimiento(Base):
 
     def random_movimiento():
         import random
-        from movimientos import SET_DE_MOVIMIENTOS
+        from service.movimientos import SET_DE_MOVIMIENTOS
         return random.choice([carta_mov.movimiento for carta_mov in SET_DE_MOVIMIENTOS])
 
     movimiento: Mapped[str] = mapped_column(

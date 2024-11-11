@@ -3,7 +3,7 @@ import service.turno as turno_service
 import service.partidas as partida_service
 from websockets_manager.ws_partidas_manager import ws_partidas_manager
 from websockets_manager.ws_home_manager import ws_home_manager
-from figuras import hallar_todas_las_figuras_en_tablero
+from service.figuras import hallar_todas_las_figuras_en_tablero
 import json
 
 from service.TemporizadorTurno import temporizadores_turno
